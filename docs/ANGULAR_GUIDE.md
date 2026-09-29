@@ -136,7 +136,7 @@ An `ApplicationConfig` is just `{ providers: [...] }`. Features are enabled with
 - `provideRouter(routes, withComponentInputBinding(), withViewTransitions())`:
   - `withComponentInputBinding()`: route params, query params and route `data` are bound to component inputs with the same name (no need to inject `ActivatedRoute` for simple cases).
   - `withViewTransitions()`: page changes are animated with the browser's View Transitions API; browsers without it simply skip the animation.
-- Later topics add `provideHttpClient()`, etc.
+- `provideHttpClient(withFetch(), withInterceptors(APP_INTERCEPTORS))`: makes `HttpClient` injectable, backed by the fetch API, with the functional interceptors from `core/http/` (see [5.9](#59-http--rxjs)).
 
 ### `app.routes.ts`
 
@@ -1118,6 +1118,151 @@ protected readonly loginForm = form(this.model, (path) => {
 - Every state is a signal: `loginForm.email().touched()`, `loginForm().valid()`, so zoneless refresh just works.
 - Rules are reactive (`valueOf()` re-runs a rule when the other field changes). Others: `disabled`, `hidden`, `readonly`, `validateAsync`.
 - `submit(form, action)` marks every field as touched and runs the action only when valid; errors returned by the action are shown on the fields.
+
+### 5.9 HTTP & RxJS
+
+Route: `/topics/09-http-rxjs`. `HttpClient`, functional interceptors and `withFetch()` are **stable**; `takeUntilDestroyed` and `toSignal` since v20. `httpResource` is **experimental** (since 19.2). The demos call the public [DummyJSON](https://dummyjson.com) API, so they need internet access; the specs use a fake backend.
+
+**Setup** (`app.config.ts`)
+
+```ts
+provideHttpClient(
+  withFetch(), // fetch API instead of XMLHttpRequest; no upload progress events
+  withInterceptors([authInterceptor, loggingInterceptor, errorInterceptor]),
+);
+```
+
+**Functional interceptors** (`src/app/core/http/`)
+
+```ts
+export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  if (!req.url.startsWith(inject(API_BASE_URL))) return next(req); // never leak the token
+  return next(req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }));
+};
+
+export const errorInterceptor: HttpInterceptorFn = (req, next) => {
+  const errors = inject(HttpErrors); // inject() now, not inside catchError
+  return next(req).pipe(
+    catchError((error: unknown) => {
+      if (error instanceof HttpErrorResponse && !req.context.get(SKIP_GLOBAL_ERROR)) {
+        errors.report(error);
+      }
+      return throwError(() => error); // the caller still gets it
+    }),
+  );
+};
+```
+
+- Requests are immutable: modify them with `req.clone(...)`.
+- Order: requests go through the array top to bottom, responses come back bottom to top.
+- `HttpContextToken` passes per-request options to interceptors (`SKIP_GLOBAL_ERROR` here).
+- The logging interceptor uses `finalize()`, which also runs when a request is cancelled (unsubscribed).
+- Legacy: class interceptors (`implements HttpInterceptor`) registered with the `HTTP_INTERCEPTORS` multi-provider; they need `withInterceptorsFromDi()`.
+
+**Typed API service**
+
+```ts
+@Injectable({ providedIn: 'root' })
+export class ProductsApi {
+  private readonly http = inject(HttpClient);
+  private readonly baseUrl = inject(API_BASE_URL); // InjectionToken, easy to override
+
+  list(limit: number): Observable<Product[]> {
+    return this.http
+      .get<ProductPage>(`${this.baseUrl}/products`, { params: { limit } })
+      .pipe(map((page) => page.products));
+  }
+}
+```
+
+- `get<T>()` is a type assertion, not validation: the server can return anything.
+- `HttpClient` Observables are **cold** (nothing is sent until you subscribe; each subscription sends a new request) and complete after one response.
+
+**RxJS essentials**
+
+| Operator                                         | Use it for                                                             |
+| ------------------------------------------------ | ---------------------------------------------------------------------- |
+| `map`, `filter`                                  | transform / drop values                                                |
+| `debounceTime(ms)`                               | wait for the user to stop typing                                       |
+| `distinctUntilChanged()`                         | skip a value equal to the previous one                                 |
+| `switchMap`                                      | new value cancels the running inner request (search, route params)     |
+| `mergeMap`                                       | inner requests run in parallel                                         |
+| `concatMap`                                      | inner requests queue, in order                                         |
+| `exhaustMap`                                     | ignore new values while one is running (submit button)                 |
+| `catchError`                                     | turn an error into a value (or rethrow); put it inside the `switchMap` |
+| `retry({ count, delay })`                        | resubscribe after an error; only for requests safe to repeat           |
+| `shareReplay({ bufferSize: 1, refCount: true })` | share one execution between subscribers and replay the last value      |
+| `takeUntilDestroyed()`                           | unsubscribe when the component / service is destroyed                  |
+| `startWith`, `tap`, `finalize`                   | initial value, side effects, cleanup                                   |
+
+Observable vs Promise: a Promise is eager, single-valued and not cancellable. An Observable is lazy, can emit many values and is cancelled by unsubscribing (which aborts an HTTP request). Convert with `firstValueFrom(obs$)` (`toPromise()` is deprecated).
+
+**Search as you type**
+
+```ts
+state = toSignal(
+  this.query.valueChanges.pipe(
+    map((term) => term.trim()),
+    debounceTime(300),
+    distinctUntilChanged(),
+    switchMap((term) =>
+      this.api.search(term).pipe(
+        map((page): SearchState => ({ status: 'success', ...page })),
+        catchError(() => of<SearchState>({ status: 'error', message: '…' })),
+        startWith<SearchState>({ status: 'loading' }),
+      ),
+    ),
+  ),
+  { initialValue: { status: 'idle' } },
+);
+```
+
+- One union type for the UI state (`idle | loading | success | error`) instead of separate flags.
+- `catchError` inside the `switchMap`: an error that reaches the outer stream completes it and the search stops working.
+
+**`async` pipe vs `toSignal`**
+
+|                      | `obs$ \| async`            | `toSignal(obs$)`                           |
+| -------------------- | -------------------------- | ------------------------------------------ |
+| Subscribes           | when the template renders  | at creation (needs an injection context)   |
+| Before first value   | `null`                     | `undefined`, or `initialValue`             |
+| Unsubscribes         | when the view is destroyed | when the injector (component) is destroyed |
+| Usable in `computed` | no                         | yes                                        |
+| Typical in           | v19 and older codebases    | new code                                   |
+
+Both subscribe independently: two consumers of a cold HTTP Observable send two requests unless it goes through `shareReplay`.
+
+**Unsubscription rules**
+
+- No manual cleanup: `async` pipe, `toSignal`, `httpResource`, `resource`, outputs.
+- Manual `subscribe()` to something that never completes (`valueChanges`, `interval`, router events, a store): add `takeUntilDestroyed()` (in an injection context) or `takeUntilDestroyed(destroyRef)` (elsewhere).
+- HTTP completes after one response, so it does not leak, but unsubscribing on destroy still aborts a request the user no longer needs.
+- Never nest `subscribe` calls: use a flattening operator.
+
+**`httpResource` (experimental)**
+
+```ts
+productId = signal(1);
+product = httpResource<Product>(() => `${base}/products/${this.productId()}`);
+// product.value(), .status(), .isLoading(), .error(), .statusCode(), .headers(), .reload()
+```
+
+- It is `resource()` backed by `HttpClient`: interceptors and `provideHttpClientTesting` work. A new URL aborts the running request. Return `undefined` to skip the request.
+- For reads (GET) only. Use `HttpClient` for writes.
+- Options: `defaultValue`, `parse` (validate the response, e.g. with a schema), `equal`.
+- Read `error()` or `hasValue()` before `value()`: the value of a failed resource throws.
+- Testing: it marks the app as busy, so `fixture.whenStable()` waits for its request. Flush the request first (use `TestBed.tick()` to send it).
+
+**Testing HTTP** (details in the testing topic)
+
+```ts
+providers: [provideHttpClient(withInterceptors(APP_INTERCEPTORS)), provideHttpClientTesting()];
+const httpMock = TestBed.inject(HttpTestingController);
+const req = httpMock.expectOne(`${API}/products/1`);
+expect(req.request.headers.get('Authorization')).toBe('Bearer demo-token');
+req.flush(product); // or req.flush(body, { status: 404, statusText: 'Not Found' })
+httpMock.verify(); // in afterEach: no unexpected requests
+```
 
 ---
 
