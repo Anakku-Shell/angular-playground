@@ -38,6 +38,14 @@ ng build
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
+To serve that build locally (with the SPA fallback, so deep links survive a refresh):
+
+```bash
+npm run serve:prod
+```
+
+Then open `http://localhost:3000/`. See [Production build](docs/ANGULAR_GUIDE.md#7-production-build) in the guide.
+
 ## Running unit tests
 
 To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:

@@ -51,6 +51,7 @@ Defaults you get in v21 without asking: standalone components, **zoneless** chan
 | ----------------------------- | ------------------------------------------------------------------------------ |
 | `npm start` (`ng serve`)      | Dev server on `http://localhost:4200` with hot reload.                         |
 | `npm run build` (`ng build`)  | Production build into `dist/angular-playground/browser`.                       |
+| `npm run serve:prod`          | Serves that build on `http://localhost:3000` with the SPA fallback.            |
 | `npm test` (`ng test`)        | Runs the unit tests with Vitest (watch mode; add `--watch=false` for one run). |
 | `npm run test:coverage`       | One test run with a coverage report in `coverage/`.                            |
 | `npm run lint` (`ng lint`)    | ESLint over `src/**/*.ts` and `src/**/*.html`.                                 |
@@ -165,8 +166,6 @@ One project (`angular-playground`) with the targets `build`, `serve`, `test` and
 ---
 
 ## 3. Architecture
-
-> First draft. Sections marked _TODO_ are filled in by the matching topic.
 
 ### Standalone components and bootstrap
 
@@ -309,7 +308,43 @@ Each component keeps its files together (`name.ts`, `.html`, `.scss`, `.spec.ts`
 
 ## 4. TypeScript tips in Angular
 
-_TODO._
+**Let inference work, annotate the edges**
+
+- `signal(0)` is `WritableSignal<number>`, `computed(() => ...)` infers from the function, `input(false)` is `InputSignal<boolean>`. Do not repeat those types.
+- Pass the generic when the initial value is narrower than the real type: `signal<User | null>(null)`, `signal<string[]>([])` (otherwise `never[]`), `input<'sm' | 'lg'>('sm')`.
+- Annotate what other code depends on: public method return types, exported interfaces, `InjectionToken<T>`.
+
+**Strict mode in practice** (`strict` plus Angular's `strictTemplates`)
+
+- `strictNullChecks` is what you notice most: `input<string>()` is `string | undefined`, `viewChild('el')` is `ElementRef | undefined`. Use `input.required()` / `viewChild.required()` when the value is always there.
+- Templates are type-checked too: a wrong input type, a typo in a property or an unhandled `undefined` fails the build.
+- TypeScript does not narrow a function call: `if (this.user()) this.user().name` is an error, because the second call could return something else. Copy it to a `const` first. In templates, `@if (user(); as u)` or `@let u = user();` reads it once and gives a narrowed name.
+- The `!` in `@ViewChild('x') x!: ElementRef` is a promise to the compiler that Angular fills it later; signal queries do not need it.
+
+**Typed forms**
+
+- `new FormControl('')` is `FormControl<string | null>`, because `reset()` sets `null`. Add `{ nonNullable: true }` (or build with `inject(NonNullableFormBuilder)`) to get `string` and reset to the initial value.
+- `form.value` is `Partial<...>`: disabled controls are left out. `form.getRawValue()` includes them and has the full type.
+- `UntypedFormGroup` / `UntypedFormControl` are what `ng update` put in pre-v14 code; replace them when you touch it.
+
+**`inject()` typing**
+
+- `inject(ProductsApi)` returns `ProductsApi`; `inject(API_BASE_URL)` returns `string` because the token is `InjectionToken<string>`.
+- `inject(X, { optional: true })` returns `X | null`, so the compiler makes you handle the missing case.
+- A string or untyped token gives `any`; use an `InjectionToken<T>` instead.
+
+**`unknown` instead of `any`**
+
+- Errors are `unknown`: `catchError((error: unknown) => ...)`, then narrow with `error instanceof HttpErrorResponse`.
+- `http.get<Product>(url)` is a type _assertion_: nothing checks the JSON at runtime. For untrusted data, type it as `unknown` and validate (a type guard or a schema library).
+- `any` switches off checking for everything it touches and spreads; `unknown` forces a check before use. The lint config flags `any`.
+
+**Small tools that pay off**
+
+- `as const satisfies Record<string, readonly string[]>` keeps literal types while checking the shape (topics 03 and 04).
+- Discriminated unions model states better than several booleans: `{ status: 'loading' } | { status: 'ok'; data: T } | { status: 'error'; error: string }`, and `@switch (state.status)` narrows each branch.
+- `never` in a union forbids a combination: `TopicLoader` in `topics.registry.ts` accepts `loadComponent` or `loadChildren`, never both.
+- `readonly` on arrays and fields shared through signals makes accidental mutation a compile error (mutation would not notify the signal anyway).
 
 ---
 
@@ -1761,7 +1796,108 @@ Migration schematics (`ng generate @angular/core:<name>`) are listed in [5.13](#
 
 ## 7. Production build
 
-_TODO (Production build topic)._
+### `ng build`
+
+`npm run build` runs `ng build`, which uses the `production` configuration (`defaultConfiguration` in `angular.json`). `ng serve` defaults to `development`. The two differ like this (numbers from this playground):
+
+|                   | `production` (`ng build`)                                  | `development` (`ng build -c development`, `ng serve`) |
+| ----------------- | ---------------------------------------------------------- | ----------------------------------------------------- |
+| Optimization      | Minify, tree-shake, inline critical CSS, remove dev checks | Off                                                   |
+| Source maps       | Off                                                        | On (`.js.map`, `.css.map` next to every file)         |
+| File names        | Content hash (`main-EPYQJN26.js`)                          | Stable (`main.js`); the dev server handles caching    |
+| Licenses          | Extracted to `3rdpartylicenses.txt`                        | Not extracted                                         |
+| Budgets           | Checked                                                    | Not configured                                        |
+| Initial bundle    | 360 kB raw, ~102 kB transferred (gzip estimate)            | 1.43 MB raw                                           |
+| `browser/` folder | ~0.9 MB                                                    | ~6.9 MB                                               |
+| Dev-mode checks   | Off: NG0100 (`ExpressionChanged...`) is never thrown       | On                                                    |
+
+`isDevMode()` returns `false` in the optimized build. Code that must behave differently per build usually reads an injection token or an `environments/` file (`ng g environments` adds `fileReplacements` to the production configuration).
+
+To debug a production-only problem: `ng build -c development` gives the same output folder without optimization, and `"sourceMap": { "scripts": true, "hidden": true }` in the production configuration emits source maps without linking them from the bundles (for an error tracker, not for users).
+
+### What is in `dist/`
+
+```
+dist/angular-playground/
+├── 3rdpartylicenses.txt       licenses of the bundled npm packages
+├── prerendered-routes.json    empty: no SSR / prerendering here
+└── browser/                   ← the whole deployable app
+    ├── index.html             <base href="/">, inline critical CSS, modulepreload links
+    ├── main-EPYQJN26.js       entry point
+    ├── chunk-ENZGKP2A.js      shared code (Angular, RxJS...) split out by esbuild
+    ├── chunk-YISVJH5O.js      a lazy chunk (topic 13's LegacyModule)
+    ├── styles-62HNY7YO.css    global styles, loaded without blocking the first paint
+    └── favicon.ico            copied from public/
+```
+
+- **Content hashing** (`outputHashing: "all"`): the hash changes only when the file's content changes. The server can cache `*.js` / `*.css` forever (`Cache-Control: max-age=31536000, immutable`) and must not cache `index.html`, which is the only file whose name never changes and that points to the new hashes after a deploy.
+- **Initial vs lazy chunks.** The build output lists them separately. _Initial_ files are what `index.html` loads (`main` plus the chunks it imports, preloaded with `<link rel="modulepreload">`). _Lazy_ files load on demand:
+  - every `loadComponent` / `loadChildren` in the router: one chunk per topic here (`topic-page`, `07-routing-routes`, `legacy-module`...);
+  - every `@defer` block: `heavy-widget` (944 bytes) from topic 02 is fetched only when its trigger fires.
+- **Critical CSS.** `index.html` gets the CSS needed for the first paint inlined in a `<style>` tag (done by Beasties, hence `data-beasties-container`), and `styles.css` loads with `media="print" onload="this.media='all'"` so it does not block rendering.
+- Which code went where: `ng build --stats-json --verbose` lists every chunk and writes `dist/angular-playground/stats.json`, an esbuild metafile. Drop it on [esbuild.github.io/analyze](https://esbuild.github.io/analyze/) for a treemap of what each chunk contains.
+
+### Budgets
+
+`angular.json` → `build.configurations.production.budgets`:
+
+```json
+"budgets": [
+  { "type": "initial", "maximumWarning": "500kB", "maximumError": "1MB" },
+  { "type": "anyComponentStyle", "maximumWarning": "4kB", "maximumError": "8kB" }
+]
+```
+
+- `initial`: the raw (not gzipped) size of the initial files. `anyComponentStyle`: each component's compiled styles. Other types: `bundle` (with a `name`), `allScript`, `all`, `any`.
+- Over `maximumWarning`: the build succeeds and prints a warning. Over `maximumError`: the build **fails** and writes nothing to `dist/`. Tried here by lowering the limits below the 360 kB initial bundle:
+
+```
+▲ [WARNING] bundle initial exceeded maximum budget. Budget 300.00 kB was not met by 60.47 kB with a total of 360.47 kB.
+X [ERROR] bundle initial exceeded maximum budget. Budget 350.00 kB was not met by 10.47 kB with a total of 360.47 kB.
+Application bundle generation failed.
+```
+
+- When a budget trips, look before raising it: a large library imported in an eager file, a whole library imported for one function (`import * as _ from 'lodash'`), or a component that could be lazy or `@defer`red. Raise the limit only when the growth is expected.
+
+### Serving the build locally
+
+`dist/angular-playground/browser` is a folder of static files; any static server can serve it. Opening `index.html` from disk does not work: ES modules and `<base href="/">` need `http://`.
+
+```bash
+npm run build
+npm run serve:prod     # serve -s dist/angular-playground/browser → http://localhost:3000
+```
+
+`serve` is a dev dependency. The `-s` flag is the **SPA fallback**: a path that matches no file returns `index.html` instead of 404, so the Angular router can handle it. Without it:
+
+- navigating inside the app works (the router changes the URL with `history.pushState`, no request is made);
+- refreshing or opening a deep link such as `/topics/07-routing/products/1` asks the server for that file, which does not exist → **404**.
+
+With `-s` the same deep link loads `index.html`, the router matches the URL and the product page renders. Every host needs this setting, under different names.
+
+`ng serve -c production` is not the same check: it builds with the production options but still serves through the Vite dev server, which always has the fallback.
+
+### Deploying (concepts only)
+
+Nothing is deployed from this repo. Deploying a client-side Angular app is:
+
+1. `ng build`.
+2. Upload the contents of `dist/<app>/browser` to a static host.
+3. Configure the SPA fallback to `index.html`, and long caching for hashed files but not for `index.html`.
+
+If the app lives under a sub-path (`https://user.github.io/angular-playground/`), build with `ng build --base-href /angular-playground/`: the `<base href>` tells the browser where relative asset URLs start and tells the router which part of the URL is the app's.
+
+| Host             | SPA fallback                                                                               |
+| ---------------- | ------------------------------------------------------------------------------------------ |
+| GitHub Pages     | No setting: copy `index.html` to `404.html` (served with a 404 status); needs `base-href`. |
+| Netlify          | `_redirects` file: `/* /index.html 200`                                                    |
+| Vercel           | `vercel.json` rewrite of `/(.*)` to `/index.html`                                          |
+| Firebase Hosting | `firebase.json`: `"rewrites": [{ "source": "**", "destination": "/index.html" }]`          |
+| nginx            | `try_files $uri $uri/ /index.html;`                                                        |
+
+Environment-specific values (API URLs...) are baked in at build time. One build per environment, or read a `config.json` at startup (`provideAppInitializer`) to ship one build everywhere.
+
+**SSR and hydration.** `ng add @angular/ssr` adds a Node server (Express) that renders each route to HTML on the server; the browser shows content before the JavaScript loads, and **hydration** attaches Angular to that existing DOM instead of re-rendering it. Routes can also be **prerendered** at build time (SSG) into static HTML files, which is where `prerendered-routes.json` gets filled. Worth it for SEO and first paint on public pages; not needed for an app behind a login. It needs a Node host (or a serverless adapter) instead of plain static hosting, and code must avoid browser-only APIs (`window`, `localStorage`) outside `afterNextRender` or an `isPlatformBrowser` check.
 
 ---
 
@@ -1770,6 +1906,7 @@ _TODO (Production build topic)._
 - [angular.dev](https://angular.dev): official docs and tutorials.
 - [Angular CLI reference](https://angular.dev/cli).
 - [Build system (`@angular/build`)](https://angular.dev/tools/cli/build-system-migration): the application builder and the migration from webpack.
+- [Deployment](https://angular.dev/tools/cli/deployment) and [SSR](https://angular.dev/guide/ssr): hosting, base href, server-side rendering and hydration.
 - [Style guide](https://angular.dev/style-guide).
 - [angular-eslint](https://github.com/angular-eslint/angular-eslint).
 
