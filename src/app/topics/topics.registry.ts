@@ -90,6 +90,14 @@ export const TOPICS: readonly Topic[] = [
     // loadChildren: the topic brings its own Routes array (07-routing.routes.ts).
     loadChildren: () => import('./07-routing/07-routing.routes').then((m) => m.ROUTING_ROUTES),
   },
+  {
+    id: '08',
+    path: '08-forms',
+    title: 'Forms',
+    summary:
+      'Template-driven forms, typed reactive forms, FormArray, custom, async and cross-field validators, and experimental signal forms.',
+    loadComponent: () => import('./08-forms/topic-page').then((m) => m.FormsPage),
+  },
 ];
 
 /** Router link for a topic page. */
