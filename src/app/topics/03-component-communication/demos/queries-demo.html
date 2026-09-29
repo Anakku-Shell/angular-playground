@@ -1,0 +1,33 @@
+<section class="block">
+  <h3>viewChild: an element</h3>
+  <div class="demo-row">
+    <input #search type="search" placeholder="Search..." aria-label="Search" />
+    <button type="button" class="focus" (click)="focusSearch()">Focus the input</button>
+  </div>
+</section>
+
+<section class="block">
+  <h3>viewChildren: every child component of a type</h3>
+  <div class="demo-row">
+    <button type="button" (click)="startAll()">Start all</button>
+    <button type="button" (click)="stopAll()">Stop all</button>
+    <button type="button" (click)="resetAll()">Reset all</button>
+    <button type="button" (click)="addLane()">Add lane</button>
+    <button type="button" [disabled]="lanes().length === 0" (click)="removeLane()">
+      Remove lane
+    </button>
+  </div>
+  <div class="lanes">
+    @for (lane of lanes(); track lane) {
+      <app-stopwatch [name]="lane" />
+    }
+  </div>
+  <p class="running-count">Running: {{ runningCount() }} of {{ lanes().length }}</p>
+</section>
+
+<section class="block">
+  <h3>contentChild: an element projected by the parent</h3>
+  <app-labeled-field label="Email">
+    <input #control type="email" required placeholder="you@example.com" />
+  </app-labeled-field>
+</section>

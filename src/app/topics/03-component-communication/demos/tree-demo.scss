@@ -1,0 +1,11 @@
+.diagram {
+  margin: 0 0 1rem;
+  font-size: 0.8rem;
+}
+
+.lists {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}

@@ -1,0 +1,26 @@
+<div class="demo-row">
+  <label for="inputs-uploaded">Uploaded</label>
+  <input
+    id="inputs-uploaded"
+    type="range"
+    min="0"
+    max="250"
+    [value]="uploaded()"
+    (input)="onUploaded($event)"
+  />
+  <label>
+    <input type="checkbox" [checked]="striped()" (change)="striped.set(!striped())" />
+    striped
+  </label>
+</div>
+
+<div class="bars">
+  <!-- Property bindings: the parent passes a number and a boolean. -->
+  <app-progress-bar [value]="uploaded()" max="250" [striped]="striped()" caption="Upload (MB)" />
+
+  <!-- Static attributes: every value arrives as a string and the transforms convert it. -->
+  <app-progress-bar value="3" max="4" striped caption="Steps" />
+
+  <!-- Only the required input: the others keep their defaults. -->
+  <app-progress-bar value="40" />
+</div>

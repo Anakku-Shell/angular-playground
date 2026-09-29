@@ -206,7 +206,9 @@ Each component keeps its files together (`name.ts`, `.html`, `.scss`, `.spec.ts`
 
 ### Smart vs presentational components
 
-_TODO (Component communication topic)._
+- **Smart** (container) components own state and logic: they inject services, hold signals, and handle events. Usually one per page or feature.
+- **Presentational** components only render their inputs and report user actions through outputs. They inject nothing app-specific, so they are easy to reuse and to test.
+- Data flows down through inputs and events flow up through outputs. When a tree gets deep, or unrelated components need the same state, move the state into a service (see [5.3](#53-component-communication)).
 
 ---
 
@@ -413,6 +415,114 @@ Route: `/topics/02-control-flow`. Built-in blocks are **stable** (since v17) and
 - `*` is sugar for wrapping the element in `<ng-template>`; only one structural directive fits per element (use `<ng-container>` to combine).
 - Each directive had to be imported (`NgIf`, `NgFor`... or `CommonModule`). Blocks need no imports.
 - Migration: `ng generate @angular/core:control-flow`.
+
+### 5.3 Component communication
+
+Route: `/topics/03-component-communication`. `input()`, `output()`, `model()` and the signal queries are **stable** since v19; `linkedSignal` since v20; `<ng-content>` fallback content since v18.
+
+**Inputs**
+
+```ts
+readonly value = input.required({ transform: numberAttribute }); // no default, must be bound
+readonly max = input(100, { transform: numberAttribute });       // default 100
+readonly striped = input(false, { transform: booleanAttribute }); // `striped` alone → true
+readonly label = input('Progress', { alias: 'caption' });        // public name: caption
+
+protected readonly percent = computed(() => (this.value() / this.max()) * 100);
+```
+
+- An input is a **read-only signal** in the child. Derive with `computed()`; the child cannot `set()` it.
+- A missing required input is a template compile error. Reading a required input before it is set (e.g. in a field initializer like `signal(this.value())`) throws `NG0950`.
+- Static attributes always pass strings: `numberAttribute` / `booleanAttribute` accept both `max="4"` and `[max]="4"`.
+- Aliases are discouraged (lint rule `no-input-rename`). Avoid names of native attributes (`title`): the static attribute also stays on the host element.
+- Local state that starts from an input and resets when it changes: `linkedSignal(() => this.options()[0])`.
+- Legacy: `@Input() value = 0;` (a plain field; changes seen in `ngOnChanges` or a setter). Migration: `ng generate @angular/core:signal-input-migration`.
+
+**Outputs**
+
+```ts
+readonly rated = output<number>(); // child: this.rated.emit(4)
+readonly cleared = output();       // no payload
+```
+
+```html
+<app-star-rating [value]="rating()" (rated)="rating.set($event)" (cleared)="rating.set(0)" />
+```
+
+- Outputs do **not bubble**: only the direct parent can listen. Intermediate components re-emit.
+- Name them after what happened, without `on`. Avoid DOM event names (`change`, `click`): native events bubbling out of the child reach the same listener.
+- `output()` is not an RxJS `Subject`. To expose an Observable as an output: `outputFromObservable()` (Signals topic).
+- Legacy: `@Output() rated = new EventEmitter<number>();`. Migration: `ng generate @angular/core:output-migration`.
+
+**`model()`: two-way binding**
+
+```ts
+readonly value = model(1); // an input + a `valueChange` output
+this.value.update((n) => n + 1); // updates the child and emits valueChange
+```
+
+```html
+<app-quantity-stepper [(value)]="quantity" />  <!-- pass the signal, not quantity() -->
+<app-quantity-stepper [value]="quantity()" />  <!-- one-way: child changes stay local -->
+```
+
+- `[(x)]` works with any input `x` + output `xChange`; `model()` declares both.
+- Use it for form-like controls. Otherwise prefer input + a named output ("data down, events up").
+
+**Content projection**
+
+```html
+<!-- panel.html -->
+<header><ng-content select="h3, [panel-title]" /></header>
+<div><ng-content /></div>                         <!-- default slot: everything else -->
+<footer>
+  <ng-content select="[panel-footer]">No actions</ng-content> <!-- fallback content -->
+</footer>
+
+<!-- parent -->
+<app-panel>
+  <h3>Title</h3>
+  <p>Body</p>
+  <ng-container ngProjectAs="[panel-footer]">
+    <button>Save</button><button>Reset</button>
+  </ng-container>
+</app-panel>
+```
+
+- Projected content belongs to the **parent**: its bindings read the parent's state and the parent's styles apply. The child's encapsulated styles do not reach it.
+- It is always created, even if the child never shows it, and projected once (not repeated by `@for`). For lazy or repeated content, pass an `<ng-template>` and render it with `ngTemplateOutlet`.
+
+**Queries**
+
+| Query                                        | Searches                                 | Returns                  |
+| -------------------------------------------- | ---------------------------------------- | ------------------------ |
+| `viewChild('ref')` / `viewChild(Cmp)`        | the component's own template             | `Signal<T \| undefined>` |
+| `viewChild.required(...)`                    | same, throws if missing                  | `Signal<T>`              |
+| `viewChildren(Cmp)`                          | own template, all matches                | `Signal<readonly T[]>`   |
+| `contentChild(...)` / `contentChildren(...)` | the content projected into the component | same shapes              |
+
+- A string locates a template reference (`#search`) and gives an `ElementRef` for elements, the instance for components. `{ read: ElementRef }` changes what you get.
+- Results update when the view changes (`@if`, `@for`). They are ready after the view is created: read them in handlers, `computed`, `effect` or `afterNextRender`, not in the constructor.
+- Use them for DOM work (focus, measuring) and imperative children (players, timers); prefer inputs/outputs for data.
+- Legacy: `@ViewChild` / `@ContentChild` decorators, available from `ngAfterViewInit` / `ngAfterContentInit`. Migration: `ng generate @angular/core:signal-queries-migration`.
+
+**Sharing state between siblings**
+
+```ts
+@Injectable()
+export class CartStore {
+  private readonly cartLines = signal<readonly CartLine[]>([]);
+  readonly lines = this.cartLines.asReadonly();
+  readonly count = computed(() => this.cartLines().reduce((n, l) => n + l.quantity, 0));
+  add(product: Product): void { /* immutable update */ }
+}
+
+// Common parent: providers: [CartStore]. Each sibling: inject(CartStore).
+```
+
+- Private writable signal, public read-only signals and methods: only the store changes the state.
+- `providedIn: 'root'` = one instance for the app; `providers` on a component = one per component instance, shared with its children (Dependency injection topic).
+- Older code does this with a `BehaviorSubject` and the `async` pipe.
 
 ---
 
