@@ -52,6 +52,7 @@ Defaults you get in v21 without asking: standalone components, **zoneless** chan
 | `npm start` (`ng serve`)      | Dev server on `http://localhost:4200` with hot reload.                         |
 | `npm run build` (`ng build`)  | Production build into `dist/angular-playground/browser`.                       |
 | `npm test` (`ng test`)        | Runs the unit tests with Vitest (watch mode; add `--watch=false` for one run). |
+| `npm run test:coverage`       | One test run with a coverage report in `coverage/`.                            |
 | `npm run lint` (`ng lint`)    | ESLint over `src/**/*.ts` and `src/**/*.html`.                                 |
 | `npm run format`              | Prettier over the whole repo (`format:check` only reports).                    |
 | `npx ng generate <schematic>` | Generates code from a schematic (see below).                                   |
@@ -1563,6 +1564,109 @@ provideStore(), provideState(cartFeature), provideEffects(CartEffects), provideS
 - **SignalStore** when stores grow (many fields, entities, async flows, shared features) and the team wants one structured pattern.
 - **Classic NgRx** when the codebase already uses it, or a large team needs strict action-based traceability. Do not mix patterns for the same state.
 - Vue analogy: service with signals ≈ a composable holding module-level `ref`s; SignalStore ≈ Pinia; classic NgRx ≈ Vuex with strict mutations.
+
+### 5.12 Testing
+
+The page shows small subjects (a star rating, a temperature store, a quotes API, a greeting, two routes) next to excerpts of their specs. The full specs are in `src/app/topics/12-testing/subjects/`.
+
+**The setup in v21**
+
+- `ng test` uses the `@angular/build:unit-test` builder: it compiles the specs with esbuild (like the app) and runs them with **Vitest** in **jsdom**. There is no `karma.conf.js`, no `test.ts` and no `zone.js/testing`.
+- `tsconfig.spec.json` adds `"types": ["vitest/globals"]`, so `describe`, `it`, `expect`, `beforeEach` and `vi` need no import.
+- Useful flags: `--watch=false` (one run), `--include <folder or file>`, `--coverage` (needs `@vitest/coverage-v8`; this project has `npm run test:coverage`, with the HTML report in `coverage/`). For anything the builder options do not cover, `"runnerConfig": true` loads a `vitest.config.ts`. `"browsers": ["chromium"]` runs the tests in a real browser instead of jsdom (needs a Vitest browser provider such as `@vitest/browser-playwright`).
+- `TestBed` is reset before each test, so providers and components do not leak between tests.
+
+**Components**
+
+```ts
+const fixture = TestBed.createComponent(StarRating);
+await fixture.whenStable(); // first render
+
+fixture.componentRef.setInput('max', 3); // like a template binding
+await fixture.whenStable();
+expect(fixture.nativeElement.querySelectorAll('.star').length).toBe(3);
+
+fixture.componentInstance.rated.subscribe(spy); // an output is an OutputRef
+button.click();
+await fixture.whenStable();
+```
+
+- Zoneless: the fixture schedules change detection like the app does, asynchronously. After changing inputs or clicking, `await fixture.whenStable()` before reading the DOM.
+- `setInput` is the only way to set a signal `input()`: there is no writable field to assign.
+- To test `[(value)]` on a `model()` exactly as a parent uses it, render a small **host component** in the spec.
+- Test through the DOM (text, attributes, `disabled`), not private members.
+
+**Services, signals and effects**
+
+```ts
+const store = TestBed.inject(TemperatureStore);
+store.setCelsius(30);
+expect(store.fahrenheit()).toBe(86); // computed reads are synchronous
+
+TestBed.runInInjectionContext(() => effect(() => seen.push(store.celsius())));
+TestBed.tick(); // runs change detection and pending effects
+```
+
+`TestBed.tick()` replaced `TestBed.flushEffects()` (deprecated in v20).
+
+**HTTP**
+
+```ts
+providers: [provideHttpClient(), provideHttpClientTesting()];
+
+const result = firstValueFrom(api.random()); // subscribe first: HttpClient is lazy
+const req = httpMock.expectOne(`${API}/quotes/random`);
+req.flush(data); // or flush(body, { status: 503, statusText }) / req.error(new ProgressEvent('error'))
+expect(await result).toEqual(data);
+
+afterEach(() => httpMock.verify()); // no unexpected requests
+```
+
+Add `withInterceptors([...])` to `provideHttpClient` to test the real interceptor chain against the fake backend (topic 09's page spec does this).
+
+**Mocking through DI**
+
+| Technique                                           | When                                                   |
+| --------------------------------------------------- | ------------------------------------------------------ |
+| `{ provide: Clock, useValue: { now: () => date } }` | Replace a service with a plain object                  |
+| `{ provide: CatalogApi, useClass: FakeCatalogApi }` | A fake class with the same methods                     |
+| `{ provide: API_BASE_URL, useValue: '...' }`        | Configuration tokens                                   |
+| `vi.spyOn(TestBed.inject(Clock), 'now')`            | Keep the real service, stub one method, check calls    |
+| `TestBed.overrideComponent(C, { set: {...} })`      | Change a component's own `providers` / `imports`       |
+| `vi.useFakeTimers()`                                | Control `Date`, `setTimeout`, debounce without waiting |
+
+Configure providers before the first `createComponent` or `inject`: after that the test module is frozen.
+
+**Router**
+
+```ts
+TestBed.configureTestingModule({
+  providers: [provideRouter(userRoutes, withComponentInputBinding())],
+});
+const harness = await RouterTestingHarness.create();
+const detail = await harness.navigateByUrl('/2', UserDetail); // also asserts the component
+expect(detail.id()).toBe('2');
+```
+
+Guards and resolvers are functions: test them through navigation, or call them in `TestBed.runInInjectionContext`.
+
+**Karma and Jasmine (older projects)**
+
+Projects created before v20 usually run **Karma + Jasmine** in a real browser (`karma.conf.js`, `zone.js/testing`, `@angular-devkit/build-angular:karma`). The Angular APIs (`TestBed`, fixtures, `HttpTestingController`, `RouterTestingHarness`) are the same; what changes is the runner and the assertion library.
+
+| Jasmine                                 | Vitest                                            |
+| --------------------------------------- | ------------------------------------------------- |
+| `jasmine.createSpy()`                   | `vi.fn()`                                         |
+| `spyOn(obj, 'm').and.returnValue(x)`    | `vi.spyOn(obj, 'm').mockReturnValue(x)`           |
+| `expect(spy).toHaveBeenCalledWith(...)` | same                                              |
+| `fit` / `fdescribe`                     | `it.only` / `describe.only`                       |
+| `fakeAsync` + `tick()` (needs zone.js)  | `vi.useFakeTimers()` + `vi.advanceTimersByTime()` |
+
+Migration path: Karma is deprecated. Switch the `test` target to `@angular/build:unit-test` (there is a schematic, `ng g @schematics/angular:refactor-jasmine-vitest`, that rewrites most Jasmine calls), install `vitest` and `jsdom`, drop `karma.conf.js` and the Karma packages, then fix what the schematic could not convert. The builder can also run Karma (`"runner": "karma"`) while you migrate.
+
+**End-to-end tests (concepts only)**
+
+Unit tests with TestBed check one piece in a simulated DOM. E2E tests start the real app in a real browser and drive it like a user. **Playwright** (fast, several browsers, good auto-waiting) is the usual choice today; **Cypress** is common in existing projects. Protractor, the old Angular E2E tool, is gone. `ng e2e` runs whatever E2E builder you add (`ng add playwright-ng-schematics`, `ng add @cypress/schematic`). Keep E2E tests few and focused on critical flows (login, checkout); cover the details with unit tests.
 
 ---
 
