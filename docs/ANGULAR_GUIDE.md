@@ -277,7 +277,8 @@ Route: `/topics/01-components-templates`. All the APIs below are **stable**.
 **`@let`**
 
 ```html
-@let subtotal = quantity() * unitPrice; @let customer = customer$ | async;
+@let subtotal = quantity() * unitPrice;
+@let customer = customer$ | async;
 ```
 
 - Stable since v19 (developer preview in 18.1).
@@ -309,6 +310,109 @@ Route: `/topics/01-components-templates`. All the APIs below are **stable**.
 
 - `@` starts a block: write `&#64;` to print it.
 - `{{ }}` is interpolation even when written as `&#123;&#123;` (entities are decoded first). Put `ngNonBindable` on the element to print it as text.
+- A bare `{` or `}` in text opens or closes a block: write `&#123;` / `&#125;`. `ngNonBindable` does not help here, because blocks are parsed before bindings.
+
+### 5.2 Control flow
+
+Route: `/topics/02-control-flow`. Built-in blocks are **stable** (since v17) and need no imports. Exceptions noted below.
+
+**`@if`**
+
+```html
+@if (score() >= 90) {
+  <strong>A</strong>
+} @else if (score() >= 70) {
+  <strong>B</strong>
+} @else {
+  <strong>F</strong>
+}
+
+<!-- `as` names the value; the type is narrowed inside the block (User | undefined → User) -->
+@if (selectedUser(); as user) {
+  <p>{{ user.name }}</p>
+} @else {
+  <p>No user selected.</p>
+}
+```
+
+- A false block is removed from the DOM and its components are destroyed. To keep state, hide with `[hidden]` or a class.
+- It tests truthiness: `0` and `''` are false.
+
+**`@for`**
+
+```html
+@for (task of tasks(); track task.id; let pos = $index) {
+  <li [class.is-odd]="$odd">{{ pos + 1 }} / {{ $count }} {{ task.title }}</li>
+} @empty {
+  <li>No tasks</li>
+}
+```
+
+- `track` is **required**. Implicit variables: `$index`, `$count`, `$first`, `$last`, `$even`, `$odd`. Rename them with `let x = $index` (needed in nested loops).
+- Works with any iterable (`Set`, `Map` gives `[key, value]`). Plain objects: `keyvalue` pipe.
+
+**`track` and DOM reuse**
+
+| `track`           | Reorder                                            | Same data, new objects            |
+| ----------------- | -------------------------------------------------- | --------------------------------- |
+| `item.id`         | Rows move with their items                         | Rows kept                         |
+| `$index`          | Rows stay; their state now belongs to another item | Rows kept                         |
+| `item` (identity) | Rows move                                          | **All rows recreated** (`NG0956`) |
+
+- Use a stable unique id. Duplicate keys log `NG0955`.
+- `$index` is only safe for lists that never reorder, or rows without state.
+- Legacy `*ngFor` defaulted to identity when `trackBy` was missing, a classic performance issue.
+
+**`@switch`**
+
+```html
+@let currentPlan = plan();
+@switch (currentPlan) {
+  @case ('free') { ... }
+  @case ('pro') { ... }
+  @case ('team')
+  @case ('enterprise') { shared body }
+  @default never;
+}
+```
+
+- Cases compare with `===`; no fall-through, no `break`.
+- Consecutive `@case` blocks share one body, and `@default never;` makes the template type checker report a union member without a case. Both are recent additions (available in this project's v21.2, not in v19/v20).
+- Gotcha: `@default never;` needs a narrowable value. `@switch (plan())` fails (TypeScript does not narrow function calls, signal reads included); store the value with `@let` first.
+
+**`@defer`**
+
+```html
+@defer (on interaction; prefetch on idle) {
+  <app-heavy-widget />
+} @placeholder (minimum 500ms) {
+  <button>Load</button>
+} @loading (after 100ms; minimum 1s) {
+  <p>Loading…</p>
+} @error {
+  <p>Could not load.</p>
+}
+```
+
+- Standalone components, directives and pipes used **only** inside the block go into a separate lazy chunk (`npm run build` lists it, e.g. `heavy-widget`). Using the dependency elsewhere in the same component (template or `viewChild`) keeps it eager.
+- Triggers: `on idle` (default), `on viewport`, `on interaction`, `on hover`, `on immediate`, `on timer(3s)`, `when expr`. Combine several with `;`. `prefetch on ...` downloads early and renders on the main trigger.
+- `on viewport` / `on interaction` / `on hover` watch the placeholder's root element (or a `#ref` passed as `on viewport(ref)`).
+- A loaded block never goes back to its placeholder; `when` is one-way.
+- Gotcha: with HMR (the `ng serve` default) Angular loads every defer dependency eagerly and logs `NG0751`. Use `ng serve --no-hmr` or a build to see real chunk loading.
+- Testing: `TestBed.configureTestingModule({ deferBlockBehavior: DeferBlockBehavior.Manual })`, then `(await fixture.getDeferBlocks())[0].render(DeferBlockState.Complete)`.
+
+**Legacy structural directives**
+
+| Legacy (`@angular/common`, deprecated since v20)        | Built-in                                         |
+| ------------------------------------------------------- | ------------------------------------------------ |
+| `<p *ngIf="cond; else other">` + `<ng-template #other>` | `@if (cond) { } @else { }`                       |
+| `*ngIf="user$ \| async as user"`                        | `@if (user$ \| async; as user) { }`              |
+| `*ngFor="let x of xs; let i = index; trackBy: fn"`      | `@for (x of xs; track x.id; let i = $index) { }` |
+| `[ngSwitch]` + `*ngSwitchCase` / `*ngSwitchDefault`     | `@switch` / `@case` / `@default`                 |
+
+- `*` is sugar for wrapping the element in `<ng-template>`; only one structural directive fits per element (use `<ng-container>` to combine).
+- Each directive had to be imported (`NgIf`, `NgFor`... or `CommonModule`). Blocks need no imports.
+- Migration: `ng generate @angular/core:control-flow`.
 
 ---
 

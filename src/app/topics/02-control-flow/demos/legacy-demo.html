@@ -1,0 +1,102 @@
+<div class="demo-row">
+  <label>
+    <input type="checkbox" [checked]="loggedIn()" (change)="loggedIn.set(!loggedIn())" />
+    Logged in
+  </label>
+  @for (option of modes; track option) {
+    <label>
+      <input
+        type="radio"
+        name="legacy-mode"
+        [checked]="mode() === option"
+        (change)="mode.set(option)"
+      />
+      {{ option }}
+    </label>
+  }
+</div>
+
+<!-- Code samples below: `@` is &#64;, braces are &#123; &#125;, and ngNonBindable prints
+     double braces as text. -->
+<div class="legacy-columns">
+  <section>
+    <h3>Structural directives (legacy)</h3>
+    <!-- eslint-disable @angular-eslint/template/prefer-control-flow -- side-by-side comparison -->
+    <div class="output">
+      <p *ngIf="loggedIn(); else loggedOut">Welcome back!</p>
+      <ng-template #loggedOut><p>Please sign in.</p></ng-template>
+
+      <ul>
+        <li *ngFor="let item of items; let i = index; trackBy: trackById">
+          {{ i + 1 }}. {{ item.name }}
+        </li>
+      </ul>
+
+      <div [ngSwitch]="mode()">
+        <p *ngSwitchCase="'light'">Light theme</p>
+        <p *ngSwitchCase="'dark'">Dark theme</p>
+        <p *ngSwitchDefault>Follows the OS</p>
+      </div>
+    </div>
+    <!-- eslint-enable @angular-eslint/template/prefer-control-flow -->
+    <pre ngNonBindable><code>&lt;p *ngIf="loggedIn(); else loggedOut"&gt;Welcome back!&lt;/p&gt;
+&lt;ng-template #loggedOut&gt;&lt;p&gt;Please sign in.&lt;/p&gt;&lt;/ng-template&gt;
+
+&lt;li *ngFor="let item of items; let i = index;
+            trackBy: trackById"&gt;
+  {{ i + 1 }}. {{ item.name }}
+&lt;/li&gt;
+
+&lt;div [ngSwitch]="mode()"&gt;
+  &lt;p *ngSwitchCase="'light'"&gt;Light theme&lt;/p&gt;
+  &lt;p *ngSwitchCase="'dark'"&gt;Dark theme&lt;/p&gt;
+  &lt;p *ngSwitchDefault&gt;Follows the OS&lt;/p&gt;
+&lt;/div&gt;</code></pre>
+  </section>
+
+  <section>
+    <h3>Built-in control flow</h3>
+    <div class="output">
+      @if (loggedIn()) {
+        <p>Welcome back!</p>
+      } @else {
+        <p>Please sign in.</p>
+      }
+
+      <ul>
+        @for (item of items; track item.id; let i = $index) {
+          <li>{{ i + 1 }}. {{ item.name }}</li>
+        }
+      </ul>
+
+      <div>
+        @switch (mode()) {
+          @case ('light') {
+            <p>Light theme</p>
+          }
+          @case ('dark') {
+            <p>Dark theme</p>
+          }
+          @default {
+            <p>Follows the OS</p>
+          }
+        }
+      </div>
+    </div>
+    <pre ngNonBindable><code>&#64;if (loggedIn()) &#123;
+  &lt;p&gt;Welcome back!&lt;/p&gt;
+&#125; &#64;else &#123;
+  &lt;p&gt;Please sign in.&lt;/p&gt;
+&#125;
+
+&#64;for (item of items; track item.id; let i = $index) &#123;
+  &lt;li&gt;{{ i + 1 }}. {{ item.name }}&lt;/li&gt;
+&#125;
+
+&#64;switch (mode()) &#123;
+  &#64;case ('light') &#123; &lt;p&gt;Light theme&lt;/p&gt; &#125;
+  &#64;case ('dark') &#123; &lt;p&gt;Dark theme&lt;/p&gt; &#125;
+  &#64;default &#123; &lt;p&gt;Follows the OS&lt;/p&gt; &#125;
+&#125;</code></pre>
+  </section>
+</div>

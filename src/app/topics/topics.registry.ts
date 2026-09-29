@@ -36,6 +36,14 @@ export const TOPICS: readonly Topic[] = [
     loadComponent: () =>
       import('./01-components-templates/topic-page').then((m) => m.ComponentsTemplatesPage),
   },
+  {
+    id: '02',
+    path: '02-control-flow',
+    title: 'Control flow',
+    summary:
+      '@if, @for with track, @switch, @defer and its triggers, and the legacy structural directives.',
+    loadComponent: () => import('./02-control-flow/topic-page').then((m) => m.ControlFlowPage),
+  },
 ];
 
 /** Router link for a topic page. */

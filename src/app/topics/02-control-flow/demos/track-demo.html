@@ -1,0 +1,29 @@
+<div class="demo-row">
+  <button type="button" (click)="addToTop()">Add to top</button>
+  <button type="button" (click)="reverse()">Reverse</button>
+  <button type="button" (click)="reload()">Reload (new objects)</button>
+  <button type="button" (click)="reset()">Reset</button>
+</div>
+
+<div class="track-columns">
+  <section>
+    <h3><code>track fruit.id</code></h3>
+    @for (fruit of fruits(); track fruit.id) {
+      <app-track-row [fruit]="fruit" />
+    }
+  </section>
+
+  <section>
+    <h3><code>track $index</code></h3>
+    @for (fruit of fruits(); track $index) {
+      <app-track-row [fruit]="fruit" />
+    }
+  </section>
+
+  <section>
+    <h3><code>track fruit</code> (identity)</h3>
+    @for (fruit of fruits(); track fruit) {
+      <app-track-row [fruit]="fruit" />
+    }
+  </section>
+</div>
