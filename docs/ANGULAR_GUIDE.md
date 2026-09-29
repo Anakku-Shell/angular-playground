@@ -1668,11 +1668,94 @@ Migration path: Karma is deprecated. Switch the `test` target to `@angular/build
 
 Unit tests with TestBed check one piece in a simulated DOM. E2E tests start the real app in a real browser and drive it like a user. **Playwright** (fast, several browsers, good auto-waiting) is the usual choice today; **Cypress** is common in existing projects. Protractor, the old Angular E2E tool, is gone. `ng e2e` runs whatever E2E builder you add (`ng add playwright-ng-schematics`, `ng add @cypress/schematic`). Keep E2E tests few and focused on critical flows (login, checkout); cover the details with unit tests.
 
+### 5.13 Legacy & migration
+
+The topic has two halves. `src/app/topics/13-legacy-migration/legacy/` is a small task board written the pre-v17 way, with the old file names (`task-list.component.ts`, `task.service.ts`, `tasks.module.ts`). The topic page is modern and puts each legacy piece next to its replacement. The registry lazy-loads the topic as an NgModule:
+
+```ts
+loadChildren: () => import('./legacy/legacy.module').then((m) => m.LegacyModule),
+
+@NgModule({
+  declarations: [VaultComponent],
+  imports: [RouterModule.forChild(routes)], // forRoot only once, in AppModule
+})
+export class LegacyModule {}
+```
+
+The ESLint config enforces the modern APIs, so it turns those rules off for `legacy/` only.
+
+**What an NgModule does**
+
+| Array          | Meaning                                                                                                    |
+| -------------- | ---------------------------------------------------------------------------------------------------------- |
+| `declarations` | Components, directives and pipes owned by the module. Each is declared once; it sees what the module sees. |
+| `imports`      | Modules whose exports the declared templates use (`CommonModule` for `*ngIf` / `async`, `FormsModule`...). |
+| `exports`      | What importers can use in their templates. Everything else stays private to the module.                    |
+| `providers`    | Services added to the importer's injector (to the root injector for eagerly imported modules).             |
+| `bootstrap`    | `AppModule` only: the root component, started by `platformBrowserDynamic().bootstrapModule(AppModule)`.    |
+
+Declared components need `standalone: false` since v19 (before v19, `false` was the default and the flag was absent). Standalone and modules mix both ways: a standalone component can import a module (the topic page imports `TasksModule`), and a module can import standalone components.
+
+**Legacy → modern**
+
+| Legacy                                                      | Modern                                                     | Migration                                            |
+| ----------------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------- |
+| `@NgModule` + `declarations`, `bootstrapModule(AppModule)`  | Standalone components, `bootstrapApplication(App, config)` | `ng g @angular/core:standalone` (3 passes)           |
+| `loadChildren` → module                                     | `loadComponent`, or `loadChildren` → `Routes`              | `ng g @angular/core:route-lazy-loading`              |
+| `@Input() x`, `ngOnChanges` for derived state               | `input()`, `input.required()`, `computed()`                | `ng g @angular/core:signal-input-migration`          |
+| `@Output() x = new EventEmitter()`                          | `output()`                                                 | `ng g @angular/core:output-migration`                |
+| `@ViewChild`, `@ContentChild`, `@ViewChildren`              | `viewChild()`, `contentChild()`, `viewChildren()`          | `ng g @angular/core:signal-queries-migration`        |
+| `constructor(private s: Service)`, `@Optional()`, `@Self()` | `inject(Service, { optional: true, self: true })`          | `ng g @angular/core:inject`                          |
+| `*ngIf`, `*ngFor` + `trackBy`, `[ngSwitch]`                 | `@if`, `@for` + `track`, `@switch`                         | `ng g @angular/core:control-flow`                    |
+| `@HostBinding`, `@HostListener`                             | `host: { '[class.x]': '…', '(click)': '…' }`               | By hand                                              |
+| Class guard / resolver (`implements CanActivate`)           | `CanActivateFn`, `ResolveFn`                               | By hand; `mapToCanActivate([Guard])` meanwhile       |
+| `canLoad`                                                   | `canMatch`                                                 | By hand                                              |
+| `HttpClientModule`, class `HttpInterceptor`                 | `provideHttpClient(withInterceptors([...]))`               | By hand (`withInterceptorsFromDi()` meanwhile)       |
+| `RouterTestingModule`                                       | `provideRouter(routes)` + `RouterTestingHarness`           | `ng g @angular/core:router-testing-module-migration` |
+| `[ngClass]`, `[ngStyle]`                                    | `[class.x]`, `[class]`, `[style.x]`                        | `ngclass-to-class`, `ngstyle-to-style`               |
+| `CommonModule` in standalone imports                        | Only the pieces used (`AsyncPipe`, `DatePipe`...)          | `ng g @angular/core:common-to-standalone`            |
+| zone.js, plain fields set in callbacks                      | Zoneless, signals, `async` pipe, `markForCheck()`          | By hand (see [Change detection](#change-detection))  |
+
+`ng g @angular/core:signals` runs the input, output and query migrations together. Every schematic accepts `--path` to migrate one folder first.
+
+**How to migrate a real codebase**
+
+1. `ng update @angular/core@<next> @angular/cli@<next>`: **one major version at a time**. It bumps the packages and runs the required migrations of that version. Read [update.angular.dev](https://angular.dev/update-guide) for the manual steps.
+2. Build, test, commit. Then the optional migrations above, **one per commit**, reviewing the diff. Each schematic prints what it skipped and why (for example an `@Input` the component writes to itself: that becomes a `model()` or a local signal by hand).
+3. Run the tests after each step, not only the build: a string template or a spec may still read a signal without `()`.
+4. Zoneless last: first make the app OnPush-safe (no plain fields written from callbacks), then drop zone.js.
+
+**Gotchas seen in the demo**
+
+- `[(ngModel)]` compares the bound value with the one from the last change detection pass. Typing and submitting in the same tick (only possible in a test) looks like `''` → `''`, so the input is not cleared; the spec waits for a render after typing.
+- In a zoneless app, a legacy component that sets a plain field in a `setTimeout` keeps showing the old value until something else refreshes it. `markForCheck()` fixes it; a signal fixes it without the extra call.
+- `*ngFor` without `trackBy` tracks object references: replacing the array (as immutable updates do) re-creates every row. `@for` makes `track` mandatory.
+- Old class names end in `Component`, `Service`, `Module` and files in `.component.ts`. Since v20 the CLI drops the suffixes (`ng g c task-list` → `task-list.ts`, class `TaskList`). A migrated codebase often has both; `angular.json` schematic options can keep generating the old style.
+
 ---
 
 ## 6. Angular 19 → 20 → 21
 
-_TODO (Legacy & migration topic)._
+What changed where, as seen from a codebase. "Stable" means the API is no longer developer preview or experimental.
+
+| Area                 | v19 (Nov 2024)                                                                                       | v20 (May 2025)                                                                           | v21 (Nov 2025)                                                           |
+| -------------------- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Standalone           | **Default** (`standalone: false` needed on declared classes; `ng update` adds it)                    | Default                                                                                  | Default                                                                  |
+| Control flow         | `@if` / `@for` / `@switch` / `@defer` stable (since v18); `@let` stable                              | `*ngIf` / `*ngFor` / `ngSwitch` **deprecated**                                           | Same                                                                     |
+| Signal APIs          | `input`, `output`, `model`, signal queries stable; `linkedSignal`, `resource` experimental           | `effect`, `linkedSignal`, `toSignal`, `toObservable` stable; `httpResource` experimental | Signal forms experimental                                                |
+| Change detection     | Zoneless experimental (`provideExperimentalZonelessChangeDetection`)                                 | Zoneless developer preview, stable in 20.2 (`provideZonelessChangeDetection`)            | **Zoneless by default** for new apps; `Default` strategy renamed `Eager` |
+| Tests                | Karma + Jasmine                                                                                      | Vitest builder experimental; `TestBed.flushEffects` deprecated → `TestBed.tick`          | **Vitest by default** (`@angular/build:unit-test`, jsdom)                |
+| File naming          | `user.component.ts`, `UserComponent`                                                                 | New style guide: **no suffixes** (`user.ts`, `User`) for new files                       | Same                                                                     |
+| Build and dev server | `@angular/build` (esbuild + Vite) default since v17; style HMR, template HMR on by default from 19.1 | Same                                                                                     | Same                                                                     |
+| Hydration / SSR      | Incremental hydration developer preview; route-level render modes                                    | Incremental hydration stable                                                             | Same                                                                     |
+
+Practical consequences when you join a project:
+
+- **v19 codebase:** expect a mix. Modules in older areas, standalone in newer ones, `@Input()` and `constructor` injection, maybe zone.js-dependent code, Karma tests.
+- **v20 codebase:** mostly standalone and signal APIs, control flow blocks (the old directives now warn), maybe zoneless. Files may or may not have suffixes.
+- **v21 codebase:** what this playground uses.
+
+Migration schematics (`ng generate @angular/core:<name>`) are listed in [5.13](#513-legacy--migration). `ng update` runs each version's required migrations for you.
 
 ---
 
@@ -1694,4 +1777,42 @@ _TODO (Production build topic)._
 
 ## Appendix: Coming from Vue
 
-_TODO (Legacy & migration topic)._
+**Mapping**
+
+| Vue 3                                      | Angular 21                                                             | Topic  |
+| ------------------------------------------ | ---------------------------------------------------------------------- | ------ |
+| Single-file component (`.vue`)             | Component class + template (+ styles), usually separate files          | 01     |
+| `{{ }}`, `:prop`, `@click`                 | `{{ }}`, `[prop]`, `(click)`                                           | 01     |
+| `v-if` / `v-else`, `v-for` + `:key`        | `@if` / `@else`, `@for` + `track`                                      | 02     |
+| `defineAsyncComponent`, `<Suspense>`       | `@defer` (with `@placeholder`, `@loading`, `@error`)                   | 02     |
+| `defineProps`                              | `input()`, `input.required()`                                          | 03     |
+| `defineEmits`                              | `output()`                                                             | 03     |
+| `v-model` on a component, `defineModel`    | `model()` + `[(value)]`                                                | 03     |
+| Slots, named slots                         | `<ng-content>`, `<ng-content select="...">`                            | 03     |
+| Template refs (`ref="el"`)                 | `#el` + `viewChild('el')`                                              | 03     |
+| `ref`, `computed`                          | `signal`, `computed`                                                   | 04     |
+| `watch`, `watchEffect`                     | `effect`, or `toObservable` + RxJS operators                           | 04     |
+| `provide` / `inject`, composables          | Services + `inject()`, hierarchical injectors                          | 05     |
+| `onMounted`, `onUnmounted`                 | `afterNextRender` / `ngOnInit`, `DestroyRef.onDestroy` / `ngOnDestroy` | 06     |
+| `nextTick`                                 | `afterNextRender`; in tests `fixture.whenStable()`                     | 06, 12 |
+| Vue Router: `<RouterView>`, `<RouterLink>` | `<router-outlet>`, `routerLink`                                        | 07     |
+| Navigation guards (`beforeEach`)           | Functional guards per route (`canActivate`, `canMatch`...)             | 07     |
+| `useRoute().params`                        | Route params bound to `input()`s (`withComponentInputBinding`)         | 07     |
+| VeeValidate / FormKit                      | Built-in forms: template-driven, reactive, signal forms                | 08     |
+| `fetch` / axios                            | `HttpClient` (Observables), interceptors, `httpResource`               | 09     |
+| Custom directives (`v-focus`)              | Attribute directives (`[appFocus]`)                                    | 10     |
+| Filters (Vue 2), plain functions           | Pipes (`{{ price \| currency }}`)                                      | 10     |
+| Pinia                                      | A service with signals, or NgRx SignalStore                            | 11     |
+| Vitest + Vue Test Utils                    | Vitest + `TestBed`                                                     | 12     |
+| Vite, `create-vue`                         | Angular CLI (`ng new`, `ng serve` on esbuild + Vite)                   | Setup  |
+| `<Teleport>`                               | CDK Portal / Overlay (`@angular/cdk`)                                  | -      |
+
+**Where the mental model really differs**
+
+- **Dependency injection is hierarchical.** Vue's `provide` / `inject` passes values down the component tree. Angular has a tree of injectors: the environment injectors (root, lazy routes) and the element injectors (one per component with `providers`). `inject()` walks up that tree. A service `providedIn: 'root'` is a singleton; listed in a component's `providers`, each instance of the component gets its own. Services, not composables, are the main unit of shared logic, and anything can be replaced in tests with `{ provide: X, useValue: fake }`.
+- **RxJS has no Vue counterpart.** `HttpClient`, the router events, reactive forms' `valueChanges` all return Observables: lazy streams (nothing happens until you subscribe) that can emit many values, be cancelled, and be combined with operators (`switchMap`, `debounceTime`...). Signals hold state; Observables model events over time. `toSignal` / `toObservable` convert between them, and the `async` pipe subscribes in templates.
+- **Change detection vs proxy reactivity.** Vue tracks property access through proxies, so mutating `state.items.push(x)` just works. Angular signals are closer to `ref` / `shallowRef`: you call them to read (`count()`), write with `.set` / `.update`, and a change is detected by reference (`===`). Mutating an array inside a signal does nothing; set a new array. Plain class fields are not reactive at all in a zoneless app: they only render when something else refreshes the component (see [Change detection](#change-detection)).
+- **Forms are part of the framework.** Vue relies on `v-model` plus a library. Angular ships template-driven forms (`ngModel`), reactive forms (typed `FormGroup` / `FormControl`, validators, status, dirty / touched) and, experimentally, signal forms. Validation and form state belong to the framework, not to the component.
+- **`effect` is not `watch`.** `watch(source, cb)` gives you old and new values and runs only when the named source changes. `effect(() => ...)` tracks whatever signals it reads, runs at least once, gets no old value and is meant for side effects that sync with the outside (localStorage, logging, a non-Angular library). To derive a value use `computed` (or `linkedSignal` when it must stay writable); to react to a change with async work, use `toObservable(signal).pipe(...)` or `resource`.
+- **Templates are compiled and type-checked.** With `strictTemplates`, a typo in a binding or a wrong input type fails the build, as in a `.ts` file. There are no render functions or JSX; logic stays in the class.
+- **More structure by default.** Decorators, one class per file, explicit `imports` per component, and a CLI that generates code in a set layout. It is more ceremony than a `.vue` file, and it is also why large Angular codebases tend to look alike.

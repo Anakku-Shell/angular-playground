@@ -45,4 +45,15 @@ module.exports = defineConfig([
       '@angular-eslint/template/prefer-self-closing-tags': 'error',
     },
   },
+  {
+    // Topic 13 keeps a feature in the pre-v17 style on purpose. Only these rules are relaxed there.
+    files: ['src/app/topics/13-legacy-migration/legacy/**'],
+    rules: {
+      '@angular-eslint/prefer-standalone': 'off',
+      '@angular-eslint/prefer-inject': 'off',
+      '@angular-eslint/prefer-signals': 'off',
+      '@angular-eslint/template/prefer-control-flow': 'off',
+      '@angular-eslint/template/prefer-self-closing-tags': 'off',
+    },
+  },
 ]);

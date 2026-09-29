@@ -24,8 +24,10 @@ describe('app routes', () => {
         const component = await route.loadComponent();
         expect(typeof component).toBe('function');
       } else {
+        // Either a Routes array or an NgModule class (topic 13).
         const children = await route.loadChildren?.();
-        expect(Array.isArray(children) && children.length > 0).toBe(true);
+        const isRoutes = Array.isArray(children) && children.length > 0;
+        expect(isRoutes || typeof children === 'function').toBe(true);
       }
     },
   );

@@ -132,6 +132,16 @@ export const TOPICS: readonly Topic[] = [
       'Vitest and TestBed: component inputs, outputs and model, signal services, HttpTestingController, mocking through DI and RouterTestingHarness.',
     loadComponent: () => import('./12-testing/topic-page').then((m) => m.TestingPage),
   },
+  {
+    id: '13',
+    path: '13-legacy-migration',
+    title: 'Legacy & migration',
+    summary:
+      'A feature built with NgModules, decorators, constructor DI, structural directives and a class guard, next to the modern equivalents and the migration schematics.',
+    // loadChildren can also resolve to an NgModule class: the pre-standalone way to lazy-load.
+    loadChildren: () =>
+      import('./13-legacy-migration/legacy/legacy.module').then((m) => m.LegacyModule),
+  },
 ];
 
 /** Router link for a topic page. */
