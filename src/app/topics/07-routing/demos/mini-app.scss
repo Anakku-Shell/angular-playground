@@ -1,0 +1,87 @@
+:host {
+  display: block;
+}
+
+.mini-app {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.address {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-hover);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+
+  &__base {
+    color: var(--color-text-muted);
+    // The prefix may shrink and get cut on small screens; the editable part keeps its room.
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__path {
+    flex: 1 1 8rem;
+    min-width: 0;
+    font-family: inherit;
+  }
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.mini-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+
+  a {
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius);
+    text-decoration: none;
+
+    &:hover {
+      background: var(--color-hover);
+    }
+
+    &.is-active {
+      background: var(--color-accent-soft);
+      color: var(--color-accent);
+      font-weight: 600;
+    }
+  }
+}
+
+.auth {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+}
+
+.outlet {
+  position: relative;
+  padding: 1rem 0.75rem;
+  min-height: 9rem;
+}
+
+.loading {
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}

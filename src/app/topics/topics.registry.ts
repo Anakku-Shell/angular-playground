@@ -81,6 +81,15 @@ export const TOPICS: readonly Topic[] = [
         (m) => m.LifecycleChangeDetectionPage,
       ),
   },
+  {
+    id: '07',
+    path: '07-routing',
+    title: 'Routing',
+    summary:
+      'Child routes and a nested outlet, params as inputs, functional guards and resolvers, redirects, wildcards and programmatic navigation.',
+    // loadChildren: the topic brings its own Routes array (07-routing.routes.ts).
+    loadChildren: () => import('./07-routing/07-routing.routes').then((m) => m.ROUTING_ROUTES),
+  },
 ];
 
 /** Router link for a topic page. */

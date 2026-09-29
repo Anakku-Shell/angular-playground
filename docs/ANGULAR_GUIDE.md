@@ -274,7 +274,19 @@ AppRoot (Eager)            checked on every pass
 ### Routing and lazy loading
 
 - `loadComponent` for a single page, `loadChildren` for a set of child routes. Both produce a lazy chunk.
-- _TODO (Routing topic):_ guards, resolvers, `withComponentInputBinding` in practice, preloading.
+- Router features are opt-in functions passed to `provideRouter(routes, ...)`: `withComponentInputBinding()` (params as inputs, used here), `withViewTransitions()`, `withPreloading()`, `withRouterConfig()`, `withInMemoryScrolling()`…
+- A navigation runs in stages. Knowing the order explains most routing bugs:
+
+```
+URL ──▶ match routes (redirects, canMatch, lazy loadChildren)
+    ──▶ canDeactivate on the routes being left
+    ──▶ canActivateChild / canActivate on the routes being entered
+    ──▶ resolvers (the old page stays on screen meanwhile)
+    ──▶ activate: create components, bind inputs, set the title
+```
+
+- **Preloading.** Without it, a lazy chunk is fetched on the first visit, so that first click waits for the network. `withPreloading(PreloadAllModules)` fetches every lazy route in the background after the app starts. A custom `PreloadingStrategy` can preload only routes marked in `data`. Preloading does not run `canMatch` guards (only the deprecated `canLoad` stops it), so code behind a guard still gets downloaded.
+- Guards, resolvers and redirects are plain functions that run in an injection context (`inject()` works). Details and demos in [5.7](#57-routing).
 
 ### Folder structure
 
@@ -879,6 +891,116 @@ setTimeout(() => this.count.update((n) => n + 1), 500);      // signal: view upd
 
 - The stale value is not lost: the next pass (any click, any signal) shows it. That makes these bugs intermittent, so prefer signals for all template state.
 - In tests, `await fixture.whenStable()` waits for the scheduled pass. Calling `fixture.detectChanges()` forces a pass and can hide a missing notification.
+
+### 5.7 Routing
+
+Route: `/topics/07-routing`, loaded with `loadChildren`. Everything used here is **stable**. The topic page hosts a "mini app" with a nested `<router-outlet>`, an address bar and a nav; the other cards drive it. Navigation order and preloading are in [3. Architecture](#routing-and-lazy-loading).
+
+**Child routes and a nested outlet**
+
+```ts
+// topics.registry.ts
+loadChildren: () => import('./07-routing/07-routing.routes').then((m) => m.ROUTING_ROUTES),
+
+// 07-routing.routes.ts
+export const ROUTING_ROUTES: Routes = [
+  {
+    path: '',
+    component: RoutingPage,      // has the nested <router-outlet>
+    providers: [FakeAuth],       // route-level providers, shared by children and guards
+    children: [
+      { path: '', redirectTo: 'products', pathMatch: 'full' },
+      {
+        path: 'products',        // componentless: groups the list and the detail
+        children: [
+          { path: '', component: ProductList, title: pageTitle('Products') },
+          { path: ':id', component: ProductDetail, resolve: { product: productResolver }, title: productTitleResolver },
+        ],
+      },
+      { path: 'catalog/:id', redirectTo: ({ params }) => `products/${params['id']}` },
+      { path: 'admin', component: AdminView, canActivate: [authGuard] },
+      { path: 'edit', component: EditView, canDeactivate: [unsavedChangesGuard] },
+      { path: '**', component: MissingView },
+    ],
+  },
+];
+```
+
+- The outlet can sit in any component under the route's component (here `MiniApp`): an outlet finds its parent route through the injector tree.
+- `routerLink="products"` in a component is relative to that component's route. `routerLinkActive` matches by prefix; `[routerLinkActiveOptions]="{ exact: true }"` turns that off.
+- Route `providers` create an environment injector for the route subtree. It lives as long as the route config, not as long as the page.
+
+**Params and query params as inputs** (`withComponentInputBinding()`)
+
+```ts
+export class ProductDetail {
+  readonly id = input.required({ transform: numberAttribute }); // :id, "3" → 3
+  readonly product = input.required<Product>();                 // resolve: { product }
+}
+export class ProductList {
+  readonly sort = input<string>();                              // ?sort=price
+}
+```
+
+- Inputs bind by name to route params, query params, `data` and `resolve` keys. A query param that disappears sets its input to `undefined`.
+- `/products/1` → `/products/2` **reuses** the component: only the inputs change. Reading `route.snapshot` once in `ngOnInit` is the classic stale-data bug.
+- Without input binding: `inject(ActivatedRoute).paramMap` (Observable) + `toSignal()`.
+
+**Guards**
+
+```ts
+export const authGuard: CanActivateFn = (_route, state) =>
+  inject(FakeAuth).loggedIn() ||
+  inject(Router).createUrlTree(['/topics/07-routing/login'], { queryParams: { returnUrl: state.url } });
+
+export const unsavedChangesGuard: CanDeactivateFn<HasUnsavedChanges> = (component) =>
+  component.canLeave(); // boolean | Promise<boolean>: the navigation waits for it
+```
+
+| Guard              | Runs                                   | Typical use                                                                  |
+| ------------------ | -------------------------------------- | ---------------------------------------------------------------------------- |
+| `canMatch`         | while matching; false = try next route | feature flags, role-based route variants; skips the lazy chunk on navigation |
+| `canActivate`      | before entering the route              | auth                                                                         |
+| `canActivateChild` | before entering any child              | auth for a whole section                                                     |
+| `canDeactivate`    | before leaving the route               | unsaved changes                                                              |
+
+- Return `true` / `false`, a `UrlTree` or a `RedirectCommand` (redirect), directly or as a Promise / Observable.
+- Guards protect the UI only; the server must check permissions too. `canDeactivate` does not run on tab close or reload (use `beforeunload`).
+- Guards only run on navigation: logging out while on `/admin` does not leave the page by itself.
+
+**Resolvers and titles**
+
+```ts
+export const productResolver: ResolveFn<Product> = async (route) => {
+  const router = inject(Router);                     // before any await
+  await delay(400);
+  const product = findProduct(Number(route.paramMap.get('id')));
+  return product ?? new RedirectCommand(router.createUrlTree([...], { queryParams: { missing: id } }));
+};
+```
+
+- The router waits for resolvers before activating the route, so the old page stays visible. Show progress with `router.currentNavigation()` (a signal since v20.2; `null` when idle).
+- For slow data, consider navigating at once and loading in the component (`resource()` / `httpResource()`) instead.
+- `title` accepts a string or a `ResolveFn<string>`. Title resolvers run in parallel with the other resolvers, so they cannot read their results. The deepest route with a title wins; a custom `TitleStrategy` can add a suffix globally.
+
+**Redirects and wildcards**
+
+- `{ path: '', redirectTo: 'products', pathMatch: 'full' }`: `pathMatch: 'full'` is required for empty-path redirects, or every URL matches.
+- `redirectTo` can be a function (v18+) receiving the params, query params and data. Since v20 it may return a Promise or Observable.
+- A `**` route inside a lazy `Routes` array catches unknown paths below that prefix only. The app-level `**` in `app.routes.ts` must stay last (a unit test checks it).
+
+**Programmatic navigation**
+
+```ts
+router.navigate(['..', id], { relativeTo: this.route });            // commands, relative
+router.navigate(['products'], { relativeTo, queryParams: { sort: 'price' } });
+router.navigateByUrl('/topics/07-routing/admin');                   // absolute URL string
+inject(Location).back();                                            // browser history
+```
+
+- The returned promise resolves `true` when the navigation completes and `false` when a guard returns `false`. When a guard **redirects**, it resolves with the redirected navigation's result (`true` on reaching the login page).
+- Prefer `routerLink` for anything clickable (real `href`, open in a new tab). Navigate from code after an action.
+- Useful options: `queryParamsHandling: 'merge' | 'preserve'`, `replaceUrl`, `state`, `fragment`.
 
 ---
 

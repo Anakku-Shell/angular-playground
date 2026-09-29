@@ -1,0 +1,28 @@
+// Shared by the views rendered in the mini app's <router-outlet>.
+
+:host {
+  display: block;
+}
+
+h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.hint {
+  margin: 0.75rem 0 0;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.notice {
+  margin: 0 0 0.75rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius);
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+
+.is-active {
+  font-weight: 600;
+}
