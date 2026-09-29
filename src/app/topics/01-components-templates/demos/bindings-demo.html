@@ -1,0 +1,47 @@
+<div class="demo-row">
+  <label>
+    <input type="checkbox" [checked]="disabled()" (change)="disabled.set(!disabled())" />
+    Disabled
+  </label>
+  <label>
+    <input type="checkbox" [checked]="highlighted()" (change)="highlighted.set(!highlighted())" />
+    Highlighted
+  </label>
+  <label>
+    <input type="checkbox" [checked]="rounded()" (change)="rounded.set(!rounded())" />
+    Rounded
+  </label>
+  <label>
+    Width
+    <input
+      type="range"
+      min="120"
+      max="360"
+      [value]="width()"
+      (input)="width.set(+valueOf($event))"
+    />
+  </label>
+  <label>
+    Color
+    <input type="color" [value]="color()" (input)="color.set(valueOf($event))" />
+  </label>
+</div>
+
+<div class="demo-row">
+  <!-- Property binding: sets the DOM property `button.disabled`. -->
+  <!-- Attribute binding: aria-pressed has no DOM property, so it needs attr. -->
+  <button type="button" [disabled]="disabled()" [attr.aria-pressed]="highlighted()">
+    Target button
+  </button>
+
+  <!-- Class bindings: one class, or a map of classes. Style bindings: one property, with a unit. -->
+  <div
+    class="preview"
+    [class.is-highlighted]="highlighted()"
+    [class]="{ 'is-rounded': rounded() }"
+    [style.width.px]="width()"
+    [style.border-color]="color()"
+  >
+    {{ width() }}px wide
+  </div>
+</div>

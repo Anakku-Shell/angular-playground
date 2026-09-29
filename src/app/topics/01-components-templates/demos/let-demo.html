@@ -1,0 +1,28 @@
+<!-- @let declares a read-only template variable. Each one is recalculated when its inputs change. -->
+@let subtotal = quantity() * unitPrice;
+@let shipping = subtotal >= 50 ? 0 : 4.99;
+@let total = subtotal + shipping;
+<!-- Subscribe once and reuse the value, instead of repeating `customer$ | async`. -->
+@let customer = customer$ | async;
+
+<dl class="demo-values">
+  <dt>Customer</dt>
+  <dd>{{ customer?.name ?? 'Loading…' }}</dd>
+
+  <dt>Subtotal</dt>
+  <dd>{{ subtotal | currency }}</dd>
+
+  <dt>Shipping</dt>
+  <dd>{{ shipping === 0 ? 'Free (50 or more)' : (shipping | currency) }}</dd>
+
+  <dt>Total</dt>
+  <dd>
+    <strong>{{ total | currency }}</strong>
+  </dd>
+</dl>
+
+<div class="demo-row">
+  <button type="button" (click)="remove()">− 1</button>
+  <span>Quantity: {{ quantity() }}</span>
+  <button type="button" (click)="add()">+ 1</button>
+</div>

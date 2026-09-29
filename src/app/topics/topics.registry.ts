@@ -26,7 +26,17 @@ export type Topic = TopicInfo & TopicLoader;
  * page and the routes (`app.routes.ts`) are all built from this list.
  * Adding a topic = adding one entry here.
  */
-export const TOPICS: readonly Topic[] = [];
+export const TOPICS: readonly Topic[] = [
+  {
+    id: '01',
+    path: '01-components-templates',
+    title: 'Components & templates',
+    summary:
+      'Interpolation, bindings, events, template variables, @let, built-in pipes and style encapsulation.',
+    loadComponent: () =>
+      import('./01-components-templates/topic-page').then((m) => m.ComponentsTemplatesPage),
+  },
+];
 
 /** Router link for a topic page. */
 export function topicUrl(topic: Pick<Topic, 'path'>): string {

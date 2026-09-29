@@ -68,6 +68,7 @@ pre {
 }
 
 code {
+  overflow-wrap: anywhere; // long paths wrap instead of widening the page on narrow screens
   padding: 0.1em 0.35em;
   border-radius: 4px;
   background: var(--color-code-bg);
@@ -96,6 +97,48 @@ button {
 
   &:hover {
     background: var(--color-hover);
+  }
+}
+
+input:not([type='checkbox'], [type='radio'], [type='range'], [type='color']),
+select {
+  font: inherit;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+// ---- Helpers for demo bodies ------------------------------------------------
+// A wrapping row of controls or outputs.
+.demo-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+
+  & + & {
+    margin-top: 0.75rem;
+  }
+}
+
+// Label / value pairs showing what an expression evaluates to.
+.demo-values {
+  display: grid;
+  // Labels take their width, up to half the row; values get the rest and may shrink.
+  grid-template-columns: fit-content(50%) minmax(0, 1fr);
+  gap: 0.35rem 1rem;
+  margin: 0;
+
+  dt {
+    color: var(--color-text-muted);
+    overflow-wrap: anywhere;
+  }
+
+  dd {
+    margin: 0;
+    min-width: 0;
   }
 }
 
