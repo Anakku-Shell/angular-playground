@@ -1,0 +1,16 @@
+.panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+
+  // These rules reach the projected <h3> and <p>: they belong to this template.
+  h3 {
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  p {
+    margin: 0;
+  }
+}

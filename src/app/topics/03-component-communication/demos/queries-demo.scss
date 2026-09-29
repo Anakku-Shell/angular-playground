@@ -1,0 +1,19 @@
+.block + .block {
+  margin-top: 1rem;
+}
+
+h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+}
+
+.lanes {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 20rem;
+  margin-top: 0.75rem;
+}
+
+.running-count {
+  margin: 0.5rem 0 0;
+}

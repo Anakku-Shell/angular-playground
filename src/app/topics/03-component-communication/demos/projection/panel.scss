@@ -1,0 +1,31 @@
+:host {
+  display: grid;
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.panel__header,
+.panel__body,
+.panel__footer {
+  padding: 0.5rem 0.75rem;
+}
+
+.panel__header {
+  border-bottom: 1px solid var(--color-border);
+  font-weight: 600;
+}
+
+.panel__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.panel__fallback {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  font-style: italic;
+}

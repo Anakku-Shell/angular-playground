@@ -1,0 +1,17 @@
+<dl class="demo-values">
+  <!-- Two-way: pass the signal itself (no parentheses). The child writes straight into it. -->
+  <dt>Two-way <code>[(value)]="quantity"</code></dt>
+  <dd><app-quantity-stepper class="two-way" [(value)]="quantity" [max]="5" /></dd>
+
+  <!-- One-way: the parent's value flows down, but the child's changes stay local until the
+       parent's value changes again and overwrites them. -->
+  <dt>One-way <code>[value]="quantity()"</code></dt>
+  <dd><app-quantity-stepper class="one-way" [value]="quantity()" [max]="5" /></dd>
+
+  <dt>quantity() in the parent</dt>
+  <dd class="quantity">{{ quantity() }}</dd>
+</dl>
+
+<div class="demo-row">
+  <button type="button" (click)="quantity.set(1)">Parent: set to 1</button>
+</div>

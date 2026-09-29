@@ -1,0 +1,18 @@
+<div class="demo-row">
+  <app-star-rating [value]="rating()" (rated)="onRated($event)" (cleared)="onCleared()" />
+</div>
+
+<dl class="demo-values">
+  <dt>rating() in the parent</dt>
+  <dd class="rating">{{ rating() }}</dd>
+  <dt>Events received</dt>
+  <dd>
+    <ul class="event-log">
+      @for (entry of log(); track $index) {
+        <li>{{ entry }}</li>
+      } @empty {
+        <li class="muted">None yet: click a star.</li>
+      }
+    </ul>
+  </dd>
+</dl>

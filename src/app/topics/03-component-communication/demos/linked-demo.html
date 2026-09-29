@@ -1,0 +1,13 @@
+<div class="demo-row">
+  <label for="linked-category">Category (parent)</label>
+  <select id="linked-category" (change)="onCategory($event)">
+    @for (option of categories; track option) {
+      <option [value]="option" [selected]="option === category()">{{ option }}</option>
+    }
+  </select>
+</div>
+
+<!-- Pick a size, then change the category: the child's selection resets to the first size. -->
+<div class="demo-row">
+  <app-option-picker label="Size" [options]="sizes()" />
+</div>

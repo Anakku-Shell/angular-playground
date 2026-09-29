@@ -1,0 +1,29 @@
+<app-callout>
+  Projected content belongs to the <strong>parent</strong>: its bindings read the parent's state
+  (saved {{ saved() }} times) and the parent's styles apply to it.
+</app-callout>
+
+<div class="panels">
+  <app-panel class="full">
+    <h3>All three slots</h3>
+    <p>Title, body and footer each land in their own &lt;ng-content&gt;.</p>
+    <button type="button" panel-footer (click)="saved.set(saved() + 1)">Save</button>
+  </app-panel>
+
+  <app-panel class="no-footer">
+    <span panel-title>No footer</span>
+    <p>Nothing matches the footer slot, so it shows its fallback content.</p>
+  </app-panel>
+
+  <app-panel class="project-as">
+    <h3>ngProjectAs</h3>
+    <p>
+      Two buttons wrapped in an &lt;ng-container&gt;: the container has no attributes to match, so
+      <code>ngProjectAs</code> tells the slot what to match it as.
+    </p>
+    <ng-container ngProjectAs="[panel-footer]">
+      <button type="button" (click)="saved.set(saved() + 1)">Save</button>
+      <button type="button" (click)="saved.set(0)">Reset</button>
+    </ng-container>
+  </app-panel>
+</div>

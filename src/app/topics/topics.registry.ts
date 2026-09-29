@@ -44,6 +44,15 @@ export const TOPICS: readonly Topic[] = [
       '@if, @for with track, @switch, @defer and its triggers, and the legacy structural directives.',
     loadComponent: () => import('./02-control-flow/topic-page').then((m) => m.ControlFlowPage),
   },
+  {
+    id: '03',
+    path: '03-component-communication',
+    title: 'Component communication',
+    summary:
+      'input(), output(), model(), content projection, view and content queries, and sharing state through a service.',
+    loadComponent: () =>
+      import('./03-component-communication/topic-page').then((m) => m.ComponentCommunicationPage),
+  },
 ];
 
 /** Router link for a topic page. */

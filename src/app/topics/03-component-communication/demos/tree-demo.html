@@ -1,0 +1,16 @@
+<pre class="diagram" aria-label="Component tree">
+app-tree-demo      owns tasks (signal)
+ └ app-task-list   input: tasks   output: toggled (forwarded)
+    └ app-task-item  input: task    output: toggled</pre>
+
+<div class="lists">
+  <app-task-list heading="Work" [tasks]="workTasks()" (toggled)="onToggled('Work', $event)" />
+  <app-task-list heading="Home" [tasks]="homeTasks()" (toggled)="onToggled('Home', $event)" />
+</div>
+
+<dl class="demo-values">
+  <dt>Remaining (parent)</dt>
+  <dd class="remaining">{{ remaining() }}</dd>
+  <dt>Last event path</dt>
+  <dd>{{ lastEvent() }}</dd>
+</dl>

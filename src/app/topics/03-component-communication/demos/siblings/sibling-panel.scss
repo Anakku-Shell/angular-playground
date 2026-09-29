@@ -1,0 +1,42 @@
+// Shared by ProductPicker and CartSummary: a styleUrl can point to any file.
+:host {
+  display: block;
+  min-width: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+h4 {
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0;
+}
+
+.empty {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.total {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0;
+}
