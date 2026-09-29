@@ -106,6 +106,15 @@ export const TOPICS: readonly Topic[] = [
       'HttpClient with functional interceptors, a typed API service, RxJS essentials, search-as-you-type and httpResource.',
     loadComponent: () => import('./09-http-rxjs/topic-page').then((m) => m.HttpRxjsPage),
   },
+  {
+    id: '10',
+    path: '10-directives-pipes',
+    title: 'Directives & pipes',
+    summary:
+      'Custom attribute and structural directives, host bindings and listeners, exportAs, hostDirectives composition, and pure vs impure pipes.',
+    loadComponent: () =>
+      import('./10-directives-pipes/topic-page').then((m) => m.DirectivesPipesPage),
+  },
 ];
 
 /** Router link for a topic page. */
