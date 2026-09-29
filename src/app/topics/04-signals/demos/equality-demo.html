@@ -1,0 +1,16 @@
+<div class="demo-row">
+  <button type="button" (click)="setEqualCopy()">Set an equal copy</button>
+  <button type="button" (click)="moveRight()">Move right</button>
+</div>
+
+<dl class="demo-values">
+  <dt>Default (Object.is)</dt>
+  <dd class="by-reference">
+    {{ referenceLabel().text }}
+    <span class="muted">(computed run #{{ referenceLabel().run }})</span>
+  </dd>
+  <dt>equal: samePoint</dt>
+  <dd class="by-value">
+    {{ valueLabel().text }} <span class="muted">(computed run #{{ valueLabel().run }})</span>
+  </dd>
+</dl>

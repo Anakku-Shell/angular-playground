@@ -53,6 +53,14 @@ export const TOPICS: readonly Topic[] = [
     loadComponent: () =>
       import('./03-component-communication/topic-page').then((m) => m.ComponentCommunicationPage),
   },
+  {
+    id: '04',
+    path: '04-signals',
+    title: 'Signals & reactivity',
+    summary:
+      'signal, computed, effect, linkedSignal, untracked, equality functions, resource and RxJS interop.',
+    loadComponent: () => import('./04-signals/topic-page').then((m) => m.SignalsPage),
+  },
 ];
 
 /** Router link for a topic page. */

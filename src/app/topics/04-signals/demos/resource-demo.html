@@ -1,0 +1,27 @@
+<div class="demo-row" role="group" aria-label="User id">
+  <span>User id</span>
+  @for (id of ids; track id) {
+    <button type="button" [attr.aria-pressed]="id === userId()" (click)="userId.set(id)">
+      {{ id }}
+    </button>
+  }
+  <button type="button" (click)="user.reload()">Reload</button>
+</div>
+
+<dl class="demo-values">
+  <dt>status()</dt>
+  <dd class="status">{{ user.status() }}</dd>
+  <dt>Result</dt>
+  <dd class="result">
+    <!-- Check error() before value(): reading value() of a failed resource throws. -->
+    @if (user.isLoading()) {
+      <span class="muted">Loading…</span>
+    } @else if (user.error(); as error) {
+      <span class="error">{{ error.message }}</span>
+    } @else if (user.hasValue()) {
+      {{ user.value().name }} ({{ user.value().role }})
+    }
+  </dd>
+  <dt>Requests cancelled</dt>
+  <dd class="cancelled">{{ cancelled() }}</dd>
+</dl>

@@ -1,0 +1,23 @@
+<div class="demo-row">
+  <span>
+    Quantity: <strong>{{ quantity() }}</strong>
+  </span>
+  <button type="button" (click)="add(-1)">−1</button>
+  <button type="button" (click)="add(1)">+1</button>
+  <button type="button" (click)="reset()">Reset</button>
+  <button type="button" [attr.aria-pressed]="showTotal()" (click)="toggleTotal()">
+    {{ showTotal() ? 'Hide total' : 'Show total' }}
+  </button>
+</div>
+
+<dl class="demo-values">
+  <dt>total() at {{ unitPrice | currency: 'EUR' }} each</dt>
+  <dd class="total">
+    @if (showTotal()) {
+      {{ total().amount | currency: 'EUR' }}
+      <span class="muted">(computation run #{{ total().run }})</span>
+    } @else {
+      <span class="muted">Hidden: nothing reads total(), so it does not run</span>
+    }
+  </dd>
+</dl>

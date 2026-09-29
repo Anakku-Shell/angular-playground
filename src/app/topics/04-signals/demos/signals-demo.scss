@@ -1,0 +1,14 @@
+// Shared by every demo of this topic (each component lists it in `styleUrl` / `styleUrls`).
+// Encapsulation still applies: each component gets its own scoped copy.
+
+.demo-values {
+  margin-top: 0.75rem;
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.error {
+  color: var(--color-warning);
+}
