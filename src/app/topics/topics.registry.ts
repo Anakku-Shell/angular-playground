@@ -115,6 +115,15 @@ export const TOPICS: readonly Topic[] = [
     loadComponent: () =>
       import('./10-directives-pipes/topic-page').then((m) => m.DirectivesPipesPage),
   },
+  {
+    id: '11',
+    path: '11-state-management',
+    title: 'State management',
+    summary:
+      'A store service with signals, the same feature with NgRx SignalStore, rxMethod for async effects and signalState for local state.',
+    loadComponent: () =>
+      import('./11-state-management/topic-page').then((m) => m.StateManagementPage),
+  },
 ];
 
 /** Router link for a topic page. */
