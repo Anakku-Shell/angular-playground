@@ -1,0 +1,25 @@
+<div class="demo-row">
+  <button type="button" (click)="add()">Add task</button>
+  <button type="button" (click)="clear()">Clear</button>
+  <button type="button" (click)="reset()">Reset</button>
+</div>
+
+<ul class="task-list">
+  <!-- `track` is required. `let pos = $index` gives an implicit variable another name, which
+       nested loops need (the inner $index would hide the outer one). -->
+  @for (task of tasks(); track task.id; let pos = $index) {
+    <li [class.is-odd]="$odd">
+      <span class="position">{{ pos + 1 }} / {{ $count }}</span>
+      <span class="title">{{ task.title }}</span>
+      @if ($first) {
+        <span class="badge">$first</span>
+      }
+      @if ($last) {
+        <span class="badge">$last</span>
+      }
+      <button type="button" (click)="remove(task.id)">Remove</button>
+    </li>
+  } @empty {
+    <li class="empty">No tasks left: this is the &#64;empty block.</li>
+  }
+</ul>

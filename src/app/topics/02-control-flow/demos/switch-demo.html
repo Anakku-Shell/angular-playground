@@ -1,0 +1,62 @@
+<div class="demo-row" role="radiogroup" aria-label="Plan">
+  @for (option of plans; track option) {
+    <label>
+      <input
+        type="radio"
+        name="switch-plan"
+        [checked]="plan() === option"
+        (change)="plan.set(option)"
+      />
+      {{ option }}
+    </label>
+  }
+</div>
+
+<!-- Cases are compared with ===. There is no fall-through, so no `break` is needed. -->
+<!-- `@default never` needs a value TypeScript can narrow. A signal call like plan() cannot be
+     narrowed (each call could return something else), so store it in a @let first. -->
+@let currentPlan = plan();
+<p>
+  @switch (currentPlan) {
+    @case ('free') {
+      Free: 1 project, community support.
+    }
+    @case ('pro') {
+      Pro: unlimited projects, email support.
+    }
+    <!-- Consecutive @case blocks share the next body. -->
+    @case ('team')
+    @case ('enterprise') {
+      Team / Enterprise: shared workspace and a dedicated manager.
+    }
+    <!-- Exhaustiveness check: adding a new Plan without a @case is a compile error. -->
+    @default never;
+  }
+</p>
+
+<div class="demo-row">
+  <label for="switch-status">HTTP status</label>
+  <select id="switch-status" (change)="onStatus($event)">
+    @for (code of statusCodes; track code) {
+      <option [value]="code">{{ code }}</option>
+    }
+  </select>
+</div>
+
+<p>
+  @switch (status()) {
+    @case (200) {
+      OK: the request succeeded.
+    }
+    @case (404) {
+      Not found.
+    }
+    @case (500) {
+      Server error.
+    }
+    <!-- @default renders when no case matches. -->
+    @default {
+      Unexpected status {{ status() }}.
+    }
+  }
+</p>

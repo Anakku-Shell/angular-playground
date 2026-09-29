@@ -1,0 +1,32 @@
+.legacy-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: 1rem;
+  margin-top: 0.75rem;
+
+  section {
+    min-width: 0;
+    padding: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+  }
+
+  h3 {
+    margin: 0 0 0.5rem;
+    font-size: 0.95rem;
+  }
+
+  .output {
+    min-height: 8rem;
+
+    p,
+    ul {
+      margin: 0 0 0.5rem;
+    }
+  }
+
+  pre {
+    margin: 0;
+    font-size: 0.8rem;
+  }
+}

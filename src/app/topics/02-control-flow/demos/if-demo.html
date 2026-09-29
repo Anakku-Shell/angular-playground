@@ -1,0 +1,38 @@
+<div class="demo-row">
+  <label for="if-score">Score</label>
+  <input id="if-score" type="range" min="0" max="100" [value]="score()" (input)="onScore($event)" />
+  <span>{{ score() }}</span>
+</div>
+
+<!-- Conditions are checked top to bottom; the first true one wins. -->
+<p class="grade">
+  @if (score() >= 90) {
+    <strong>A</strong>: excellent
+  } @else if (score() >= 70) {
+    <strong>B</strong>: good
+  } @else if (score() >= 50) {
+    <strong>C</strong>: pass
+  } @else {
+    <strong class="fail">F</strong>: try again
+  }
+</p>
+
+<div class="demo-row">
+  <label for="if-user">User</label>
+  <select id="if-user" (change)="onSelect($event)">
+    <option value="">None</option>
+    @for (user of users; track user.name) {
+      <option [value]="user.name">{{ user.name }}</option>
+    }
+  </select>
+</div>
+
+<!-- `as user` stores the condition's value. Inside the block its type is `User`, not `User | undefined`. -->
+@if (selectedUser(); as user) {
+  <p>
+    <strong>{{ user.name }}</strong> has the role <code>{{ user.role }}</code
+    >.
+  </p>
+} @else {
+  <p class="muted">No user selected.</p>
+}

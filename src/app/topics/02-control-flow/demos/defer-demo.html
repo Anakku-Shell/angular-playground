@@ -1,0 +1,70 @@
+<div class="demo-row">
+  <button type="button" (click)="replay()">Replay</button>
+  <label>
+    <input type="checkbox" [checked]="ready()" (change)="ready.set(!ready())" />
+    <code>ready()</code>
+  </label>
+</div>
+
+@if (visible()) {
+  <div class="defer-grid">
+    <section>
+      <h3><code>on interaction</code></h3>
+      @defer (on interaction) {
+        <app-heavy-widget trigger="on interaction" />
+      } @placeholder {
+        <!-- The trigger listens on the placeholder's root element. -->
+        <button type="button">Click to load</button>
+      } @loading (minimum 1s) {
+        <p class="state">Loading…</p>
+      }
+    </section>
+
+    <section>
+      <h3><code>on timer(3s)</code></h3>
+      @defer (on timer(3s)) {
+        <app-heavy-widget trigger="on timer(3s)" />
+      } @placeholder {
+        <p class="state">Loads 3 seconds after rendering.</p>
+      }
+    </section>
+
+    <section>
+      <h3><code>when ready()</code></h3>
+      <!-- `when` loads once the expression becomes true. Unticking later does not unload it. -->
+      @defer (when ready()) {
+        <app-heavy-widget trigger="when ready()" />
+      } @placeholder {
+        <p class="state">Tick <code>ready()</code> above.</p>
+      }
+    </section>
+
+    <section>
+      <h3><code>on idle</code> (the default)</h3>
+      <!-- Loads when the browser is idle (requestIdleCallback), so it usually appears at once. -->
+      @defer (on idle) {
+        <app-heavy-widget trigger="on idle" />
+      } @placeholder (minimum 500ms) {
+        <p class="state">Waiting for the browser to be idle…</p>
+      }
+    </section>
+
+    <section class="wide">
+      <h3><code>on viewport</code></h3>
+      <div class="scroll-box" tabindex="0" aria-label="Scrollable box, scroll down to load">
+        <p class="state">Scroll down inside this box ↓</p>
+        <div class="spacer"></div>
+        @defer (on viewport) {
+          <app-heavy-widget trigger="on viewport" />
+        } @placeholder {
+          <!-- An IntersectionObserver watches this element. -->
+          <p class="state">Placeholder in view: loading…</p>
+        } @loading (minimum 1s) {
+          <p class="state">Loading…</p>
+        } @error {
+          <p class="state">The chunk could not be loaded.</p>
+        }
+      </div>
+    </section>
+  </div>
+}
