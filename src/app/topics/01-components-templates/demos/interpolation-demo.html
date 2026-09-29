@@ -1,0 +1,25 @@
+<dl class="demo-values">
+  <dt>Signal read</dt>
+  <dd>{{ user().name }}</dd>
+
+  <dt>Arithmetic</dt>
+  <dd>{{ quantity() }} × {{ unitPrice }} = {{ quantity() * unitPrice }}</dd>
+
+  <dt>computed()</dt>
+  <dd>{{ total() }}</dd>
+
+  <dt>Ternary</dt>
+  <dd>{{ quantity() >= 5 ? 'Bulk order' : 'Regular order' }}</dd>
+
+  <dt>Nullish (??)</dt>
+  <dd>{{ user().email ?? 'No email on file' }}</dd>
+
+  <dt>Escaped HTML</dt>
+  <dd>{{ markup }}</dd>
+</dl>
+
+<div class="demo-row">
+  <button type="button" (click)="remove()">− 1</button>
+  <button type="button" (click)="add()">+ 1</button>
+  <button type="button" (click)="toggleEmail()">Toggle email</button>
+</div>

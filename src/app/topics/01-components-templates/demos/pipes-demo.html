@@ -1,0 +1,38 @@
+<dl class="demo-values">
+  <dt>date</dt>
+  <dd>{{ launch | date }}</dd>
+
+  <dt>date:'fullDate'</dt>
+  <dd>{{ launch | date: 'fullDate' }}</dd>
+
+  <dt>date:'HH:mm'</dt>
+  <dd>{{ launch | date: 'HH:mm' }}</dd>
+
+  <dt>currency</dt>
+  <dd>{{ price | currency }}</dd>
+
+  <dt>currency:'EUR'</dt>
+  <dd>{{ price | currency: 'EUR' }}</dd>
+
+  <dt>currency:'EUR':'code'</dt>
+  <dd>{{ price | currency: 'EUR' : 'code' }}</dd>
+
+  <dt>uppercase</dt>
+  <dd>{{ title | uppercase }}</dd>
+
+  <dt>async | date (chained)</dt>
+  <dd>{{ clock$ | async | date: 'HH:mm:ss' }}</dd>
+
+  <dt>keyvalue</dt>
+  <dd>
+    <!-- keyvalue turns an object into [{ key, value }], sorted by key by default. -->
+    @for (entry of scores | keyvalue; track entry.key) {
+      <span class="kv">{{ entry.key }}: {{ entry.value }}</span>
+    }
+  </dd>
+
+  <dt>json</dt>
+  <dd>
+    <pre><code>{{ settings | json }}</code></pre>
+  </dd>
+</dl>

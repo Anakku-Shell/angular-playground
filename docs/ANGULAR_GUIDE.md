@@ -218,7 +218,97 @@ _TODO._
 
 ## 5. Topics
 
-_TODO: one subsection per topic, added as each topic is built._
+One subsection per topic page. Code: `src/app/topics/NN-topic-name/`.
+
+### 5.1 Components & templates
+
+Route: `/topics/01-components-templates`. All the APIs below are **stable**.
+
+**Template syntax at a glance**
+
+| Syntax                                  | What it does                                                     |
+| --------------------------------------- | ---------------------------------------------------------------- |
+| `{{ expr }}`                            | Interpolation: renders `expr` as (escaped) text.                 |
+| `[prop]="expr"`                         | Property binding: sets a DOM property or a component input.      |
+| `[attr.name]="expr"`                    | Attribute binding (`aria-*`, `colspan`...). `null` removes it.   |
+| `[class.name]="bool"` / `[class]="map"` | Toggle one class / set several.                                  |
+| `[style.prop.unit]="expr"`              | One inline style, e.g. `[style.width.px]`.                       |
+| `(event)="statement"`                   | Event binding. `$event` is the DOM event (or an output's value). |
+| `(keyup.enter)`, `(keydown.shift.tab)`  | Key event filters.                                               |
+| `[(x)]="signalOrField"`                 | Two-way binding: `[x]` + `(xChange)`.                            |
+| `#ref`                                  | Template variable pointing to an element or component.           |
+| `@let name = expr;`                     | Read-only template variable (stable since v19).                  |
+| `expr \| pipe: arg`                     | Transforms a value for display.                                  |
+
+**Interpolation and expressions**
+
+- Expressions read the component's members only (no `window`, `console`, globals). Signals are read by calling them: `{{ user().name }}`.
+- Supported: arithmetic, ternaries, `?.`, `??`, method calls, literals. Keep them short: derived values belong in a `computed()`, which is cached and recomputed only when its signals change.
+- Interpolation escapes HTML. `[innerHTML]` renders markup and Angular sanitizes it.
+
+**Bindings**
+
+- Property vs attribute: `[disabled]` sets `button.disabled` (a DOM property). `aria-pressed` exists only as an attribute, so it needs `[attr.aria-pressed]`. `[attr.x]="false"` renders `x="false"`; use `null` to remove the attribute.
+- Static `class`, `[class]` and `[class.x]` merge instead of overwriting each other.
+
+**Events**
+
+- For `(input)`, `$event` is a generic `Event`. Cast in the class: `(event.target as HTMLInputElement).value`.
+- A handled template event marks the component for re-render (this is one of the triggers in a zoneless app).
+- Testing gotcha: `[value]="draft()"` only writes to the DOM when the bound value changes between two renders. A test that fires `input` and `keyup.enter` back to back, with no render in between, sees `''` → `''` and the input is not cleared. Await `fixture.whenStable()` between the two events, as a real user would.
+
+**Two-way binding**
+
+```html
+<input [(ngModel)]="name" />
+<!-- is the same as -->
+<input [ngModel]="name()" (ngModelChange)="name.set($event)" />
+```
+
+- `ngModel` needs `FormsModule` in the component's `imports`.
+- `[(ngModel)]` accepts a writable signal directly: pass the signal (`name`), not its value (`name()`).
+- Any component with an input `x` and an output `xChange` supports `[(x)]`; `model()` creates that pair.
+
+**Template reference variables**
+
+- `#nameInput` on an element gives the element; on a component, the component instance; `#m="ngModel"` gives a directive through its `exportAs` name.
+- Gotcha: `{{ nameInput.value }}` does not update as you type. Typing fires no bound event, so nothing triggers a render. Keep state in signals; use refs to pass values into methods or call element methods (`nameInput.focus()`).
+
+**`@let`**
+
+```html
+@let subtotal = quantity() * unitPrice; @let customer = customer$ | async;
+```
+
+- Stable since v19 (developer preview in 18.1).
+- Read-only, visible after its declaration in the same block and nested blocks.
+- Great for "subscribe once, use many times" with `async`. Logic that the class also needs goes in a `computed()`.
+
+**Built-in pipes** (from `@angular/common`, imported per component)
+
+- `date` (`'fullDate'`, `'HH:mm'`...), `currency` (`'EUR'`, `'EUR':'code'`), `uppercase`, `json`, `keyvalue` (sorted by key), `async`.
+- They use the app locale (`en-US` by default). Other locales: `registerLocaleData()` + `LOCALE_ID`.
+- Pure pipes re-run only when the input value or reference changes. `async`, `json` and `keyvalue` are impure: they run on every check.
+- `async` subscribes and unsubscribes automatically when the component is destroyed.
+
+**Styles and `ViewEncapsulation`**
+
+| Mode                 | How                                                                | Leaks out? | Global styles get in? |
+| -------------------- | ------------------------------------------------------------------ | ---------- | --------------------- |
+| `Emulated` (default) | Adds `_ngcontent-*` / `_nghost-*` attributes to elements and rules | No         | Yes                   |
+| `None`               | Adds the CSS to the page as-is                                     | **Yes**    | Yes                   |
+| `ShadowDom`          | Native shadow root                                                 | No         | No (but see gotcha)   |
+
+- `:host` styles the component's own element; `:host(.x)` when the host has class `x`.
+- Emulated styles do not reach projected content or child components. `::ng-deep` pierces that but is deprecated: use global styles or CSS custom properties.
+- Angular removes a component's styles when its last instance is destroyed (visible with the `None` sample: untick it and the leak disappears).
+- CSS custom properties and inherited properties (font, color) cross every boundary, shadow roots included.
+- Gotcha: `ShadowDom` keeps out `styles.scss`, but Angular copies the styles of its other components into every shadow root. A `None` component's rule therefore reaches inside.
+
+**Escaping Angular syntax in a template**
+
+- `@` starts a block: write `&#64;` to print it.
+- `{{ }}` is interpolation even when written as `&#123;&#123;` (entities are decoded first). Put `ngNonBindable` on the element to print it as text.
 
 ---
 

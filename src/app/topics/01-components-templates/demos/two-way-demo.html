@@ -1,0 +1,14 @@
+<div class="demo-row">
+  <label>
+    Banana in a box
+    <input type="text" [(ngModel)]="name" />
+  </label>
+
+  <!-- The same binding, desugared: a property binding plus an event binding. -->
+  <label>
+    Desugared
+    <input type="text" [ngModel]="name()" (ngModelChange)="name.set($event)" />
+  </label>
+</div>
+
+<p class="demo-row">Hello, {{ name() || 'stranger' }}!</p>

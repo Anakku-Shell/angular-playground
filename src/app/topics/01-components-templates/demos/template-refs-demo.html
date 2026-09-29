@@ -1,0 +1,21 @@
+<div class="demo-row">
+  <!-- #nameInput is a template reference variable: it points to this <input> element. -->
+  <label>
+    Name
+    <input #nameInput type="text" placeholder="Type, then press Greet" />
+  </label>
+  <button type="button" (click)="greet(nameInput.value)">Greet</button>
+  <button type="button" (click)="nameInput.focus()">Focus the input</button>
+</div>
+
+<div class="demo-row">
+  <dl class="demo-values">
+    <dt>greeting()</dt>
+    <dd>{{ greeting() || '—' }}</dd>
+
+    <!-- Gotcha: typing fires no Angular event here, so nothing triggers a re-render.
+       This line only catches up when a button is clicked. -->
+    <dt>nameInput.value</dt>
+    <dd>"{{ nameInput.value }}"</dd>
+  </dl>
+</div>

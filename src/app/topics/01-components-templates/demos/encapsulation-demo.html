@@ -1,0 +1,15 @@
+<label class="demo-row">
+  <input type="checkbox" [checked]="showNone()" (change)="showNone.set(!showNone())" />
+  Render the ViewEncapsulation.None component
+</label>
+
+<div class="samples">
+  <app-emulated-sample />
+  <app-shadow-sample />
+  @if (showNone()) {
+    <app-none-sample />
+  }
+</div>
+
+<!-- An element of this (parent) component with the same class: only None's rule reaches it. -->
+<p class="enc-sample">Parent paragraph with class "enc-sample"</p>

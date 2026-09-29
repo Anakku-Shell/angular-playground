@@ -1,0 +1,23 @@
+<button type="button" class="click-area" (click)="onClick($event)">{{ lastClick() }}</button>
+
+<div class="demo-row">
+  <label>
+    New item
+    <input
+      type="text"
+      placeholder="Enter adds, Escape clears"
+      [value]="draft()"
+      (input)="onInput($event)"
+      (keyup.enter)="add()"
+      (keyup.escape)="clear()"
+    />
+  </label>
+  <span>Draft: "{{ draft() }}"</span>
+</div>
+
+<!-- Plain strings with possible duplicates and no id: $index is the right key here (see Control flow). -->
+<ul class="items">
+  @for (item of items(); track $index) {
+    <li>{{ item }}</li>
+  }
+</ul>

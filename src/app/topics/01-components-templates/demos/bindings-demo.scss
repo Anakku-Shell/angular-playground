@@ -1,0 +1,17 @@
+.preview {
+  padding: 0.75rem 1rem;
+  border: 3px solid;
+  background: var(--color-surface);
+  transition:
+    width 0.2s,
+    border-radius 0.2s;
+
+  &.is-rounded {
+    border-radius: 999px;
+  }
+
+  &.is-highlighted {
+    background: var(--color-accent-soft);
+    font-weight: 700;
+  }
+}
