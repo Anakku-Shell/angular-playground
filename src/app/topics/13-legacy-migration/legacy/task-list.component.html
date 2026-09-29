@@ -1,0 +1,24 @@
+<ul *ngIf="visible.length; else empty" class="tasks">
+  <li *ngFor="let task of visible; trackBy: trackById" class="task" appHighlight>
+    <label>
+      <input type="checkbox" [checked]="task.done" (change)="toggled.emit(task.id)" />
+      <span [class.done]="task.done">{{ task.title }}</span>
+    </label>
+    <button
+      type="button"
+      class="remove"
+      [attr.aria-label]="'Remove ' + task.title"
+      (click)="removed.emit(task.id)"
+    >
+      ×
+    </button>
+  </li>
+</ul>
+
+<ng-template #empty>
+  <p class="empty" [ngSwitch]="filter">
+    <span *ngSwitchCase="'open'">Nothing left to do.</span>
+    <span *ngSwitchCase="'done'">No task is done yet.</span>
+    <span *ngSwitchDefault>No tasks. Add one above.</span>
+  </p>
+</ng-template>

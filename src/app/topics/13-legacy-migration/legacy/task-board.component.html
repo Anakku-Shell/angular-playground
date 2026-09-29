@@ -1,0 +1,36 @@
+<form class="add" (ngSubmit)="add()">
+  <input
+    #titleInput
+    class="new-title"
+    name="title"
+    placeholder="New task (Esc clears)"
+    aria-label="New task"
+    [(ngModel)]="newTitle"
+  />
+  <button type="submit">Add</button>
+</form>
+
+<div class="filters" role="group" aria-label="Filter tasks">
+  <button
+    *ngFor="let option of filters"
+    type="button"
+    class="filter"
+    [class.active]="option === filter"
+    [attr.aria-pressed]="option === filter"
+    (click)="filter = option"
+  >
+    {{ option }}
+  </button>
+</div>
+
+<app-task-list
+  *ngIf="tasks$ | async as tasks; else loading"
+  [tasks]="tasks"
+  [filter]="filter"
+  (toggled)="toggle($event)"
+  (removed)="remove($event)"
+></app-task-list>
+
+<ng-template #loading>
+  <p>Loading…</p>
+</ng-template>

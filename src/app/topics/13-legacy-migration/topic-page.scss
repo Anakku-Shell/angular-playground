@@ -1,0 +1,37 @@
+:host {
+  display: grid;
+  // minmax(0, 1fr): the column may shrink below its content's width (default is `auto`, which
+  // lets a wide demo stretch the whole page on small screens).
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  max-width: 60rem;
+}
+
+h1 {
+  margin-bottom: 0;
+}
+
+.lead {
+  margin-top: 0;
+  color: var(--color-text-muted);
+}
+
+.source {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+app-code-pair {
+  margin-top: 0.75rem;
+}
+
+.blocked {
+  margin: 0.75rem 0 0;
+  color: var(--color-warning);
+}
+
+// Long command lines scroll inside the block instead of widening the page.
+pre {
+  margin: 0;
+  font-size: 0.8rem;
+}
