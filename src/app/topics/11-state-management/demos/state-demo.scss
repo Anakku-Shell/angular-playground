@@ -1,0 +1,41 @@
+// Shared by the demos of this topic (each component lists it in `styleUrl`).
+
+.hint {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+// Products on the left, cart on the right; stacked on narrow screens.
+.shop {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem;
+  align-items: start;
+  margin-top: 0.75rem;
+}
+
+.log {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0.75rem 0 0;
+  padding: 0.5rem 0.75rem;
+  min-height: 2rem;
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  overflow-wrap: anywhere;
+}
+
+.error {
+  margin: 0;
+  color: var(--color-accent);
+}
+
+.loading {
+  margin: 0;
+  color: var(--color-warning);
+}

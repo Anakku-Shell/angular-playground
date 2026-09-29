@@ -1413,6 +1413,157 @@ export class TruncatePipe implements PipeTransform {
 - For derived data inside one component, a `computed()` is usually clearer than a pipe; pipes shine for formatting reused across templates.
 - Pipes are plain classes: unit-test them with `new TruncatePipe().transform(...)`, no `TestBed` needed (unless they `inject()`).
 
+### 5.11 State management
+
+The page builds one cart twice: a plain service with signals, then NgRx SignalStore (`@ngrx/signals`). Both reuse the same presentational components (`ProductList`, `CartView`), which only have inputs and outputs.
+
+**Where state can live**
+
+| State                                | Where                                                |
+| ------------------------------------ | ---------------------------------------------------- |
+| One component (open panel, input)    | signals in the component, or `signalState`           |
+| A feature (a page and its children)  | a store in that component's `providers`              |
+| The whole app (user, cart, settings) | a store with `providedIn: 'root'`                    |
+| The server's data (lists, entities)  | a store or `resource` / `httpResource` that loads it |
+| Shareable UI state (filters, page)   | the URL (query params, topic 07)                     |
+
+**A store service with signals**
+
+```ts
+@Injectable({ providedIn: 'root' })
+export class CartStore {
+  private readonly linesState = signal<readonly CartLine[]>([]); // only the store writes
+  readonly lines = this.linesState.asReadonly(); // components read
+  readonly count = computed(() => countItems(this.lines()));
+  readonly total = computed(() => totalPrice(this.lines()));
+
+  add(product: Product): void {
+    // the "actions"
+    this.linesState.update((lines) => addLine(lines, product)); // new array, never mutate
+  }
+  clear(): void {
+    this.linesState.set([]);
+  }
+}
+```
+
+- This is the default choice for most apps: no dependency, typed, trivially testable (`TestBed.inject(CartStore)`).
+- It replaces the v14–v16 pattern of a service with a private `BehaviorSubject` and a public `asObservable()`; you will still meet that one in older code.
+- Keep writes inside the store (private writable signal, public methods). If every component can `set()` the state, nobody owns it.
+
+**NgRx SignalStore**
+
+```ts
+export const CartSignalStore = signalStore(
+  // { providedIn: 'root' } as first argument for a global store
+  withState<CartState>({ lines: [] }), // store.lines() is a signal
+  withComputed(({ lines }) => ({
+    count: computed(() => countItems(lines())),
+  })),
+  withMethods((store) => ({
+    add(product: Product): void {
+      patchState(store, (state) => ({ lines: addLine(state.lines, product) }));
+    },
+    clear(): void {
+      patchState(store, { lines: [] });
+    },
+  })),
+);
+
+@Component({ providers: [CartSignalStore] /* one instance per component */ })
+export class SignalStoreDemo {
+  protected readonly cart = inject(CartSignalStore);
+}
+```
+
+- Features apply in order; each sees what the previous ones added. `withProps`, `withHooks`, `withLinkedState` and custom features (`signalStoreFeature`) complete the set.
+- State is protected: `patchState` only works inside the store unless `protectedState: false`.
+- `patchState` merges **one level deep** and always creates a new state object. Nested objects are spread by hand.
+- `watchState(store, fn)` runs synchronously on every change (logging, persistence); `effect` would batch them.
+- `@ngrx/signals/entities` (`withEntities`, `addEntity`, `updateEntity`…) handles normalized collections.
+- `signalState({...})` is the state part alone, for local component state. Nested objects become deep signals: `state.filters.maxPrice()`.
+
+**Async: `rxMethod`**
+
+```ts
+withMethods((store, api = inject(CatalogApi)) => ({
+  search: rxMethod<string>(
+    pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      tap(() => patchState(store, { status: 'loading' })),
+      switchMap((query) =>
+        api.search(query).pipe(
+          tap((products) => patchState(store, { products, status: 'loaded' })),
+          catchError(() => {
+            patchState(store, { status: 'error' });
+            return EMPTY; // handled inside switchMap: the method keeps working
+          }),
+        ),
+      ),
+    ),
+  ),
+})),
+withHooks({
+  onInit(store) {
+    store.search(store.query); // a signal: re-runs on every change
+  },
+}),
+```
+
+- `rxMethod` accepts a value, a signal or an Observable, and unsubscribes when its injector is destroyed.
+- `tapResponse({ next, error })` from `@ngrx/operators` is the idiomatic replacement for the `tap` + `catchError` pair.
+- `signalMethod` is the same idea without RxJS.
+
+**Classic NgRx (`@ngrx/store`)**
+
+Many v19 codebases use the Redux-style store. The pieces:
+
+| Piece    | Role                                                    | Example                                                             |
+| -------- | ------------------------------------------------------- | ------------------------------------------------------------------- |
+| Action   | an event that happened, `[Source] Event`                | `createAction('[Cart] Add', props<{ product: Product }>())`         |
+| Reducer  | pure function `(state, action) => newState`             | `on(CartActions.add, (s, { product }) => ({ ...s, lines: [...] }))` |
+| Selector | memoized read of a slice of state                       | `createSelector(selectCart, (cart) => cart.lines.length)`           |
+| Effect   | side effects: listens to actions, dispatches others     | `ofType(load)` → `switchMap(api)` → `loadSuccess` / `loadFailure`   |
+| Store    | holds the state; `dispatch(action)`, `select(selector)` | `store.selectSignal(selectCount)` returns a signal (v16+)           |
+
+```ts
+// Grouping actions: one object per source
+export const CartActions = createActionGroup({
+  source: 'Cart',
+  events: { Add: props<{ product: Product }>(), Clear: emptyProps() },
+});
+
+// Feature: reducer + generated selectors
+export const cartFeature = createFeature({
+  name: 'cart',
+  reducer: createReducer(
+    initialState,
+    on(CartActions.add, (state, { product }) => ({ ...state, lines: addLine(state.lines, product) })),
+    on(CartActions.clear, () => initialState),
+  ),
+}); // cartFeature.selectLines, ...
+
+// Component
+private readonly store = inject(Store);
+protected readonly lines = this.store.selectSignal(cartFeature.selectLines);
+add(product: Product) { this.store.dispatch(CartActions.add({ product })); }
+
+// app.config.ts
+provideStore(), provideState(cartFeature), provideEffects(CartEffects), provideStoreDevtools()
+```
+
+- Strengths: one global, serializable state; every change is an action you can trace and replay in Redux DevTools; strict separation of reads, writes and side effects. Costs: more files and indirection per feature.
+- `@ngrx/component-store` was the lighter local-state option before SignalStore, which now replaces it.
+- NGXS and Akita are other Redux-like libraries you may meet; the concepts transfer.
+
+**Which one?**
+
+- Start with signals in components, then a **service with signals** when state is shared. It covers most apps.
+- **SignalStore** when stores grow (many fields, entities, async flows, shared features) and the team wants one structured pattern.
+- **Classic NgRx** when the codebase already uses it, or a large team needs strict action-based traceability. Do not mix patterns for the same state.
+- Vue analogy: service with signals ≈ a composable holding module-level `ref`s; SignalStore ≈ Pinia; classic NgRx ≈ Vuex with strict mutations.
+
 ---
 
 ## 6. Angular 19 → 20 → 21
