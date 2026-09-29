@@ -1,0 +1,27 @@
+// Projected content (the caller's <ul>) is styled globally in `src/styles.scss`;
+// see the note in demo-card.scss.
+:host {
+  --tips-accent: var(--color-accent);
+  --tips-bg: var(--color-accent-soft);
+
+  display: block;
+  margin-block: 1rem;
+}
+
+:host(.is-warning) {
+  --tips-accent: var(--color-warning);
+  --tips-bg: var(--color-warning-soft);
+}
+
+.tips-box {
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--tips-accent);
+  border-radius: var(--radius);
+  background: var(--tips-bg);
+
+  &__heading {
+    margin: 0 0 0.5rem;
+    font-weight: 700;
+    color: var(--tips-accent);
+  }
+}

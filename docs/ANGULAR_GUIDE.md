@@ -1,0 +1,249 @@
+# Angular Guide
+
+Companion notes for this playground. It targets **Angular 21** and points out what differs in v19/v20 codebases. Each topic page in the app has a matching subsection in [Topics](#5-topics).
+
+## Contents
+
+1. [Setup](#1-setup)
+2. [Project anatomy](#2-project-anatomy)
+3. [Architecture](#3-architecture)
+4. [TypeScript tips in Angular](#4-typescript-tips-in-angular)
+5. [Topics](#5-topics)
+6. [Angular 19 → 20 → 21](#6-angular-19--20--21)
+7. [Production build](#7-production-build)
+8. [References](#8-references)
+9. [Appendix: Coming from Vue](#appendix-coming-from-vue)
+
+---
+
+## 1. Setup
+
+### Node and the CLI
+
+- Angular needs an active LTS version of Node. The CLI checks the supported range and fails early with a clear message if yours is outside it.
+- The Angular CLI (`@angular/cli`) is a **dev dependency of the project**. There is no need to install it globally:
+  - `npm start`, `npm run build`, `npm test`, `npm run lint` run the project's scripts, and npm puts `node_modules/.bin` on the `PATH` while they run.
+  - For other commands, use `npx ng <command>` (e.g. `npx ng generate component foo`).
+  - To create a new project without a global install: `npx @angular/cli@21 new my-app`.
+  - A global CLI (`npm i -g @angular/cli`) also works: inside a project it hands off to the project's local version. It adds nothing but a possible version mismatch warning.
+
+### Creating the project
+
+This playground was created with:
+
+```bash
+npx @angular/cli@21 new angular-playground --directory . --style=scss --routing --ssr=false --skip-git
+```
+
+| Flag            | Meaning                                                                  |
+| --------------- | ------------------------------------------------------------------------ |
+| `--directory .` | Generate into the current folder instead of a new one.                   |
+| `--style=scss`  | Component and global styles use SCSS.                                    |
+| `--routing`     | Adds `app.routes.ts` and `provideRouter()`.                              |
+| `--ssr=false`   | Client-side only (no server-side rendering / hydration).                 |
+| `--skip-git`    | Do not run `git init` or make a first commit (the repo already existed). |
+
+Defaults you get in v21 without asking: standalone components, **zoneless** change detection (no `zone.js`), **Vitest** as the test runner, `strict` TypeScript, and the 2025 file naming (`app.ts` instead of `app.component.ts`).
+
+### Everyday commands
+
+| Command                       | What it does                                                                   |
+| ----------------------------- | ------------------------------------------------------------------------------ |
+| `npm start` (`ng serve`)      | Dev server on `http://localhost:4200` with hot reload.                         |
+| `npm run build` (`ng build`)  | Production build into `dist/angular-playground/browser`.                       |
+| `npm test` (`ng test`)        | Runs the unit tests with Vitest (watch mode; add `--watch=false` for one run). |
+| `npm run lint` (`ng lint`)    | ESLint over `src/**/*.ts` and `src/**/*.html`.                                 |
+| `npm run format`              | Prettier over the whole repo (`format:check` only reports).                    |
+| `npx ng generate <schematic>` | Generates code from a schematic (see below).                                   |
+
+Useful `ng generate` (`ng g`) schematics:
+
+```bash
+npx ng g component shared/user-card   # user-card.ts / .html / .scss / .spec.ts
+npx ng g service core/user-store      # user-store.ts (no ".service" suffix since v20)
+npx ng g directive shared/highlight
+npx ng g pipe shared/initials
+npx ng g guard core/auth              # functional guard
+npx ng g interceptor core/auth        # functional interceptor
+npx ng g environments                 # src/environments/*.ts + fileReplacements
+```
+
+Add `--dry-run` to see what would be created without writing anything.
+
+### Dev server: esbuild, Vite and HMR
+
+- `angular.json` uses the **`@angular/build`** builders: `@angular/build:application` for builds and `@angular/build:dev-server` for `ng serve`. They bundle with **esbuild** and serve through **Vite**.
+- Editing a component's **template (`.html`) or styles (`.scss`)** is applied with **HMR** (hot module replacement): the change appears without a page reload and the component keeps its state.
+- Editing a **`.ts`** file triggers a fast full reload.
+- You never touch Vite's config directly: the builder owns it, and the options live in `angular.json`.
+
+**Legacy: the webpack builder.** Projects created before v17 (and many v19 codebases that were upgraded, not recreated) may still use `@angular-devkit/build-angular:browser` / `:dev-server`, which bundle with webpack. It still works but is slower and gets no new features. Migrate with:
+
+```bash
+npx ng update @angular/cli --name use-application-builder
+```
+
+The migration switches the builders, renames options (e.g. `main` → `browser`) and moves the output to `dist/<app>/browser`. Custom webpack configs (e.g. via `@angular-builders/custom-webpack`) have no direct equivalent and need to be reworked.
+
+### Linting and formatting
+
+- **Lint:** the CLI ships no linter (TSLint was removed in v12). The standard is **angular-eslint**: `ng add angular-eslint@<major>`.
+  - Match the major to your Angular version (here `@21`). Without it, `ng add` installs the latest release, which may target a newer Angular and refuses to configure the project.
+  - It creates `eslint.config.js` (ESLint "flat config") and a `lint` target in `angular.json`.
+  - Besides the recommended rules, this repo enforces a few project conventions: `OnPush` on every component, signal-based APIs (`input()` instead of `@Input()`), native control flow (`@if` instead of `*ngIf`) and self-closing tags.
+- **Format:** the CLI generates a `.prettierrc` (`printWidth: 100`, `singleQuote`, the `angular` parser for HTML). Prettier formats; ESLint finds bugs and bad practices. They complement each other.
+- **Line endings:** `.gitattributes` (`* text=auto eol=lf`) and `.editorconfig` keep every file on LF, whatever each machine's `core.autocrlf` says.
+
+---
+
+## 2. Project anatomy
+
+```
+angular.json            Workspace config: builders, build/serve/test/lint targets, budgets
+package.json            Dependencies and npm scripts
+tsconfig.json           Shared TS + Angular compiler options (strict)
+tsconfig.app.json       App build: src/**/*.ts minus specs
+tsconfig.spec.json      Tests: specs + Vitest globals
+eslint.config.js        ESLint flat config (angular-eslint)
+public/                 Static files copied as-is (favicon.ico)
+src/
+  index.html            Host page: <app-root> is where the app mounts
+  main.ts               Entry point: bootstrapApplication(App, appConfig)
+  styles.scss           Global styles (design tokens, base elements)
+  app/
+    app.ts|html|scss    Root component (the shell: header, sidebar, <router-outlet>)
+    app.config.ts       App-wide providers (router, error listeners...)
+    app.routes.ts       Top-level routes
+    pages/              Pages that are not topics (home, not-found)
+    shared/             Reusable UI (demo-card, tips-box)
+    topics/             One folder per topic + topics.registry.ts
+```
+
+### `main.ts`
+
+```ts
+bootstrapApplication(App, appConfig).catch((err) => console.error(err));
+```
+
+Starts the app: creates the root injector from `appConfig.providers`, then renders `App` into the `<app-root>` element of `index.html`. There is no root `NgModule` (that was the pre-standalone `platformBrowserDynamic().bootstrapModule(AppModule)`).
+
+### `app.config.ts`
+
+An `ApplicationConfig` is just `{ providers: [...] }`. Features are enabled with `provideXxx()` functions:
+
+- `provideBrowserGlobalErrorListeners()`: reports uncaught errors and unhandled promise rejections to Angular's `ErrorHandler`.
+- `provideRouter(routes, withComponentInputBinding(), withViewTransitions())`:
+  - `withComponentInputBinding()`: route params, query params and route `data` are bound to component inputs with the same name (no need to inject `ActivatedRoute` for simple cases).
+  - `withViewTransitions()`: page changes are animated with the browser's View Transitions API; browsers without it simply skip the animation.
+- Later topics add `provideHttpClient()`, etc.
+
+### `app.routes.ts`
+
+Routes are plain objects. This app uses `loadComponent: () => import(...)` for every page, so each page is a **lazy chunk** fetched the first time it is visited (visible in the `ng build` output as "Lazy chunk files"). The `**` wildcard route must be last: the router matches in order.
+
+Topic routes are generated from `topics/topics.registry.ts`, the single source of truth for the sidebar, the home page and the routes.
+
+### `tsconfig.json`
+
+Strictness flags worth knowing:
+
+- `strict`: all of TypeScript's strict checks (`strictNullChecks`, `noImplicitAny`...).
+- `noPropertyAccessFromIndexSignature`: `obj['key']` is required for index signatures, `obj.key` only for declared properties.
+- `noImplicitOverride`: overriding a base member needs the `override` keyword.
+- Angular compiler: `strictTemplates` type-checks templates like TS code (inputs, `$event`, pipes), `strictInjectionParameters` and `strictInputAccessModifiers` catch DI and input mistakes at build time.
+
+### `angular.json`
+
+One project (`angular-playground`) with the targets `build`, `serve`, `test` and `lint`. Things you will touch:
+
+- `build.options.styles` / `assets`: global stylesheets and static files.
+- `build.configurations.production.budgets`: size limits that warn or fail the build (see [Production build](#7-production-build)).
+- `serve.defaultConfiguration: development`: `ng serve` uses the unoptimised build with source maps.
+
+---
+
+## 3. Architecture
+
+> First draft. Sections marked _TODO_ are filled in by the matching topic.
+
+### Standalone components and bootstrap
+
+- A component declares what its template uses in its own `imports` array (other components, directives, pipes). There is no `NgModule` to declare it in.
+- `standalone: true` is the default since v19, so it is not written. In v19+ code you may still see it, harmlessly.
+- The app starts with `bootstrapApplication(RootComponent, appConfig)` (see `main.ts`).
+- NgModules still exist and appear in older codebases; see the legacy topic.
+
+### Providers in `app.config.ts`
+
+- `appConfig.providers` configures the **root environment injector**: whatever is provided there is a singleton for the whole app.
+- Services with `@Injectable({ providedIn: 'root' })` need no entry here: they register themselves and are tree-shaken if unused.
+- `app.config.ts` is for app-wide _configuration_ (router, HTTP client, interceptors, error handling, initializers).
+
+### The DI hierarchy
+
+_TODO (Dependency injection topic):_ environment injectors vs element injectors, `providers` on routes and components, resolution order.
+
+### Change detection
+
+- v21 apps are **zoneless** by default: there is no `zone.js` patching browser APIs to guess when something changed. The view is refreshed when Angular is told: a signal read by the template changes, a template event handler runs, an `async` pipe emits, or `markForCheck()` is called.
+- Every component here uses `ChangeDetectionStrategy.OnPush`, which fits this model: the component is only checked when one of those notifications concerns it.
+- _TODO (Lifecycle & change detection topic):_ zone.js vs zoneless in detail, and what breaks when migrating.
+
+### Routing and lazy loading
+
+- `loadComponent` for a single page, `loadChildren` for a set of child routes. Both produce a lazy chunk.
+- _TODO (Routing topic):_ guards, resolvers, `withComponentInputBinding` in practice, preloading.
+
+### Folder structure
+
+A common layout for Angular apps, and the one used here:
+
+- `core/`: app-wide singletons (services, interceptors, guards). Nothing visual.
+- `shared/`: reusable, presentational UI and pipes/directives used across features.
+- `features/` (here `topics/` and `pages/`): one folder per feature or page, lazy-loaded.
+
+Each component keeps its files together (`name.ts`, `.html`, `.scss`, `.spec.ts`). Since v20 the style guide drops the `.component` / `.service` suffixes.
+
+### Smart vs presentational components
+
+_TODO (Component communication topic)._
+
+---
+
+## 4. TypeScript tips in Angular
+
+_TODO._
+
+---
+
+## 5. Topics
+
+_TODO: one subsection per topic, added as each topic is built._
+
+---
+
+## 6. Angular 19 → 20 → 21
+
+_TODO (Legacy & migration topic)._
+
+---
+
+## 7. Production build
+
+_TODO (Production build topic)._
+
+---
+
+## 8. References
+
+- [angular.dev](https://angular.dev): official docs and tutorials.
+- [Angular CLI reference](https://angular.dev/cli).
+- [Build system (`@angular/build`)](https://angular.dev/tools/cli/build-system-migration): the application builder and the migration from webpack.
+- [Style guide](https://angular.dev/style-guide).
+- [angular-eslint](https://github.com/angular-eslint/angular-eslint).
+
+---
+
+## Appendix: Coming from Vue
+
+_TODO (Legacy & migration topic)._

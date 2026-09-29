@@ -1,0 +1,7 @@
+{
+  // Format with Prettier on save, using the repo's .prettierrc.
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  // Show ESLint problems for templates too, not only .ts files.
+  "eslint.validate": ["typescript", "html"]
+}

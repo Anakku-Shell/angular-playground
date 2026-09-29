@@ -1,0 +1,5 @@
+# Generated or third-party files that Prettier should not rewrite.
+/dist
+/coverage
+/.angular
+/package-lock.json

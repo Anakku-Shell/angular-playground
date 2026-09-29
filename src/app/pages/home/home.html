@@ -1,0 +1,65 @@
+<h1>Angular Playground</h1>
+<p class="home__lead">
+  A hands-on tour of modern Angular (v21, with notes on the syntax still found in v19/v20 code).
+  Each topic is its own page with live demos you can play with while reading the code next to it.
+</p>
+
+<section aria-labelledby="how-to-use">
+  <h2 id="how-to-use">How to use it</h2>
+  <ul>
+    <li>Pick a topic in the sidebar. Topics are ordered: later ones build on earlier ones.</li>
+    <li>
+      Every topic page is a list of <strong>demo cards</strong>: a title, a live demo, a short
+      explanation and a box with tips and gotchas.
+    </li>
+    <li>
+      Open the topic's folder under <code>src/app/topics/</code> side by side with the browser.
+      Edits to templates and styles are applied instantly without losing the demo state.
+    </li>
+    <li>The written companion is <code>docs/ANGULAR_GUIDE.md</code> in the repository.</li>
+  </ul>
+</section>
+
+<section aria-labelledby="sample-card">
+  <h2 id="sample-card">What a demo card looks like</h2>
+
+  <app-demo-card>
+    <h3 demo-title>Sample: a signal counter</h3>
+
+    <div demo-body>
+      <button type="button" (click)="increment()">Clicked {{ clicks() }} times</button>
+    </div>
+
+    <p>
+      <code>clicks</code> is a <code>signal(0)</code>. The template reads it with
+      <code>clicks()</code>, and <code>update()</code> changes it, so Angular knows exactly which
+      part of the view to refresh.
+    </p>
+
+    <app-tips-box>
+      <ul>
+        <li>Signals are read by calling them: <code>clicks()</code>, not <code>clicks</code>.</li>
+        <li>
+          Prefer <code>update(fn)</code> over <code>set(clicks() + 1)</code> when the new value
+          depends on the old one.
+        </li>
+      </ul>
+    </app-tips-box>
+  </app-demo-card>
+</section>
+
+<section aria-labelledby="topic-list">
+  <h2 id="topic-list">Topics</h2>
+  @if (topics.length) {
+    <ol class="home__topics">
+      @for (topic of topics; track topic.id) {
+        <li>
+          <a [routerLink]="topicUrl(topic)">{{ topic.id }} · {{ topic.title }}</a>
+          <p>{{ topic.summary }}</p>
+        </li>
+      }
+    </ol>
+  } @else {
+    <p class="home__empty">No topics yet. They are added one at a time.</p>
+  }
+</section>
