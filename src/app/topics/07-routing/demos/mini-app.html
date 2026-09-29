@@ -1,0 +1,34 @@
+<div class="mini-app">
+  <form class="address" (submit)="go($event, address.value)">
+    <span class="address__base">{{ baseUrl }}</span>
+    <input #address class="address__path" aria-label="Path inside the topic" [value]="path()" />
+    <button type="submit">Go</button>
+  </form>
+
+  <div class="toolbar">
+    <nav class="mini-nav" aria-label="Routing demo">
+      <!-- Relative links: resolved against the topic page route, /topics/07-routing. -->
+      <a routerLink="products" routerLinkActive="is-active" ariaCurrentWhenActive="page">
+        Products
+      </a>
+      <a routerLink="admin" routerLinkActive="is-active" ariaCurrentWhenActive="page">
+        Admin (guarded)
+      </a>
+      <a routerLink="edit" routerLinkActive="is-active" ariaCurrentWhenActive="page">
+        Edit profile
+      </a>
+    </nav>
+
+    <label class="auth">
+      <input type="checkbox" [checked]="auth.loggedIn()" (change)="auth.toggle()" />
+      Logged in
+    </label>
+  </div>
+
+  <section class="outlet" [attr.aria-busy]="navigating()">
+    @if (navigating()) {
+      <p class="loading" role="status">Navigating… guards and resolvers are running.</p>
+    }
+    <router-outlet />
+  </section>
+</div>

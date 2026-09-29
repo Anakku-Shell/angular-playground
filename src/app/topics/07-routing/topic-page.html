@@ -1,0 +1,262 @@
+<header>
+  <h1>Routing</h1>
+  <p class="lead">
+    The router maps URLs to components. This topic is lazy-loaded with <code>loadChildren</code>:
+    its child routes live in <code>07-routing.routes.ts</code> and render in the
+    <strong>mini app</strong> below, which has its own nested <code>&lt;router-outlet&gt;</code>.
+    The links in the other cards drive the same mini app, and the real browser URL changes with it.
+    The code of each demo lives in <code>src/app/topics/07-routing/demos/</code>.
+  </p>
+</header>
+
+<!-- Code samples in this template: braces are escaped as &#123; &#125;
+     (a bare brace would open or close a block). -->
+
+<app-demo-card>
+  <h2 demo-title>Child routes and a nested outlet</h2>
+  <app-mini-app demo-body />
+  <p>
+    The app shell has the top-level <code>&lt;router-outlet&gt;</code>, which renders this page.
+    This page's route has <code>children</code>, and they render in the second outlet, inside the
+    mini app. Type a path in the address bar (for example <code>/products/3</code>) and press Go, or
+    use the nav. <code>routerLinkActive</code> highlights the link that matches the URL: "Products"
+    stays active on <code>/products/3</code> because it matches by prefix.
+  </p>
+  <p class="source">
+    Code: <code>07-routing.routes.ts</code>, <code>mini-app.ts|html</code>,
+    <code>views/*.ts</code>
+  </p>
+  <app-tips-box>
+    <ul>
+      <li>
+        <code>loadComponent</code> lazy-loads one component; <code>loadChildren</code> lazy-loads a
+        whole <code>Routes</code> array. Both become a separate chunk, fetched on the first visit.
+      </li>
+      <li>
+        Preloading fetches lazy chunks in the background after the app starts:
+        <code>provideRouter(routes, withPreloading(PreloadAllModules))</code>. Without it (the
+        default, used here) a chunk loads on first click. A custom
+        <code>PreloadingStrategy</code> can preload only routes flagged in <code>data</code>.
+      </li>
+      <li>
+        <code>&#123; exact: true &#125;</code> in <code>[routerLinkActiveOptions]</code> stops the
+        prefix match; the sidebar uses it for Home, otherwise <code>/</code> would always be active.
+        <code>ariaCurrentWhenActive="page"</code> adds <code>aria-current</code> for screen readers.
+      </li>
+      <li>
+        A route can declare <code>providers</code>: this topic's <code>FakeAuth</code> lives in the
+        route's environment injector, shared by its children and guards. It is not destroyed when
+        you leave the route.
+      </li>
+      <li>
+        A route with <code>children</code> but no component (<code>products</code> here) just groups
+        URLs. Its children render in the nearest outlet above.
+      </li>
+    </ul>
+  </app-tips-box>
+</app-demo-card>
+
+<app-demo-card>
+  <h2 demo-title>Route params and query params as inputs</h2>
+  <p demo-body class="try">
+    Try in the mini app:
+    <a routerLink="products/2">products/2</a> ·
+    <a routerLink="products" [queryParams]="{ sort: 'price' }">products?sort=price</a> ·
+    <a routerLink="products" [queryParams]="{ sort: 'name' }">products?sort=name</a>
+  </p>
+  <p>
+    <code>withComponentInputBinding()</code> (in <code>app.config.ts</code>) makes the router set
+    component inputs whose names match a route param (<code>:id</code>), a query param
+    (<code>?sort=</code>), a <code>data</code> key or a <code>resolve</code> key. The detail view
+    declares <code>id = input.required(&#123; transform: numberAttribute &#125;)</code>; the list
+    declares <code>sort = input&lt;string&gt;()</code>.
+  </p>
+  <p class="source">
+    Code: <code>views/product-list.ts</code>, <code>views/product-detail.ts</code>
+  </p>
+  <app-tips-box>
+    <ul>
+      <li>
+        Params are always strings. Convert them with a transform (<code>numberAttribute</code>) or a
+        <code>computed()</code>.
+      </li>
+      <li>
+        Moving from <code>/products/1</code> to <code>/products/2</code> reuses the same component:
+        only the inputs change. Code that read the id once in <code>ngOnInit</code> (the old
+        <code>route.snapshot.paramMap</code> pattern) shows stale data; inputs and
+        <code>computed()</code> do not.
+      </li>
+      <li>
+        When a query param disappears from the URL, its input is set to <code>undefined</code>. Give
+        inputs a default or handle <code>undefined</code>.
+      </li>
+      <li>
+        Without input binding: <code>inject(ActivatedRoute).paramMap</code> /
+        <code>queryParamMap</code> are Observables (wrap them with <code>toSignal()</code>).
+      </li>
+      <li>
+        By default a child only sees its parent's params when the parent has an empty path or no
+        component. <code>withRouterConfig(&#123; paramsInheritanceStrategy: 'always' &#125;)</code>
+        passes them all down.
+      </li>
+    </ul>
+  </app-tips-box>
+</app-demo-card>
+
+<app-demo-card>
+  <h2 demo-title>Functional guards: canActivate and canDeactivate</h2>
+  <p demo-body class="try">
+    Try in the mini app: <a routerLink="admin">admin</a> (while logged out) ·
+    <a routerLink="edit">edit</a>, change the name, then click "Products"
+  </p>
+  <p>
+    <code>authGuard</code> is a <code>CanActivateFn</code>: logged out, it returns a
+    <code>UrlTree</code> to <code>login?returnUrl=…</code>, which cancels the navigation and starts
+    a new one. After logging in, the login view navigates back to <code>returnUrl</code>.
+    <code>unsavedChangesGuard</code> is a <code>CanDeactivateFn</code> that asks the component being
+    left; it returns a promise that the "Leave" / "Stay" buttons resolve.
+  </p>
+  <p class="source">
+    Code: <code>guards.ts</code>, <code>views/login-view.ts</code>, <code>views/edit-view.ts</code>
+  </p>
+  <app-tips-box>
+    <ul>
+      <li>
+        Guards are plain functions that run in an injection context, so they call
+        <code>inject()</code>. Class guards (<code>implements CanActivate</code>) still work, but
+        functions are the recommended style.
+      </li>
+      <li>
+        A guard returns <code>boolean</code>, <code>UrlTree</code> or <code>RedirectCommand</code>,
+        directly or as a Promise / Observable. Return a <code>UrlTree</code> to redirect; calling
+        <code>router.navigate()</code> inside the guard and returning <code>false</code> works but
+        races with the current navigation.
+      </li>
+      <li>
+        Other guards: <code>canActivateChild</code> (every child of a route),
+        <code>canMatch</code> (if false, the router tries the next route with the same path; also
+        stops a lazy chunk from being fetched).
+      </li>
+      <li>
+        Guards are UX, not security: the real check belongs on the server. Also,
+        <code>canDeactivate</code> does not run when the tab closes or reloads; use a
+        <code>beforeunload</code> listener for that.
+      </li>
+    </ul>
+  </app-tips-box>
+</app-demo-card>
+
+<app-demo-card>
+  <h2 demo-title>Resolvers and route titles</h2>
+  <p demo-body class="try">
+    Try in the mini app: <a routerLink="products/3">products/3</a> ·
+    <a routerLink="products/99">products/99</a> (does not exist). Watch the browser tab title.
+  </p>
+  <p>
+    <code>productResolver</code> is a <code>ResolveFn</code>: the router waits for it (400 ms of
+    fake delay, shown as "Navigating…") before it activates the detail view, which gets the result
+    as its <code>product</code> input. For an unknown id it returns a
+    <code>RedirectCommand</code> to the list. Each route has a <code>title</code>; the product route
+    uses a title resolver to show the product name.
+  </p>
+  <p class="source">Code: <code>product-resolvers.ts</code></p>
+  <app-tips-box>
+    <ul>
+      <li>
+        The old page stays on screen until the resolver finishes, so show progress:
+        <code>router.currentNavigation()</code> is a signal (since v20.2) that is not
+        <code>null</code> while a navigation runs.
+      </li>
+      <li>
+        Resolvers delay navigation. For slow data it often feels better to navigate at once and load
+        inside the component (<code>resource()</code>, <code>httpResource()</code>) with a loading
+        state.
+      </li>
+      <li>
+        <code>inject()</code> in an <code>async</code> resolver or guard only works before the first
+        <code>await</code>.
+      </li>
+      <li>
+        The deepest route with a <code>title</code> wins. Provide a custom
+        <code>TitleStrategy</code> to add a suffix everywhere instead of repeating it.
+      </li>
+    </ul>
+  </app-tips-box>
+</app-demo-card>
+
+<app-demo-card>
+  <h2 demo-title>Redirects and wildcard routes</h2>
+  <p demo-body class="try">
+    Try in the mini app: <a routerLink=".">the topic root</a> ·
+    <a routerLink="catalog/4">catalog/4</a> (old URL) ·
+    <a routerLink="does-not-exist">does-not-exist</a>
+  </p>
+  <p>
+    The empty child path redirects to <code>products</code>. <code>catalog/:id</code> redirects with
+    a function that builds the new path from the params. The topic has its own
+    <code>**</code> route, so an unknown path under <code>/topics/07-routing</code> shows the
+    "Nothing here" view instead of the app-wide 404 page.
+  </p>
+  <p class="source">Code: <code>07-routing.routes.ts</code></p>
+  <app-tips-box>
+    <ul>
+      <li>
+        A redirect from <code>''</code> needs <code>pathMatch: 'full'</code>: with the default
+        <code>'prefix'</code>, the empty path matches every URL.
+      </li>
+      <li>
+        Routes match in order, first match wins. Keep <code>**</code> last; the app-level one in
+        <code>app.routes.ts</code> is guarded by a unit test.
+      </li>
+      <li>
+        <code>redirectTo</code> paths starting with <code>/</code> are absolute; others are relative
+        to the parent route. Since v20 a redirect function may also return a Promise or an
+        Observable.
+      </li>
+      <li>
+        Redirects run before guards, and a route with <code>redirectTo</code> cannot have a
+        component or children.
+      </li>
+    </ul>
+  </app-tips-box>
+</app-demo-card>
+
+<app-demo-card>
+  <h2 demo-title>Programmatic navigation</h2>
+  <app-programmatic-nav-demo demo-body />
+  <p>
+    <code>Router.navigate()</code> takes an array of commands, relative to a route when you pass
+    <code>relativeTo</code>. <code>Router.navigateByUrl()</code> takes a full URL string. Both
+    return a promise: <code>true</code> when the navigation finished, <code>false</code> when a
+    guard said no. Open "Edit profile", change the name, press a button here and choose "Stay":
+    <code>false</code>. A redirect is different: "navigateByUrl('…/admin')" while logged out
+    resolves to <code>true</code>, the result of the navigation to the login page.
+  </p>
+  <p class="source">
+    Code: <code>programmatic-nav-demo.ts</code>, <code>views/product-detail.ts</code> (Previous /
+    Next), <code>views/login-view.ts</code>
+  </p>
+  <app-tips-box>
+    <ul>
+      <li>
+        Prefer <code>routerLink</code> for anything the user clicks: it renders a real
+        <code>&lt;a href&gt;</code> (open in a new tab, copy link). Navigate from code after an
+        action, like saving a form or logging in.
+      </li>
+      <li>
+        Without <code>relativeTo</code>, <code>navigate()</code> resolves from the root. Inside a
+        component, <code>inject(ActivatedRoute)</code> gives the route to navigate relative to.
+      </li>
+      <li>
+        Options: <code>queryParams</code>, <code>queryParamsHandling: 'merge' | 'preserve'</code>,
+        <code>fragment</code>, <code>replaceUrl</code> (no new history entry), <code>state</code>
+        (data that does not go in the URL).
+      </li>
+      <li>
+        Vue Router comparison: <code>router.push()</code> ≈ <code>navigateByUrl()</code>;
+        <code>beforeEnter</code> / <code>beforeRouteLeave</code> ≈ <code>canActivate</code> /
+        <code>canDeactivate</code>; <code>props: true</code> ≈ input binding.
+      </li>
+    </ul>
+  </app-tips-box>
+</app-demo-card>
