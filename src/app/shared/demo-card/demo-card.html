@@ -1,0 +1,14 @@
+<article class="demo-card">
+  <header class="demo-card__title">
+    <ng-content select="[demo-title]" />
+  </header>
+
+  <div class="demo-card__body">
+    <ng-content select="[demo-body]" />
+  </div>
+
+  <!-- Default slot: everything not matched above (explanation, tips box). -->
+  <div class="demo-card__explanation">
+    <ng-content />
+  </div>
+</article>

@@ -1,0 +1,9 @@
+# Store text files with LF line endings in the repo and in the working tree,
+# regardless of each machine's core.autocrlf setting (avoids CRLF noise on Windows).
+* text=auto eol=lf
+
+# Binary files: never touch line endings or try to diff them as text.
+*.ico binary
+*.png binary
+*.jpg binary
+*.woff2 binary
