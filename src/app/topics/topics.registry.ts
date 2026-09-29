@@ -124,6 +124,14 @@ export const TOPICS: readonly Topic[] = [
     loadComponent: () =>
       import('./11-state-management/topic-page').then((m) => m.StateManagementPage),
   },
+  {
+    id: '12',
+    path: '12-testing',
+    title: 'Testing',
+    summary:
+      'Vitest and TestBed: component inputs, outputs and model, signal services, HttpTestingController, mocking through DI and RouterTestingHarness.',
+    loadComponent: () => import('./12-testing/topic-page').then((m) => m.TestingPage),
+  },
 ];
 
 /** Router link for a topic page. */
