@@ -1264,6 +1264,155 @@ req.flush(product); // or req.flush(body, { status: 404, statusText: 'Not Found'
 httpMock.verify(); // in afterEach: no unexpected requests
 ```
 
+### 5.10 Directives & pipes
+
+Route: `/topics/10-directives-pipes`. Everything here is **stable**. A component is a directive with a template; a directive adds behavior to an element it does not own; a pipe transforms a value in the template. All three are standalone and are used by listing them in a component's `imports`.
+
+**Attribute directive with inputs and host bindings**
+
+```ts
+@Directive({
+  selector: '[appHighlight]', // camelCase attribute with the app prefix
+  host: {
+    '[style.backgroundColor]': 'hovered() ? color() : null',
+    '[class.is-highlighted]': 'hovered()',
+    '(mouseenter)': 'hovered.set(true)',
+    '(mouseleave)': 'hovered.set(false)',
+  },
+})
+export class Highlight {
+  readonly appHighlight = input(''); // same name as the selector
+  readonly defaultColor = input('#ffe58a');
+  protected readonly hovered = signal(false);
+  protected readonly color = computed(() => this.appHighlight() || this.defaultColor());
+}
+```
+
+```html
+<p appHighlight>default color</p>
+<p [appHighlight]="color()" defaultColor="orange">bound</p>
+```
+
+- `host` metadata replaces `@HostBinding('style.color')` / `@HostListener('click', ['$event'])`, which are still common in v19 code.
+- Global listener targets: `(document:click)`, `(window:resize)`, `(body:…)`. Key filters: `(keydown.escape)`, `(keydown.control.s)`.
+- Prefer host bindings to `ElementRef.nativeElement` manipulation or `Renderer2`: they are declarative and cleaned up automatically.
+
+**Injecting what a directive needs**
+
+| `inject(...)`      | Gives                                                                            |
+| ------------------ | -------------------------------------------------------------------------------- |
+| `ElementRef`       | the host element (`nativeElement`)                                               |
+| `ViewContainerRef` | the position next to the host, to create components or templates there           |
+| `TemplateRef`      | the `<ng-template>` a structural directive sits on                               |
+| another directive  | a directive on the same element (e.g. a component injecting its host directives) |
+
+A directive has no template: to show UI it creates a component, as the tooltip does:
+
+```ts
+const bubble = this.viewContainer.createComponent(TooltipBubble);
+bubble.setInput('text', this.appTooltip());
+// later: bubble.destroy()
+```
+
+**`exportAs` and directive outputs**
+
+```ts
+@Directive({ selector: '[appDropdown]', exportAs: 'appDropdown' })
+export class Dropdown {
+  readonly isOpen = signal(false);
+  readonly closed = output<CloseReason>();
+  toggle() { … }
+}
+```
+
+```html
+<div appDropdown #menu="appDropdown" (closed)="log($event)">
+  <button (click)="menu.toggle()" [attr.aria-expanded]="menu.isOpen()">Actions</button>
+</div>
+```
+
+`#ref` alone refers to the element (or component); `#ref="name"` refers to the directive exported under that name (`ngModel`, `ngForm` work the same way).
+
+**`hostDirectives` composition**
+
+```ts
+@Component({
+  selector: 'app-tag',
+  hostDirectives: [
+    { directive: Highlight, inputs: ['appHighlight: color'] },
+    { directive: Tooltip, inputs: ['appTooltip: hint'] },
+  ],
+})
+export class Tag {
+  protected readonly highlight = inject(Highlight); // host directives are injectable
+}
+```
+
+- Behavior reuse by composition instead of class inheritance.
+- Inputs/outputs of a host directive are hidden unless listed (`'name: alias'` renames). Required inputs must be exposed.
+- Applied statically, to every instance; the directives must be standalone; their selectors are ignored.
+
+**Structural directive**
+
+```ts
+@Directive({ selector: '[appHasRole]' })
+export class HasRole {
+  readonly appHasRole = input.required<Role>();
+  readonly appHasRoleElse = input<TemplateRef<unknown> | null>(null);
+  private readonly template = inject(TemplateRef);
+  private readonly viewContainer = inject(ViewContainerRef);
+  private readonly session = inject(Session);
+  // computed() only notifies when the result flips: no needless re-render
+  private readonly allowed = computed(() => this.session.hasRole(this.appHasRole()));
+
+  constructor() {
+    effect(() => {
+      const template = this.allowed() ? this.template : this.appHasRoleElse();
+      this.viewContainer.clear();
+      if (template) this.viewContainer.createEmbeddedView(template);
+    });
+  }
+}
+```
+
+```html
+<p *appHasRole="'editor'; else readOnly">…</p>
+<!-- desugars to -->
+<ng-template [appHasRole]="'editor'" [appHasRoleElse]="readOnly"><p>…</p></ng-template>
+```
+
+- Microsyntax keys map to inputs named `selector + Key` (`else` → `appHasRoleElse`).
+- Template variables come from the view context: `createEmbeddedView(tpl, { $implicit: value, index })` is read with `let x; let i = index`. Type it with a static `ngTemplateContextGuard(dir, ctx): ctx is MyContext`.
+- `@if` / `@for` / `@switch` replaced most structural directives; custom ones remain useful for permissions or feature flags. Hiding UI is not security: the server must check too.
+
+**Custom pipes**
+
+```ts
+@Pipe({ name: 'truncate' }) // pure by default
+export class TruncatePipe implements PipeTransform {
+  transform(value: string, limit = 20, ellipsis = '…'): string {
+    return value.length > limit ? value.slice(0, limit).trimEnd() + ellipsis : value;
+  }
+}
+```
+
+```html
+{{ text | truncate }} {{ text | truncate: 30 }} {{ text | truncate: 30 : ' [more]' | uppercase }}
+```
+
+|                  | Pure (default)                                 | Impure (`pure: false`)                     |
+| ---------------- | ---------------------------------------------- | ------------------------------------------ |
+| `transform` runs | when an argument changes (`===`)               | on every change detection of the component |
+| Sees mutations   | no (`push` keeps the same reference)           | yes                                        |
+| Cost             | memoized, cheap                                | must be cheap                              |
+| Instances        | one per usage in the template                  | one per usage in the template              |
+| Examples         | `date`, `currency`, `uppercase`, custom format | `async`, `json`, `keyvalue`                |
+
+- **Pure pipes as memoization**: `{{ items | filter: term }}` recomputes only when `items` or `term` change, while `{{ filter(items, term) }}` (a method call) runs on every check.
+- Update data immutably (new array/object) so pure pipes and `OnPush` see the change.
+- For derived data inside one component, a `computed()` is usually clearer than a pipe; pipes shine for formatting reused across templates.
+- Pipes are plain classes: unit-test them with `new TruncatePipe().transform(...)`, no `TestBed` needed (unless they `inject()`).
+
 ---
 
 ## 6. Angular 19 → 20 → 21
