@@ -1002,6 +1002,123 @@ inject(Location).back();                                            // browser h
 - Prefer `routerLink` for anything clickable (real `href`, open in a new tab). Navigate from code after an action.
 - Useful options: `queryParamsHandling: 'merge' | 'preserve'`, `replaceUrl`, `state`, `fragment`.
 
+### 5.8 Forms
+
+Route: `/topics/08-forms`. Template-driven and reactive forms are **stable**; typed reactive forms since v14. Signal forms (`@angular/forms/signals`) are **experimental** in v21.
+
+|                 | Template-driven                           | Reactive                                  | Signal forms (experimental)                           |
+| --------------- | ----------------------------------------- | ----------------------------------------- | ----------------------------------------------------- |
+| Import          | `FormsModule`                             | `ReactiveFormsModule`                     | `FormField` + functions from `@angular/forms/signals` |
+| Model lives in  | the template (`ngModel`)                  | the class (`FormGroup`, `FormControl`)    | a `WritableSignal`                                    |
+| Validation      | HTML attributes (`required`, `minlength`) | `Validators` / functions                  | schema rules (`required(path.x)`)                     |
+| Reading changes | `(ngModelChange)`                         | `valueChanges` Observable                 | signals (`field().value()`)                           |
+| Good for        | small, static forms                       | most real forms; dynamic and complex ones | new code, when you accept an experimental API         |
+
+All three add the same state classes to controls: `ng-valid` / `ng-invalid`, `ng-pristine` / `ng-dirty`, `ng-untouched` / `ng-touched`, `ng-pending`.
+
+**Template-driven**
+
+```html
+<form #f="ngForm" novalidate (ngSubmit)="save(f)">
+  <input name="name" [(ngModel)]="name" #nameCtrl="ngModel" required minlength="3" />
+  @if (nameCtrl.invalid && nameCtrl.touched) { <p>…</p> }
+  <button type="submit">Save</button>
+</form>
+```
+
+- Every `ngModel` inside a form needs a `name`: it is the key in `f.value`.
+- `[(ngModel)]` also binds to a `WritableSignal`.
+- `touched` = the control lost focus once; `dirty` = the user changed the value. Show errors on `touched` or after submit.
+
+**Typed reactive forms**
+
+```ts
+private readonly fb = inject(NonNullableFormBuilder);
+protected readonly form = this.fb.group({
+  name: ['', [Validators.required, Validators.minLength(3)]],
+  age: [30, [Validators.min(18), Validators.max(120)]],
+  address: this.fb.group({ city: [''], zip: ['', Validators.pattern(/^\d{5}$/)] }),
+});
+// form.controls.age.value is a number; form.setValue({ nme: … }) does not compile.
+```
+
+```html
+<form [formGroup]="form">
+  <input formControlName="name" />
+  <fieldset formGroupName="address"><input formControlName="city" /></fieldset>
+</form>
+```
+
+- `FormBuilder` makes `FormControl<T | null>` (because `reset()` sets `null`); `NonNullableFormBuilder` makes `FormControl<T>` and resets to the initial value.
+- `setValue()` needs the complete shape and throws at runtime if a key is missing; `patchValue()` takes any subset.
+- `form.value` leaves disabled controls out (it is typed `Partial<…>`); `getRawValue()` includes them.
+- `valueChanges` / `statusChanges` fire on user input and on changes from code; pass `{ emitEvent: false }` to stay silent.
+- Zoneless: form state is not a signal. Changes from user events refresh the view, but changes that happen later (async validators, `setValue` in a timer) need a signal read in the template, e.g. `toSignal(form.statusChanges)`.
+- Old code: `UntypedFormGroup`, `FormGroup` with `any`, or `this.form.get('name')` strings lose the types. Prefer `form.controls.name`.
+
+**FormArray**
+
+```ts
+skills: this.fb.array([this.fb.control('TypeScript', Validators.required)], Validators.required),
+this.skills.push(this.fb.control(''));   this.skills.removeAt(i);
+```
+
+```html
+<ol formArrayName="skills">
+  @for (skill of skills.controls; track skill; let i = $index) {
+    <li><input [formControlName]="i" /></li>
+  }
+</ol>
+```
+
+- Track the control object, not `$index`, or removing an item reuses the wrong input.
+- Array validators see the item count. For "at least one", use `Validators.required`: `minLength(n)` skips empty values and an empty array counts as empty.
+- `FormRecord` is the variant for dynamic keys.
+
+**Custom, async and cross-field validators**
+
+```ts
+export function forbiddenValue(forbidden: string): ValidatorFn {
+  return (control) => (control.value === forbidden ? { forbiddenValue: { forbidden } } : null);
+}
+export function usernameAvailable(): AsyncValidatorFn {
+  return (control) => api.isTaken(control.value).pipe(map((taken) => (taken ? { usernameTaken: true } : null)));
+}
+export function fieldsMatch(a: string, b: string): ValidatorFn {
+  return (group) => (group.get(a)?.value === group.get(b)?.value ? null : { fieldsMismatch: true });
+}
+
+username: ['', [Validators.required, forbiddenValue('admin')], [usernameAvailable()]],
+passwords: this.fb.group({ password: [''], confirm: [''] }, { validators: fieldsMatch('password', 'confirm') }),
+```
+
+- A validator returns `null` (valid) or an errors object; a factory lets it take parameters.
+- Async validators run only after the sync ones pass; each new value cancels the running check. Meanwhile the status is `PENDING` (neither valid nor invalid). Use `{ updateOn: 'blur' }` or a debounce to avoid a request per keystroke.
+- A cross-field validator goes on the parent group and its error lives on the group (`passwords.hasError('fieldsMismatch')`), not on the controls.
+
+**Signal forms (experimental)**
+
+```ts
+protected readonly model = signal({ email: '', password: '', confirm: '' });
+protected readonly loginForm = form(this.model, (path) => {
+  required(path.email, { message: 'Email is required.' });
+  email(path.email);
+  minLength(path.password, 8);
+  validate(path.confirm, ({ value, valueOf }) =>
+    value() === valueOf(path.password) ? null : { kind: 'mismatch', message: 'Passwords do not match.' });
+});
+```
+
+```html
+<input [formField]="loginForm.email" />
+@for (error of loginForm.email().errors(); track error.kind) { <p>{{ error.message }}</p> }
+```
+
+- The model signal is the single source of truth: typing writes it, `model.set()` updates the inputs. No `setValue` / `valueChanges`.
+- Every state is a signal: `loginForm.email().touched()`, `loginForm().valid()`, so zoneless refresh just works.
+- Rules are reactive (`valueOf()` re-runs a rule when the other field changes). Others: `disabled`, `hidden`, `readonly`, `validateAsync`.
+- `submit(form, action)` marks every field as touched and runs the action only when valid; errors returned by the action are shown on the fields.
+
 ---
 
 ## 6. Angular 19 → 20 → 21
