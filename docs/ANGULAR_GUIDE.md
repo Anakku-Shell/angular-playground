@@ -237,9 +237,39 @@ Modifiers change where the walk starts or stops: `self` (only the first element)
 
 ### Change detection
 
-- v21 apps are **zoneless** by default: there is no `zone.js` patching browser APIs to guess when something changed. The view is refreshed when Angular is told: a signal read by the template changes, a template event handler runs, an `async` pipe emits, or `markForCheck()` is called.
-- Every component here uses `ChangeDetectionStrategy.OnPush`, which fits this model: the component is only checked when one of those notifications concerns it.
-- _TODO (Lifecycle & change detection topic):_ zone.js vs zoneless in detail, and what breaks when migrating.
+Change detection is the pass that walks the component tree and updates the DOM where a template binding's value changed. Two questions decide how it behaves: **when** a pass is scheduled, and **which components** it checks.
+
+**When: zone.js vs zoneless**
+
+|                                 | zone.js (default before v21)                                                                  | zoneless (stable in v20.2, default in v21)                                                                        |
+| ------------------------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| How Angular finds out           | `zone.js` patches `setTimeout`, promises, `fetch`, DOM events… and runs a pass after each one | Only explicit notifications (list below)                                                                          |
+| Setup                           | `zone.js` in the polyfills, `provideZoneChangeDetection()`                                    | Nothing in v21; `provideZonelessChangeDetection()` in v20 (`provideExperimentalZonelessChangeDetection()` in v19) |
+| Cost                            | Extra polyfill (~30 kB raw), passes after async work that changed nothing                     | Passes only when something changed                                                                                |
+| Plain field set in `setTimeout` | Shows up (a pass ran after the timer)                                                         | Stays stale until the next pass                                                                                   |
+
+What schedules a pass in a zoneless app:
+
+- a signal read by a template changes;
+- an event bound in a template (`(click)`…) runs;
+- `ChangeDetectorRef.markForCheck()`, or an `async` pipe emitting (it calls `markForCheck()` internally);
+- a view is attached or removed, or `ComponentRef.setInput()` is called.
+
+**Which components: `OnPush` vs `Eager`**
+
+```
+AppRoot (Eager)            checked on every pass
+  └─ Page (OnPush)         checked only if marked dirty
+       ├─ Card (OnPush)    skipped: nothing concerns it
+       └─ List (OnPush)    ← a signal it reads changed: marked dirty, so the pass
+                             checks List (and walks through Page to reach it)
+```
+
+- `Eager` (called `Default` before v21, now deprecated under that name) checks the component on every pass. It is what you get when `changeDetection` is omitted.
+- `OnPush` checks it only when it is marked dirty: a new input reference, an event in its template, a signal its template reads, `markForCheck()`. Every component in this playground uses it.
+- Signals make this fine-grained: a signal change marks only the components that read it, so the pass skips the rest of the tree.
+
+**Migrating to zoneless** (what breaks): code that changed plain fields in callbacks and relied on zone.js to notice. Subscriptions, timers, promise callbacks and third-party library callbacks that set component fields must switch to signals, `toSignal()`, the `async` pipe, or call `markForCheck()`. `NgZone.onStable` / `onMicrotaskEmpty` no longer fire; use `afterNextRender`. Apps already built with OnPush and signals usually just work. Demos in [5.6](#56-lifecycle--change-detection).
 
 ### Routing and lazy loading
 
@@ -775,6 +805,80 @@ export function injectDocumentTitle(): () => string {
 
 - "Inject functions" (name starting with `inject`) package reusable DI logic. The same rule applies to `effect()`, `toSignal()` and `takeUntilDestroyed()`.
 - Legacy: constructor injection, `constructor(private readonly logger: Logger) {}`. Migration: `ng generate @angular/core:inject`.
+
+### 5.6 Lifecycle & change detection
+
+Route: `/topics/06-lifecycle-change-detection`. Everything here is **stable** (`afterNextRender` / `afterEveryRender` since v20, zoneless since v20.2). How change detection is scheduled and which components it checks is in [3. Architecture](#change-detection).
+
+**Lifecycle hooks**, in the order the demo logs them:
+
+| Step                    | Runs                                              | Use it for                                               |
+| ----------------------- | ------------------------------------------------- | -------------------------------------------------------- |
+| `constructor`           | once, inputs **not** set yet                      | `inject()`, signals, effects, render hooks               |
+| `ngOnChanges(changes)`  | before `ngOnInit`, then whenever an input changes | reacting to input changes (prefer `computed`)            |
+| `ngOnInit`              | once, after the first `ngOnChanges`               | setup that needs inputs                                  |
+| `ngDoCheck`             | every check                                       | rarely; custom change detection                          |
+| `ngAfterContentInit`    | once, projected content ready                     | reading `contentChild` (decorator queries)               |
+| `ngAfterContentChecked` | every check                                       | rarely                                                   |
+| `ngAfterViewInit`       | once, own view and children ready                 | DOM work (now usually `afterNextRender`)                 |
+| `ngAfterViewChecked`    | every check                                       | rarely                                                   |
+| `ngOnDestroy`           | once, before removal                              | cleanup (or `DestroyRef.onDestroy`, which runs after it) |
+
+```ts
+export class LifecycleChild implements OnChanges, OnInit {
+  readonly label = input.required<string>();
+
+  ngOnChanges(changes: SimpleChanges<LifecycleChild>): void {
+    // Typed in v21: changes.label is SimpleChange<string> | undefined.
+    const change = changes.label;
+    if (change && !change.firstChange) console.log(change.previousValue, '→', change.currentValue);
+  }
+
+  ngOnInit(): void {
+    this.label(); // safe here; in the constructor a required input throws NG0950
+  }
+}
+```
+
+- `ngOnChanges` fires for signal inputs too, but only when the input gets a **new value**. Mutating an object passed by reference does not count.
+- The `implements` clauses are optional; they only make TypeScript check the method signatures.
+- The `*Checked` hooks and `ngDoCheck` run on every pass: keep them cheap.
+
+**Render hooks**
+
+```ts
+constructor() {
+  afterNextRender({ read: () => this.width.set(this.box().nativeElement.offsetWidth) }); // once
+  afterEveryRender({ write: () => { list.scrollTop = list.scrollHeight; } });            // every render
+}
+```
+
+- They run after Angular has updated the DOM, in the browser only (never during SSR), so they are the place for DOM measurement and third-party DOM libraries.
+- Phases `earlyRead` → `write` → `mixedReadWrite` → `read` batch the DOM work of all callbacks and avoid layout thrashing.
+- `afterEveryRender` runs after **every** render of the app, not just the owner's. Do not set signals in it: that schedules another render and loops. `afterRenderEffect()` is the signal-aware variant.
+- v19 name: `afterRender` (developer preview). Both replace most uses of `ngAfterViewInit` / `ngAfterViewChecked`.
+
+**OnPush in practice**
+
+```ts
+this.user().visits++;                                    // same object: OnPush child not checked
+this.user.update((u) => ({ ...u, visits: u.visits + 1 })); // new reference: child checked
+inject(ChangeDetectorRef).markForCheck();                 // mark this view and its ancestors dirty
+```
+
+- Treat inputs as immutable values. A mutation shows up only when something else happens to check the child (an event in it, `markForCheck()`).
+- `markForCheck()` schedules; `detectChanges()` checks the component and its children synchronously, right now.
+
+**Zoneless in practice**
+
+```ts
+setTimeout(() => this.plain++, 500);                          // view stays stale
+setTimeout(() => { this.plain++; cdr.markForCheck(); }, 500); // view updates
+setTimeout(() => this.count.update((n) => n + 1), 500);      // signal: view updates
+```
+
+- The stale value is not lost: the next pass (any click, any signal) shows it. That makes these bugs intermittent, so prefer signals for all template state.
+- In tests, `await fixture.whenStable()` waits for the scheduled pass. Calling `fixture.detectChanges()` forces a pass and can hide a missing notification.
 
 ---
 

@@ -1,0 +1,168 @@
+<header>
+  <h1>Lifecycle & change detection</h1>
+  <p class="lead">
+    Angular creates a component, sets its inputs, renders its view and destroys it, calling
+    <strong>lifecycle hooks</strong> along the way. <strong>Change detection</strong> is the pass
+    that refreshes views after state changes. In v21 it is <strong>zoneless</strong>: Angular only
+    refreshes when something tells it to, and OnPush components are only checked when they are
+    marked. The code of each demo lives in
+    <code>src/app/topics/06-lifecycle-change-detection/demos/</code>.
+  </p>
+</header>
+
+<!-- Code samples in this template: `@` is escaped as &#64; and braces as &#123; &#125;
+     (a bare brace would open or close a block). -->
+
+<app-demo-card>
+  <h2 demo-title>Lifecycle hooks</h2>
+  <app-lifecycle-demo demo-body />
+  <p>
+    The child logs every hook it goes through. Creating it runs the constructor,
+    <code>ngOnChanges</code> (first change), <code>ngOnInit</code>,
+    <code>ngAfterContentInit</code> and <code>ngAfterViewInit</code>. Changing its input runs
+    <code>ngOnChanges</code> again, with the previous and the new value. Destroying it runs
+    <code>ngOnDestroy</code> and the <code>DestroyRef.onDestroy</code> callbacks.
+  </p>
+  <p class="source">
+    Code: <code>lifecycle-demo.ts</code>, <code>lifecycle/lifecycle-child.ts</code>
+  </p>
+  <app-tips-box>
+    <ul>
+      <li>
+        Constructor vs <code>ngOnInit</code>: inputs are set only before the first
+        <code>ngOnChanges</code>. Reading a required input in the constructor throws NG0950. Use the
+        constructor for <code>inject()</code> and setup that does not need inputs.
+      </li>
+      <li>
+        <code>ngOnChanges</code> also fires for signal inputs, but <code>computed()</code> or
+        <code>effect()</code> on the input is usually clearer. It never fires for changes inside an
+        object passed by reference.
+      </li>
+      <li>
+        <code>ngDoCheck</code>, <code>ngAfterContentChecked</code> and
+        <code>ngAfterViewChecked</code> run on <em>every</em> check of the component. Keep them
+        cheap, or avoid them.
+      </li>
+      <li>
+        <code>ngAfterViewInit</code> is the classic place for DOM work and
+        <code>&#64;ViewChild</code> reads. With signal queries and <code>afterNextRender</code>
+        (next card) it is rarely needed.
+      </li>
+      <li>
+        <code>ngOnDestroy</code> and <code>DestroyRef.onDestroy</code> do the same job;
+        <code>DestroyRef</code> keeps the cleanup next to the code that needs it and also works in
+        inject functions.
+      </li>
+    </ul>
+  </app-tips-box>
+</app-demo-card>
+
+<app-demo-card>
+  <h2 demo-title>afterNextRender and afterEveryRender</h2>
+  <app-render-hooks-demo demo-body />
+  <p>
+    Both run after Angular has updated the DOM, so they can measure or change elements.
+    <code>afterNextRender</code> runs once: here it measures the list after the first render.
+    <code>afterEveryRender</code> runs after every render of the app: here it keeps the list
+    scrolled to the bottom and counts renders. "Unrelated update" does not touch the list, yet the
+    count still goes up.
+  </p>
+  <p class="source">Code: <code>render-hooks-demo.ts</code></p>
+  <app-tips-box>
+    <ul>
+      <li>
+        Stable since v20. <code>afterEveryRender</code> was called <code>afterRender</code> in v19
+        (developer preview then).
+      </li>
+      <li>
+        Split DOM work into phases (<code>earlyRead</code>, <code>write</code>,
+        <code>mixedReadWrite</code>, <code>read</code>) so reads and writes of all callbacks are
+        batched and the browser does not recompute layout between them.
+      </li>
+      <li>
+        They are browser-only: during server rendering they never run. That makes them the safe
+        place for <code>window</code>, <code>document</code> and third-party DOM libraries.
+      </li>
+      <li>
+        Do not set signals in <code>afterEveryRender</code>: the change schedules another render,
+        which runs the hook again. <code>afterRenderEffect()</code> is the signal-aware variant that
+        only re-runs when the signals it reads change.
+      </li>
+      <li>They are registered in an injection context and cleaned up with the component.</li>
+    </ul>
+  </app-tips-box>
+</app-demo-card>
+
+<app-demo-card>
+  <h2 demo-title>OnPush: what refreshes a component</h2>
+  <app-on-push-demo demo-body />
+  <p>
+    The parent passes a <code>user</code> object to an OnPush child. "Mutate" changes a field inside
+    the same object: the parent re-renders (the click was in its template) but the child keeps
+    showing the old value, because its input still holds the same reference. "Replace" creates a new
+    object, so the child is checked. After a mutation, "markForCheck()" or a click inside the child
+    also shows the new value.
+  </p>
+  <p class="source">Code: <code>on-push-demo.ts</code>, <code>on-push/user-card.ts</code></p>
+  <app-tips-box>
+    <ul>
+      <li>
+        An OnPush component is checked only when: an input gets a new value (compared with
+        <code>===</code>), an event fires in its template, a signal its template reads changes, an
+        <code>async</code> pipe in it emits, or <code>markForCheck()</code> is called.
+      </li>
+      <li>
+        Treat inputs as immutable: produce new objects and arrays (<code>&#123; ...user &#125;</code
+        >, <code>[...list, item]</code>) instead of mutating them.
+      </li>
+      <li>
+        <code>markForCheck()</code> marks the component <em>and its ancestors</em>, so the next run
+        reaches it. <code>detectChanges()</code> checks the component and its children right away,
+        synchronously.
+      </li>
+      <li>
+        The other strategy, <code>Eager</code>, checks the component on every run, whether or not it
+        was marked. It is the default when <code>changeDetection</code> is omitted. v21 renamed it:
+        <code>ChangeDetectionStrategy.Default</code> still works but is deprecated.
+      </li>
+    </ul>
+  </app-tips-box>
+</app-demo-card>
+
+<app-demo-card>
+  <h2 demo-title>Zoneless change detection</h2>
+  <app-zoneless-demo demo-body />
+  <p>
+    Without zone.js, nothing watches <code>setTimeout</code>, promises or <code>fetch</code>.
+    Angular refreshes only when it is notified. A plain field changed in a timeout stays stale on
+    screen. The same change followed by <code>markForCheck()</code> shows up, and so does a signal.
+    Press "Plain field in the click handler" after a stale update: the event schedules a refresh,
+    and every earlier change appears at once.
+  </p>
+  <p class="source">Code: <code>zoneless-demo.ts</code></p>
+  <app-tips-box>
+    <ul>
+      <li>
+        What schedules change detection without zone.js: a signal read by a template changes, a
+        template event handler runs, <code>markForCheck()</code> is called, an
+        <code>async</code> pipe emits, a view is attached or removed, or <code>setInput()</code> is
+        called on a component ref.
+      </li>
+      <li>
+        With zone.js (the default before v21), zone.js patched every async browser API and ran
+        change detection after each one. The plain field would have updated. Zoneless apps skip that
+        overhead and drop zone.js from the bundle.
+      </li>
+      <li>
+        Zoneless is stable since v20.2 and the default for new apps in v21. Older apps opt in with
+        <code>provideZonelessChangeDetection()</code> and remove <code>zone.js</code> from the
+        polyfills.
+      </li>
+      <li>
+        Migrating: code that relied on zone.js (plain fields set in subscriptions, timers or
+        promises) must switch to signals, the <code>async</code> pipe, <code>toSignal()</code> or
+        <code>markForCheck()</code>. OnPush components are usually ready already.
+      </li>
+    </ul>
+  </app-tips-box>
+</app-demo-card>

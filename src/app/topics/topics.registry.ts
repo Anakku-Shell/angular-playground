@@ -70,6 +70,17 @@ export const TOPICS: readonly Topic[] = [
     loadComponent: () =>
       import('./05-dependency-injection/topic-page').then((m) => m.DependencyInjectionPage),
   },
+  {
+    id: '06',
+    path: '06-lifecycle-change-detection',
+    title: 'Lifecycle & change detection',
+    summary:
+      'Lifecycle hooks, afterNextRender and afterEveryRender, what refreshes an OnPush component, and zoneless change detection.',
+    loadComponent: () =>
+      import('./06-lifecycle-change-detection/topic-page').then(
+        (m) => m.LifecycleChangeDetectionPage,
+      ),
+  },
 ];
 
 /** Router link for a topic page. */
