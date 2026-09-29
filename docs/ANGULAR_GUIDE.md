@@ -182,7 +182,58 @@ One project (`angular-playground`) with the targets `build`, `serve`, `test` and
 
 ### The DI hierarchy
 
-_TODO (Dependency injection topic):_ environment injectors vs element injectors, `providers` on routes and components, resolution order.
+Angular has two trees of injectors, and `inject()` looks in both.
+
+```
+Environment injectors (app-wide, not tied to the DOM)
+
+  null injector            throws NG0201 "No provider for X" (or returns null with `optional`)
+    ▲
+  platform injector        platform-level services, shared by apps on the page
+    ▲
+  root injector            appConfig.providers + every @Injectable({ providedIn: 'root' })
+    ▲
+  route injector           `providers` on a route, for that route and its children
+
+Element injectors (one per component/directive element that has providers)
+
+  <app-root>               providers / viewProviders of AppRoot
+    ▲
+  <app-page>               providers of Page
+    ▲
+  <app-child>              ← inject(X) starts here
+```
+
+**Resolution order** for `inject(X)` in `<app-child>`:
+
+1. Walk up the **element injectors**: the child's own element, then its parents in the template tree, up to the root component. The first provider of `X` wins.
+2. If none has it, continue in the **environment injectors** that belong to that element (route injector, then root, then platform).
+3. Not found: NG0201, or `null` with `{ optional: true }`.
+
+Modifiers change where the walk starts or stops: `self` (only the first element), `skipSelf` (start at the parent), `host` (stop at the host of the current template), `optional` (null instead of throwing). See [5.5](#55-dependency-injection).
+
+**Where to provide**
+
+| Where                                   | Instances                  | Lifetime                                  |
+| --------------------------------------- | -------------------------- | ----------------------------------------- |
+| `@Injectable({ providedIn: 'root' })`   | one for the app            | the app                                   |
+| `appConfig.providers`                   | one for the app            | the app                                   |
+| route `providers: [...]`                | one per route config       | from first activation; kept after leaving |
+| component `providers` / `viewProviders` | one per component instance | destroyed with the component              |
+
+**Route-level providers**
+
+```ts
+{
+  path: 'admin',
+  providers: [AdminStore, { provide: API_BASE, useValue: '/api/admin' }],
+  loadChildren: () => import('./admin/admin.routes'),
+}
+```
+
+- Every component under `admin` (and the guards and resolvers of those routes) injects the same `AdminStore`. Other routes cannot see it.
+- The route injector is an environment injector: it outlives the components. Navigating away does not destroy it, so state survives coming back. Use component `providers` when state must reset per visit.
+- It is how feature-scoped services are written without NgModules (in older code, a lazy `NgModule`'s `providers` did the same).
 
 ### Change detection
 
@@ -522,7 +573,7 @@ export class CartStore {
 ```
 
 - Private writable signal, public read-only signals and methods: only the store changes the state.
-- `providedIn: 'root'` = one instance for the app; `providers` on a component = one per component instance, shared with its children (Dependency injection topic).
+- `providedIn: 'root'` = one instance for the app; `providers` on a component = one per component instance, shared with its children (see [5.5](#55-dependency-injection)).
 - Older code does this with a `BehaviorSubject` and the `async` pipe.
 
 ### 5.4 Signals & reactivity
@@ -620,6 +671,110 @@ readonly held = outputFromObservable(press$.pipe(switchMap(() => timer(800).pipe
 
 - Signals for state the template reads; RxJS for events over time (debounce, cancellation, combining streams).
 - Legacy: state in `BehaviorSubject`s rendered with the `async` pipe, `ngOnDestroy` + `takeUntil(destroy$)` to unsubscribe.
+
+### 5.5 Dependency injection
+
+Route: `/topics/05-dependency-injection`. Everything here is **stable**. The injector tree and route-level providers are in [3. Architecture](#the-di-hierarchy).
+
+**Where a service lives**
+
+```ts
+@Injectable({ providedIn: 'root' })   // one app-wide instance, tree-shakable
+export class Counter { ... }
+
+@Component({ providers: [Counter] })  // one instance per component instance, destroyed with it
+@Component({ viewProviders: [Counter] }) // same, but invisible to projected content
+```
+
+- `providedIn: 'root'` is the default for services. The instance lives as long as the app: its state survives navigation.
+- Component `providers` are visible to the component's template **and** to content projected into it. `viewProviders` only to its template: projected content resolves from where it was declared.
+- `@Injectable()` without `providedIn` must be listed in some `providers` array, or injecting it throws NG0201.
+
+**`InjectionToken`**
+
+```ts
+export const PREFERS_DARK_SCHEME = new InjectionToken<Signal<boolean>>('PREFERS_DARK_SCHEME', {
+  providedIn: 'root',
+  factory: () => {
+    const query = inject(DOCUMENT).defaultView?.matchMedia?.('(prefers-color-scheme: dark)');
+    // ... wrap it in a signal
+  },
+});
+// Override for a subtree or a test: { provide: PREFERS_DARK_SCHEME, useValue: signal(true) }
+```
+
+- A token is the key for anything that is not a class: config objects, primitives, functions, signals. Interfaces do not exist at run time, so they cannot be keys.
+- `providedIn` + `factory` gives a default without any provider, and the factory can `inject()`.
+- Angular's own settings are tokens too (`DEFAULT_CURRENCY_CODE`, `LOCALE_ID`, `APP_INITIALIZER`…): providing one on a component changes it for that subtree.
+
+**Provider recipes**
+
+```ts
+providers: [
+  { provide: GREETER_CONFIG, useValue: { greeting: 'Hello', punctuation: '!' } },
+  { provide: Logger, useClass: MemoryLogger },        // abstract class as token
+  { provide: AUDIT_LOG, useExisting: Logger },         // alias: same instance
+  { provide: Greeter, useFactory: () => new Greeter(inject(GREETER_CONFIG), inject(Logger)) },
+]
+```
+
+| Recipe        | Gives                              | Typical use                                  |
+| ------------- | ---------------------------------- | -------------------------------------------- |
+| `useValue`    | that exact value                   | config, constants, test doubles              |
+| `useClass`    | a new instance of the class        | implementation behind an abstract class      |
+| `useExisting` | whatever another token resolves to | aliases; a component providing itself        |
+| `useFactory`  | the function's return value        | values that need logic or other dependencies |
+
+- `providers: [X]` is short for `{ provide: X, useClass: X }`. `multi: true` collects several providers of one token into an array.
+- Legacy: `useFactory` with `deps: [A, B]`. With `inject()` inside the factory, `deps` is not needed.
+
+**Resolution modifiers**
+
+```ts
+inject(Section, { optional: true });                  // T | null instead of NG0201
+inject(Section, { self: true });                      // only this element
+inject(Section, { skipSelf: true, optional: true });  // start at the parent: "the enclosing one"
+inject(Section, { host: true, optional: true });      // stop at the host of the current template
+```
+
+- The "enclosing parent" pattern: a component provides itself with `{ provide: Section, useExisting: forwardRef(() => SectionBox) }` and finds its parent with `skipSelf`. Without `skipSelf` it finds itself while still being constructed: NG0200 (circular dependency).
+- `host`: elements inside the current template all count; at the host element itself only its `viewProviders` do.
+- Legacy: the `@Optional()`, `@Self()`, `@SkipSelf()`, `@Host()` parameter decorators.
+
+**`DestroyRef`**
+
+```ts
+constructor() {
+  const id = setInterval(tick, 1000);
+  inject(DestroyRef).onDestroy(() => clearInterval(id)); // returns a function to unregister
+}
+```
+
+- Works in components, directives, pipes and services. A service in a component's `providers` gets that component's `DestroyRef`; a root service gets the root injector's (destroyed with the app).
+- On destroy, a service's `ngOnDestroy` runs first, then its `DestroyRef` callbacks.
+- `takeUntilDestroyed()` is built on it.
+
+**The injection context**
+
+`inject()` works only while Angular is creating something:
+
+- constructors and field initializers of components, directives, pipes and services;
+- provider factories (`useFactory`, `InjectionToken` factories);
+- functional guards, resolvers and interceptors;
+- a callback passed to `runInInjectionContext(injector, fn)`.
+
+Anywhere else (event handlers, `setTimeout`, promise callbacks) it throws **NG0203**. Inject at creation and keep the result, or keep the `Injector` and use `runInInjectionContext`.
+
+```ts
+export function injectDocumentTitle(): () => string {
+  assertInInjectionContext(injectDocumentTitle); // clear NG0203 naming this function
+  const document = inject(DOCUMENT);
+  return () => document.title;
+}
+```
+
+- "Inject functions" (name starting with `inject`) package reusable DI logic. The same rule applies to `effect()`, `toSignal()` and `takeUntilDestroyed()`.
+- Legacy: constructor injection, `constructor(private readonly logger: Logger) {}`. Migration: `ng generate @angular/core:inject`.
 
 ---
 

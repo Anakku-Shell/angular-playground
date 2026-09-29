@@ -1,0 +1,37 @@
+<div class="demo-row">
+  <button type="button" (click)="greet()">Greet</button>
+  <button type="button" (click)="writeAudit()">Write to AUDIT_LOG</button>
+  <button type="button" (click)="writeDebug()">Write to DEBUG_LOG</button>
+</div>
+
+<dl class="demo-values">
+  <dt>greeter.greet(…)</dt>
+  <dd class="greeting">{{ greeting() || '—' }}</dd>
+  <dt>inject(AUDIT_LOG) === inject(Logger)</dt>
+  <dd class="audit-identity">{{ auditIsLogger }}</dd>
+  <dt>inject(DEBUG_LOG) === inject(Logger)</dt>
+  <dd class="debug-identity">{{ debugIsLogger }}</dd>
+</dl>
+
+<div class="logs">
+  <section class="group">
+    <h3 class="group-title">Logger entries</h3>
+    <ul class="log logger-log">
+      @for (entry of logger.entries(); track $index) {
+        <li>{{ entry }}</li>
+      } @empty {
+        <li class="muted">empty</li>
+      }
+    </ul>
+  </section>
+  <section class="group">
+    <h3 class="group-title">DEBUG_LOG entries</h3>
+    <ul class="log debug-log">
+      @for (entry of debugLog.entries(); track $index) {
+        <li>{{ entry }}</li>
+      } @empty {
+        <li class="muted">empty</li>
+      }
+    </ul>
+  </section>
+</div>

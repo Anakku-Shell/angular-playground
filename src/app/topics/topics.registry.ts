@@ -61,6 +61,15 @@ export const TOPICS: readonly Topic[] = [
       'signal, computed, effect, linkedSignal, untracked, equality functions, resource and RxJS interop.',
     loadComponent: () => import('./04-signals/topic-page').then((m) => m.SignalsPage),
   },
+  {
+    id: '05',
+    path: '05-dependency-injection',
+    title: 'Dependency injection',
+    summary:
+      'providedIn root, component providers and viewProviders, InjectionToken, provider recipes, resolution modifiers, DestroyRef and the injection context.',
+    loadComponent: () =>
+      import('./05-dependency-injection/topic-page').then((m) => m.DependencyInjectionPage),
+  },
 ];
 
 /** Router link for a topic page. */
