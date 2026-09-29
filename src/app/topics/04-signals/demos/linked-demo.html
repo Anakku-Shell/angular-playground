@@ -1,0 +1,21 @@
+<div class="demo-row">
+  <label for="signals-country">Country</label>
+  <select id="signals-country" (change)="onCountry($event)">
+    @for (option of countries; track option) {
+      <option [value]="option" [selected]="option === country()">{{ option }}</option>
+    }
+  </select>
+</div>
+
+<div class="demo-row" role="group" aria-label="Shipping method">
+  @for (option of methods(); track option) {
+    <button type="button" [attr.aria-pressed]="option === method()" (click)="method.set(option)">
+      {{ option }}
+    </button>
+  }
+</div>
+
+<dl class="demo-values">
+  <dt>method()</dt>
+  <dd class="method">{{ method() }}</dd>
+</dl>

@@ -76,6 +76,7 @@ Add `--dry-run` to see what would be created without writing anything.
 - Editing a component's **template (`.html`) or styles (`.scss`)** is applied with **HMR** (hot module replacement): the change appears without a page reload and the component keeps its state.
 - Editing a **`.ts`** file triggers a fast full reload.
 - You never touch Vite's config directly: the builder owns it, and the options live in `angular.json`.
+- Vite pre-bundles dependencies into `.angular/cache`. If you start importing a new entry point (e.g. `@angular/core/rxjs-interop`) while `ng serve` runs, the cache can end up with two copies of `@angular/core`, and errors such as `NG0203 ... can only be used within an injection context` appear for correct code. Fix: stop the server, delete `.angular/cache` and start it again.
 
 **Legacy: the webpack builder.** Projects created before v17 (and many v19 codebases that were upgraded, not recreated) may still use `@angular-devkit/build-angular:browser` / `:dev-server`, which bundle with webpack. It still works but is slower and gets no new features. Migrate with:
 
@@ -523,6 +524,102 @@ export class CartStore {
 - Private writable signal, public read-only signals and methods: only the store changes the state.
 - `providedIn: 'root'` = one instance for the app; `providers` on a component = one per component instance, shared with its children (Dependency injection topic).
 - Older code does this with a `BehaviorSubject` and the `async` pipe.
+
+### 5.4 Signals & reactivity
+
+Route: `/topics/04-signals`. `signal`, `computed`, `untracked` are **stable** (v17); `effect`, `linkedSignal`, `toSignal`, `toObservable` since v20; `outputFromObservable` since v19. `resource`, `rxResource` and `httpResource` are **experimental** in v21.
+
+**`signal` and `computed`**
+
+```ts
+readonly quantity = signal(1);
+this.quantity.set(2);               // new value
+this.quantity.update((q) => q + 1); // derived from the current one
+readonly total = computed(() => this.quantity() * this.price); // read-only, lazy, memoized
+readonly items = signal<Item[]>([]);
+this.items.update((list) => [...list, item]); // immutable: new array
+```
+
+- Dependencies are the signals read during the last run, found at run time (conditional reads count only when their branch runs).
+- `computed` runs only when read (**lazy**) and reruns only after a dependency changed (**memoized**). It must be pure: writing a signal inside it throws.
+- Mutating an array/object in place does not notify: the reference is the same.
+- **Signals + `OnPush`**: a signal read in a template marks only that component for refresh. With zoneless (the v21 default), signals are what schedules change detection.
+
+**Equality and `untracked`**
+
+```ts
+readonly point = signal({ x: 0, y: 0 }, { equal: (a, b) => a.x === b.x && a.y === b.y });
+readonly sum = computed(() => this.a() + untracked(this.b)); // b is read, not tracked
+```
+
+- Default equality is `Object.is`. A custom `equal` (also on `computed`/`linkedSignal`) stops equal values from propagating. Keep it cheap.
+- `untracked` is mostly for effects: react to one signal, read others as context, and wrap calls into code you do not control.
+
+**`effect`**
+
+```ts
+constructor() {
+  effect((onCleanup) => {
+    const text = this.draft();                   // dependency
+    const timer = setTimeout(() => save(text), 500);
+    onCleanup(() => clearTimeout(timer));        // before the next run and on destroy
+  });
+}
+```
+
+- Only for **side effects outside Angular's data flow**: storage, logging, a canvas, a third-party widget. Needs an injection context; a component's effects are destroyed with it.
+- **Do not write signals in an effect to derive state** (`effect(() => this.total.set(...))`): use `computed`, or `linkedSignal` if it must also be writable.
+- Runs asynchronously during change detection: several `set()` calls give one run. For DOM work after render: `afterRenderEffect` / `afterNextRender`.
+- Vue: `effect` ≈ `watchEffect`. For `watch(source, cb)`, read the source and wrap the rest in `untracked()`.
+
+**`linkedSignal`: writable derived state**
+
+```ts
+readonly method = linkedSignal<readonly string[], string>({
+  source: this.methods,
+  computation: (methods, previous) =>
+    previous && methods.includes(previous.value) ? previous.value : methods[0],
+});
+this.method.set('Express'); // lasts until `methods` changes
+```
+
+- Short form `linkedSignal(() => this.options()[0])` always resets. The long form sees the previous value.
+
+**`resource` (experimental)**
+
+```ts
+readonly user = resource({
+  params: () => this.userId(),                  // reactive; undefined → idle
+  loader: ({ params, abortSignal }) => fetchUser(params, abortSignal),
+});
+// user.value(), user.status(), user.isLoading(), user.error(), user.hasValue(), user.reload()
+```
+
+- A params change aborts the previous request (`abortSignal`) and runs the loader again.
+- `value()` throws in the error state: check `error()` / `hasValue()` first.
+- A loading resource is a pending task: `fixture.whenStable()` in tests waits for it.
+- `rxResource` (loader returns an Observable) and `httpResource` (HTTP topic) are variants. Stable alternative: an `HttpClient` Observable + `toSignal`.
+
+**RxJS interop** (`@angular/core/rxjs-interop`)
+
+```ts
+readonly debouncedQuery = toSignal(
+  toObservable(this.query).pipe(debounceTime(300), distinctUntilChanged()),
+  { initialValue: '' },
+);
+readonly held = outputFromObservable(press$.pipe(switchMap(() => timer(800).pipe(takeUntil(release$)))));
+```
+
+| API                          | Direction           | Notes                                                                                       |
+| ---------------------------- | ------------------- | ------------------------------------------------------------------------------------------- |
+| `toSignal(obs$, opts)`       | Observable → Signal | Subscribes now, unsubscribes on destroy. `initialValue` or `requireSync` avoid `undefined`. |
+| `toObservable(sig)`          | Signal → Observable | Emits asynchronously, the last value per change detection.                                  |
+| `outputFromObservable(obs$)` | Observable → output | Parent listens with `(held)="..."`.                                                         |
+| `outputToObservable(ref)`    | output → Observable | For code that wants to `pipe()` a child's output.                                           |
+| `takeUntilDestroyed()`       | operator            | Unsubscribes when the injection context is destroyed.                                       |
+
+- Signals for state the template reads; RxJS for events over time (debounce, cancellation, combining streams).
+- Legacy: state in `BehaviorSubject`s rendered with the `async` pipe, `ngOnDestroy` + `takeUntil(destroy$)` to unsubscribe.
 
 ---
 

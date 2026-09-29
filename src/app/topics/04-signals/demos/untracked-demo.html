@@ -1,0 +1,13 @@
+<div class="demo-row">
+  <button type="button" (click)="bump('a')">a + 1</button>
+  <button type="button" (click)="bump('b')">b + 1</button>
+</div>
+
+<dl class="demo-values">
+  <dt>a(), b()</dt>
+  <dd>{{ a() }}, {{ b() }}</dd>
+  <dt>a() + b()</dt>
+  <dd class="both">{{ both() }}</dd>
+  <dt>a() + untracked(b)</dt>
+  <dd class="only-a">{{ onlyA() }}</dd>
+</dl>

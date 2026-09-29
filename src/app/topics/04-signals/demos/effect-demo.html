@@ -1,0 +1,16 @@
+<div class="field">
+  <label for="effect-draft">Draft (kept in localStorage)</label>
+  <textarea id="effect-draft" rows="3" [value]="draft()" (input)="onInput($event)"></textarea>
+</div>
+<div class="demo-row">
+  <button type="button" (click)="clear()">Clear</button>
+</div>
+
+<dl class="demo-values">
+  <dt>Characters</dt>
+  <dd>{{ draft().length }}</dd>
+  <dt>Saves</dt>
+  <dd class="saves">{{ saves() }}</dd>
+  <dt>Last save</dt>
+  <dd>{{ savedAt() ?? '—' }}</dd>
+</dl>

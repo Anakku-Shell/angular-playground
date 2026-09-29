@@ -1,0 +1,29 @@
+<div class="demo-row">
+  <label for="interop-search">Search the signal APIs</label>
+  <input
+    id="interop-search"
+    type="search"
+    autocomplete="off"
+    [value]="query()"
+    (input)="onInput($event)"
+  />
+</div>
+
+<dl class="demo-values">
+  <dt>query()</dt>
+  <dd>"{{ query() }}"</dd>
+  <dt>debouncedQuery()</dt>
+  <dd class="debounced">"{{ debouncedQuery() }}"</dd>
+  <dt>Matches ({{ matches().length }})</dt>
+  <dd>
+    <ul class="chips">
+      @for (name of matches(); track name) {
+        <li>{{ name }}</li>
+      } @empty {
+        <li class="muted">No matches</li>
+      }
+    </ul>
+  </dd>
+  <dt>Seconds on this page</dt>
+  <dd>{{ secondsHere() }}</dd>
+</dl>
