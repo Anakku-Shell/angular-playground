@@ -1,0 +1,224 @@
+<header>
+  <h1>HTTP &amp; RxJS</h1>
+  <p class="lead">
+    <code>HttpClient</code> returns RxJS Observables, so HTTP and RxJS are learned together. The app
+    registers the client once in <code>app.config.ts</code> with
+    <code>provideHttpClient(withFetch(), withInterceptors([…]))</code>; the interceptors live in
+    <code>src/app/core/http/</code>. The HTTP demos call the public
+    <a href="https://dummyjson.com" target="_blank" rel="noopener">DummyJSON</a> API, so they need
+    an internet connection. The code of each demo lives in
+    <code>src/app/topics/09-http-rxjs/demos/</code>.
+  </p>
+</header>
+
+<!-- Code samples in this template: braces are escaped as &#123; &#125;
+     (a bare brace would open or close a block). -->
+
+<app-demo-card>
+  <h2 demo-title>Observable vs Promise</h2>
+  <app-observable-vs-promise-demo demo-body />
+  <p>
+    Press <em>new Promise()</em>: its code runs at once. Press <em>new Observable()</em>: nothing
+    runs until <em>subscribe()</em>, and it runs again on every subscribe. The Observable emits
+    three values over time; <em>unsubscribe()</em> stops it early and runs its teardown.
+  </p>
+  <p class="source">Code: <code>observable-vs-promise-demo.ts</code></p>
+  <app-tips-box>
+    <ul>
+      <li>
+        A Promise is <strong>eager</strong> (starts on creation), gives <strong>one</strong> value
+        and cannot be cancelled. An Observable is <strong>lazy</strong>, can emit
+        <strong>many</strong> values and is cancelled by unsubscribing.
+      </li>
+      <li>
+        That is why <code>http.get()</code> sends nothing until something subscribes: forgetting to
+        subscribe (or to use <code>| async</code> / <code>toSignal</code>) is a classic "my request
+        never fires" bug.
+      </li>
+      <li>
+        Each subscribe runs the Observable again (it is <em>cold</em>): two subscribers to an HTTP
+        Observable send two requests. See <code>shareReplay</code> below.
+      </li>
+      <li>
+        Need a Promise? <code>await firstValueFrom(obs$)</code>. The old <code>toPromise()</code> is
+        deprecated.
+      </li>
+    </ul>
+  </app-tips-box>
+</app-demo-card>
+
+<app-demo-card>
+  <h2 demo-title>Flattening operators: switchMap, mergeMap, concatMap, exhaustMap</h2>
+  <app-flattening-demo demo-body />
+  <p>
+    Each click starts a fake request that answers after one second. An operator that maps a value to
+    another Observable has to decide what to do when a new click arrives while a request is still
+    running. Click one button three times quickly and compare the lanes.
+  </p>
+  <p class="source">Code: <code>flattening-demo.ts</code></p>
+  <app-tips-box>
+    <ul>
+      <li>
+        Rule of thumb: reads that follow user input → <code>switchMap</code>; independent writes →
+        <code>mergeMap</code>; writes whose order matters → <code>concatMap</code>; a submit button
+        that must not fire twice → <code>exhaustMap</code>.
+      </li>
+      <li>
+        Never subscribe inside a <code>subscribe</code>. Nested subscriptions are not cancelled and
+        have no order guarantees; a flattening operator is always the answer.
+      </li>
+      <li>
+        <code>map</code> transforms each value, <code>filter</code> drops values. Both appear in the
+        search demo below.
+      </li>
+    </ul>
+  </app-tips-box>
+</app-demo-card>
+
+<app-demo-card>
+  <h2 demo-title>Interceptors: auth header, logging, global errors</h2>
+  <app-interceptors-demo demo-body />
+  <p>
+    Every request goes through three functional interceptors, in order:
+    <code>authInterceptor</code> adds <code>Authorization: Bearer …</code> (only for our API),
+    <code>loggingInterceptor</code> fills this table and <code>errorInterceptor</code> reports
+    errors app-wide and rethrows them. The 503 button retries twice: the log shows three attempts,
+    because <code>retry()</code> subscribes again and every attempt runs the whole chain.
+  </p>
+  <p class="source">
+    Code: <code>core/http/*-interceptor.ts</code>, <code>core/http/interceptors.ts</code>,
+    <code>interceptors-demo.ts</code>
+  </p>
+  <app-tips-box>
+    <ul>
+      <li>
+        An interceptor is a function <code>(req, next) =&gt; next(req)</code>. Requests are
+        immutable: change them with <code>req.clone(&#123; setHeaders: … &#125;)</code>.
+      </li>
+      <li>
+        <code>inject()</code> works in the interceptor body, not inside the RxJS callbacks: call it
+        first and keep the reference.
+      </li>
+      <li>
+        Order matters: requests go through the array top to bottom, responses come back bottom to
+        top. Here logging comes after auth so it sees the header.
+      </li>
+      <li>
+        <code>HttpContextToken</code> passes per-request options to interceptors: the search below
+        sets <code>SKIP_GLOBAL_ERROR</code> because it shows its own error.
+      </li>
+      <li>
+        Legacy code uses class interceptors (<code>HttpInterceptor</code> +
+        <code>HTTP_INTERCEPTORS</code> multi-provider). They need
+        <code>withInterceptorsFromDi()</code>.
+      </li>
+    </ul>
+  </app-tips-box>
+</app-demo-card>
+
+<app-demo-card>
+  <h2 demo-title>Typed API service, async pipe vs toSignal, shareReplay</h2>
+  <app-shared-request-demo demo-body />
+  <p>
+    <code>ProductsApi</code> wraps the endpoints: components call <code>api.list(3)</code>, not
+    URLs, and <code>http.get&lt;ProductPage&gt;()</code> types the response. Here the same list is
+    rendered twice, once with the <code>async</code> pipe and once with <code>toSignal</code>. The
+    cold stream sends one request per consumer; the <code>shareReplay</code> one sends one in total.
+  </p>
+  <p class="source">Code: <code>products-api.ts</code>, <code>shared-request-demo.ts</code></p>
+  <app-tips-box>
+    <ul>
+      <li>
+        <code>http.get&lt;T&gt;()</code> is a cast, not a check: the server can send anything.
+        Validate at the boundary (e.g. with a schema library) when the data matters.
+      </li>
+      <li>
+        <code>async</code> pipe: subscribes in the template, unsubscribes when the view goes away,
+        returns <code>null</code> until the first value. <code>toSignal</code>: subscribes in the
+        class (injection context), gives a signal you can use in <code>computed</code> and
+        <code>effect</code>, returns <code>undefined</code> until the first value (or use
+        <code>initialValue</code>). New code prefers <code>toSignal</code>.
+      </li>
+      <li>
+        Unsubscription rules: <code>async</code>, <code>toSignal</code>,
+        <code>httpResource</code> clean up for you. A manual <code>subscribe()</code> to something
+        that does not complete (<code>valueChanges</code>, <code>interval</code>, router events)
+        needs <code>takeUntilDestroyed()</code>. HTTP completes after one response, but
+        unsubscribing still aborts an in-flight request when the user leaves.
+      </li>
+      <li>
+        <code>shareReplay(&#123; bufferSize: 1, refCount: true &#125;)</code>: without
+        <code>refCount</code> the source stays subscribed forever, even after every consumer is
+        gone.
+      </li>
+    </ul>
+  </app-tips-box>
+</app-demo-card>
+
+<app-demo-card>
+  <h2 demo-title>Search as you type</h2>
+  <app-search-demo demo-body />
+  <p>
+    The input's <code>valueChanges</code> goes through <code>map</code> (trim),
+    <code>debounceTime(300)</code>, <code>distinctUntilChanged()</code>, <code>filter</code> and
+    <code>switchMap</code> to the API. Each request becomes a loading, success or error state, and
+    <code>toSignal</code> hands the latest one to the template. Type fast and compare the request
+    count with the number of keystrokes. The API adds 500 ms of delay so the loading state shows.
+  </p>
+  <p class="source">Code: <code>search-demo.ts</code></p>
+  <app-tips-box>
+    <ul>
+      <li>
+        <code>catchError</code> goes <strong>inside</strong> the <code>switchMap</code>. An error
+        that reaches the outer stream ends it, and the search box silently stops working.
+      </li>
+      <li>
+        Model the UI as one union type (<code>idle | loading | success | error</code>) instead of
+        separate <code>loading</code> / <code>error</code> / <code>data</code> flags that can
+        contradict each other.
+      </li>
+      <li>
+        <code>switchMap</code> aborts the previous request, so a slow old response never overwrites
+        a newer one (a race condition that <code>mergeMap</code> would have).
+      </li>
+      <li>
+        <code>retry(&#123; count, delay &#125;)</code> resubscribes on error; only use it for
+        requests that are safe to repeat (GET, not a payment).
+      </li>
+    </ul>
+  </app-tips-box>
+</app-demo-card>
+
+<app-demo-card>
+  <h2 demo-title>httpResource (experimental)</h2>
+  <app-http-resource-demo demo-body />
+  <p>
+    <code>httpResource(() =&gt; url)</code> is <code>resource()</code> backed by
+    <code>HttpClient</code>: when a signal read in the URL function changes, it aborts the running
+    request and sends a new one. Status, value, error and the HTTP status code are all signals, so
+    there is nothing to subscribe to. Id 999 answers 404.
+  </p>
+  <p class="source">Code: <code>http-resource-demo.ts</code></p>
+  <app-tips-box tone="warning" heading="Experimental in v21">
+    <ul>
+      <li>
+        <code>httpResource</code> is <strong>experimental</strong> (since 19.2): the API may change.
+        Current codebases mostly use <code>HttpClient</code> Observables.
+      </li>
+      <li>
+        It is for <strong>reading</strong> data (GET). Use <code>HttpClient</code> for POST, PUT and
+        DELETE.
+      </li>
+      <li>
+        It uses <code>HttpClient</code>, so interceptors and
+        <code>provideHttpClientTesting</code> work. Pass
+        <code>&#123; parse: schema.parse &#125;</code> to validate the response and
+        <code>defaultValue</code> to avoid <code>undefined</code>.
+      </li>
+      <li>
+        Read <code>error()</code> or <code>hasValue()</code> before <code>value()</code>: reading
+        the value of a failed resource throws.
+      </li>
+    </ul>
+  </app-tips-box>
+</app-demo-card>

@@ -98,6 +98,14 @@ export const TOPICS: readonly Topic[] = [
       'Template-driven forms, typed reactive forms, FormArray, custom, async and cross-field validators, and experimental signal forms.',
     loadComponent: () => import('./08-forms/topic-page').then((m) => m.FormsPage),
   },
+  {
+    id: '09',
+    path: '09-http-rxjs',
+    title: 'HTTP & RxJS',
+    summary:
+      'HttpClient with functional interceptors, a typed API service, RxJS essentials, search-as-you-type and httpResource.',
+    loadComponent: () => import('./09-http-rxjs/topic-page').then((m) => m.HttpRxjsPage),
+  },
 ];
 
 /** Router link for a topic page. */
