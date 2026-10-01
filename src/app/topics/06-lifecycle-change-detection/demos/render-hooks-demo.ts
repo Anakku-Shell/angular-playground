@@ -8,6 +8,12 @@ import {
   viewChild,
 } from '@angular/core';
 
+/*
+ * afterNextRender(fn)    once, after the next render: measure, focus, init a DOM library
+ * afterEveryRender(fn)   after every render of the app: keep something in sync with the DOM
+ * Both accept phases to batch DOM access: { earlyRead, write, mixedReadWrite, read }.
+ * They only run in the browser (never during server-side rendering).
+ */
 @Component({
   selector: 'app-render-hooks-demo',
   template: `

@@ -1,3 +1,10 @@
+<!--
+  @if (condition) { ... } @else if (other) { ... } @else { ... }
+  The block's content is created when the condition becomes true and destroyed when it becomes
+  false: elements, child components and their state come and go. To only hide something and
+  keep it alive, bind a property instead: [hidden]="!condition" or [style.display]="...".
+  Legacy equivalent: *ngIf="condition; else otherTemplate" (see the last card).
+-->
 <div class="demo-row">
   <label for="if-score">Score</label>
   <input id="if-score" type="range" min="0" max="100" [value]="score()" (input)="onScore($event)" />

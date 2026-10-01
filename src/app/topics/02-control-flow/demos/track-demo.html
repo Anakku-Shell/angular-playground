@@ -1,3 +1,11 @@
+<!--
+  track tells Angular which item each rendered row belongs to. When the list changes, rows whose
+  key is still there are kept (and moved); the others are created or destroyed.
+    track item.id   stable identity from the data: the usual choice
+    track $index    position: rows stay in place, only their data changes
+    track item      object reference: new objects (a reload) mean all-new rows
+  Watch the #numbers (component instances) and type in the inputs, then use the buttons.
+-->
 <div class="demo-row">
   <button type="button" (click)="addToTop()">Add to top</button>
   <button type="button" (click)="reverse()">Reverse</button>

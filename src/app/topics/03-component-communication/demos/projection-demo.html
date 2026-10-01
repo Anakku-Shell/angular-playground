@@ -1,3 +1,9 @@
+<!--
+  Content projection: the parent writes content between the child's tags, and the child decides
+  where it goes with <ng-content> (one slot) or <ng-content select="..."> (named slots).
+  The content is created by the parent even if the child never shows it. For content that
+  should be created lazily or repeated, the child takes an <ng-template> instead (Directives).
+-->
 <app-callout>
   Projected content belongs to the <strong>parent</strong>: its bindings read the parent's state
   (saved {{ saved() }} times) and the parent's styles apply to it.

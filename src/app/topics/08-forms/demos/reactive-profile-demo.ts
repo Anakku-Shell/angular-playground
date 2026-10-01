@@ -3,6 +3,16 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
+/*
+ * Building a reactive form:
+ *   inject(NonNullableFormBuilder).group({ name: ['', validators] })   short (used here)
+ *   new FormGroup({ name: new FormControl('', { nonNullable: true }) })   long, same result
+ * Binding it in the template:
+ *   [formGroup]="form"  then  formControlName="name" / formGroupName / formArrayName
+ *   [formControl]="control"   one control without a group
+ * Writing it from code: setValue (whole shape), patchValue (any part), reset, enable/disable.
+ */
+
 /** A typed reactive form: the class builds the model, the template only binds to it. */
 @Component({
   selector: 'app-reactive-profile-demo',

@@ -19,8 +19,11 @@ const INITIAL_TASKS: readonly Task[] = [
 })
 export class ForDemo {
   protected readonly tasks = signal<readonly Task[]>(INITIAL_TASKS);
+  // A plain field: it never feeds the template, so it does not need to be a signal.
   private nextId = INITIAL_TASKS.length + 1;
 
+  // Every update creates a new array. @for compares the items by their track key to decide
+  // which rows to keep, move, create or destroy.
   protected add(): void {
     const id = this.nextId++;
     this.tasks.update((tasks) => [...tasks, { id, title: `Task #${id}` }]);

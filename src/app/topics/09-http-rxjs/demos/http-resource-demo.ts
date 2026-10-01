@@ -4,6 +4,14 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 
 import { Product, ProductsApi } from '../products-api';
 
+/*
+ * httpResource variants:
+ *   httpResource<T>(() => url)                       JSON
+ *   httpResource<T>(() => ({ url, method, params, headers, body }))   a full request
+ *   httpResource.text / .blob / .arrayBuffer(...)    other response types
+ * Options: defaultValue, parse (validate or transform the JSON), equal, injector.
+ */
+
 /** httpResource: an HTTP GET driven by a signal, with its state exposed as signals. */
 @Component({
   selector: 'app-http-resource-demo',

@@ -9,6 +9,14 @@ import {
   MemoryLogger,
 } from './recipes/logging';
 
+/*
+ * A provider says how to build the value for a token:
+ *   SomeClass                          shorthand for { provide: SomeClass, useClass: SomeClass }
+ *   { provide, useClass: Other }       new Other() (with its own injected dependencies)
+ *   { provide, useValue: value }       this exact value
+ *   { provide, useExisting: Token }    whatever Token resolves to (an alias, same instance)
+ *   { provide, useFactory: () => ... } the factory's return value (inject() works inside)
+ */
 @Component({
   selector: 'app-recipes-demo',
   providers: [

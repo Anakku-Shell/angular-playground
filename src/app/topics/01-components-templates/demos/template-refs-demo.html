@@ -1,10 +1,20 @@
+<!--
+  #name declares a template reference variable. What it points to depends on where it is:
+    on an HTML element     →  the DOM element (here an HTMLInputElement)
+    on a component         →  the component instance (call its public methods)
+    #m="ngModel"           →  a directive, by its exportAs name (see Forms)
+  It is visible anywhere in this template. One declared inside an @if or @for block is only
+  visible inside that block.
+  To reach the same element from the class, use viewChild('name') (see Component communication).
+-->
 <div class="demo-row">
-  <!-- #nameInput is a template reference variable: it points to this <input> element. -->
   <label>
     Name
     <input #nameInput type="text" placeholder="Type, then press Greet" />
   </label>
+  <!-- Read a property of the element and pass it to the class. -->
   <button type="button" (click)="greet(nameInput.value)">Greet</button>
+  <!-- Or call one of its methods directly. -->
   <button type="button" (click)="nameInput.focus()">Focus the input</button>
 </div>
 

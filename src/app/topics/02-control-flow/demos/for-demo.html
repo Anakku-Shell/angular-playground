@@ -1,3 +1,11 @@
+<!--
+  @for (item of list; track key) { ... } @empty { ... }
+  Implicit variables available inside the block:
+    $index  position (0-based)     $count  length of the list
+    $first  $last                   $even  $odd   (booleans)
+  Rename them with let:  @for (item of list; track item.id; let i = $index, n = $count)
+  The list can be any iterable: an array, a signal's array value, a Map, a Set...
+-->
 <div class="demo-row">
   <button type="button" (click)="add()">Add task</button>
   <button type="button" (click)="clear()">Clear</button>

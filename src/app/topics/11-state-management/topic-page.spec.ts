@@ -57,6 +57,11 @@ describe('StateManagementPage', () => {
 
   it('renders one demo card per concept', () => {
     expect(el.querySelectorAll('app-demo-card').length).toBe(4);
+    for (const card of el.querySelectorAll('app-demo-card')) {
+      expect(
+        card.querySelectorAll('app-exercise-box .exercise__tasks > li').length,
+      ).toBeGreaterThan(0);
+    }
   });
 
   it('shares the service store between the cart and a badge', async () => {

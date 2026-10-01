@@ -1,3 +1,9 @@
+<!--
+  model() = an input plus an output named <name>Change. The parent can bind it three ways:
+    [(value)]="quantity"                                   two-way (pass the signal)
+    [value]="quantity()" (valueChange)="quantity.set($event)"  the same, written out
+    [value]="quantity()"                                   one-way: the child's changes stay local
+-->
 <dl class="demo-values">
   <!-- Two-way: pass the signal itself (no parentheses). The child writes straight into it. -->
   <dt>Two-way <code>[(value)]="quantity"</code></dt>

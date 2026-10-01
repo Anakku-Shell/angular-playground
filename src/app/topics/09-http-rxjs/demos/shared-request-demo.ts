@@ -13,6 +13,13 @@ function countRequests<T>(counter: WritableSignal<number>): MonoTypeOperatorFunc
   return tap({ subscribe: () => counter.update((n) => n + 1) });
 }
 
+/*
+ * An HttpClient Observable is cold: each subscriber sends its own request. To share one:
+ *   share()                        share while subscribers overlap; late ones start a new request
+ *   shareReplay({ bufferSize: 1 }) also replay the last value to late subscribers (a cache)
+ *   a signal or resource           keep the value in state and read it from there
+ */
+
 /** The async pipe and toSignal on the same stream, with and without shareReplay. */
 @Component({
   selector: 'app-shared-request-demo',

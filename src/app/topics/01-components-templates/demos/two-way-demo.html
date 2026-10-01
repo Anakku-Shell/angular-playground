@@ -1,3 +1,11 @@
+<!--
+  [(x)]="target" ("banana in a box": the parentheses inside the brackets) is shorthand for
+  [x]="target()" plus (xChange)="target.set($event)". The target must be writable:
+    a WritableSignal  →  [(ngModel)]="name"     (pass the signal, without parentheses)
+    a plain field     →  [(ngModel)]="title"    (older code; Angular assigns title = $event)
+  ngModel is one directive that offers this pair. Any component with an input `x` and an
+  output `xChange` (model() creates both) supports [(x)] too.
+-->
 <div class="demo-row">
   <label>
     Banana in a box
@@ -11,4 +19,5 @@
   </label>
 </div>
 
+<!-- || (not ??) so that an empty string also falls back to 'stranger'. -->
 <p class="demo-row">Hello, {{ name() || 'stranger' }}!</p>

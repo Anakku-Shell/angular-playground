@@ -1,3 +1,9 @@
+<!--
+  (rated)="onRated($event)" listens to the child's output, exactly like a DOM event.
+  $event is the value passed to emit(): a number here.
+  Outputs do not bubble: only the direct parent can listen. Older code declares them with
+  @Output() rated = new EventEmitter<number>(); the template side is the same.
+-->
 <div class="demo-row">
   <app-star-rating [value]="rating()" (rated)="onRated($event)" (cleared)="onCleared()" />
 </div>

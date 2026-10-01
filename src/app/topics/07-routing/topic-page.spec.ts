@@ -53,6 +53,11 @@ describe('RoutingPage', () => {
   it('redirects the topic root to the product list inside the nested outlet', () => {
     expect(router.url).toBe(`${ROUTING_URL}/products`);
     expect(el().querySelectorAll('app-demo-card').length).toBe(6);
+    for (const card of el().querySelectorAll('app-demo-card')) {
+      expect(
+        card.querySelectorAll('app-exercise-box .exercise__tasks > li').length,
+      ).toBeGreaterThan(0);
+    }
     expect(el().querySelector('app-mini-app app-product-list')).not.toBeNull();
     expect(TestBed.inject(Title).getTitle()).toBe('Products · Routing · Angular Playground');
   });

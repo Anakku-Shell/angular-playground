@@ -1,6 +1,13 @@
 import { AbstractControl, AsyncValidatorFn, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { map, Observable, timer } from 'rxjs';
 
+/*
+ * Built-in validators: Validators.required, requiredTrue, min, max, minLength, maxLength,
+ * pattern, email. A validator is just a function (control) => ValidationErrors | null, so a
+ * custom one is a function too. Template-driven forms use the same ones as attributes
+ * (required, minlength="3", email...).
+ */
+
 /** Fake server latency of the username check. */
 export const USERNAME_CHECK_MS = 600;
 

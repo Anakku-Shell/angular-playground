@@ -1,0 +1,61 @@
+:host {
+  display: block;
+  margin-block: 1rem 0;
+}
+
+.exercise {
+  padding: 0.75rem 1rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius);
+
+  &__heading {
+    margin: 0 0 0.25rem;
+    font-weight: 700;
+  }
+
+  &__files,
+  &__undo {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+
+    // Angular drops whitespace-only text between elements, so space the file names here.
+    code + code {
+      margin-left: 0.35rem;
+    }
+  }
+
+  &__tasks {
+    padding-left: 1.25rem;
+
+    li + li {
+      margin-top: 0.75rem;
+    }
+
+    p {
+      margin: 0;
+    }
+  }
+
+  &__expect {
+    color: var(--color-text-muted);
+
+    strong {
+      margin-right: 0.25rem;
+    }
+  }
+}
+
+details {
+  margin-top: 0.25rem;
+}
+
+summary {
+  cursor: pointer;
+  color: var(--color-accent);
+}
+
+pre {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+}

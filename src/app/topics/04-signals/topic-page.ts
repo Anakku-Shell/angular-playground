@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 import { DemoCard } from '../../shared/demo-card/demo-card';
+import { ExerciseBox } from '../../shared/exercise-box/exercise-box';
 import { TipsBox } from '../../shared/tips-box/tips-box';
 import { BasicsDemo } from './demos/basics-demo';
 import { EffectDemo } from './demos/effect-demo';
@@ -10,11 +11,13 @@ import { LinkedDemo } from './demos/linked-demo';
 import { OutputObservableDemo } from './demos/output-observable-demo';
 import { ResourceDemo } from './demos/resource-demo';
 import { UntrackedDemo } from './demos/untracked-demo';
+import { EXERCISES } from './exercises';
 
 /** Topic 04: signals, derived state, effects, async resources and RxJS interop. */
 @Component({
   selector: 'app-signals-page',
   imports: [
+    ExerciseBox,
     DemoCard,
     TipsBox,
     BasicsDemo,
@@ -30,4 +33,6 @@ import { UntrackedDemo } from './demos/untracked-demo';
   styleUrl: './topic-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SignalsPage {}
+export class SignalsPage {
+  protected readonly exercises = EXERCISES;
+}

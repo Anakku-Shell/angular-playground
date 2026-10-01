@@ -10,5 +10,6 @@ import { FormsModule } from '@angular/forms';
 })
 export class TwoWayDemo {
   // [(ngModel)] can bind straight to a writable signal (reads it, and calls set() on change).
+  // Both inputs share this one signal, which is why they stay in sync.
   protected readonly name = signal('Ada');
 }

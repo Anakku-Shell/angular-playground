@@ -45,7 +45,16 @@ describe('TestingPage', () => {
 
   it('renders one card per testing technique', () => {
     expect(el.querySelectorAll('app-demo-card').length).toBe(6);
-    expect(el.querySelectorAll('pre').length).toBe(7);
+    for (const card of el.querySelectorAll('app-demo-card')) {
+      expect(
+        card.querySelectorAll('app-exercise-box .exercise__tasks > li').length,
+      ).toBeGreaterThan(0);
+    }
+    // Code samples of the page itself, not the folded exercise solutions.
+    const samples = [...el.querySelectorAll('pre')].filter(
+      (pre) => !pre.closest('app-exercise-box'),
+    );
+    expect(samples.length).toBe(7);
   });
 
   it('keeps the rating and its parent signal in sync', async () => {

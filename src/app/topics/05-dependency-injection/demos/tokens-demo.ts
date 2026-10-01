@@ -4,6 +4,12 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { EuroPrice } from './tokens/euro-price';
 import { PREFERS_DARK_SCHEME } from './tokens/prefers-dark-scheme';
 
+/*
+ * A DI token is the key a value is registered under. Classes are tokens by themselves; for
+ * anything else (strings, numbers, config objects, functions, signals) create one:
+ *   export const API_URL = new InjectionToken<string>('API_URL');
+ * Angular has built-in tokens too (DOCUMENT, LOCALE_ID, DEFAULT_CURRENCY_CODE...).
+ */
 @Component({
   selector: 'app-tokens-demo',
   imports: [CurrencyPipe, EuroPrice],

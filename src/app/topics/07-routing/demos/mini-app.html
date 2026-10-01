@@ -7,7 +7,9 @@
 
   <div class="toolbar">
     <nav class="mini-nav" aria-label="Routing demo">
-      <!-- Relative links: resolved against the topic page route, /topics/07-routing. -->
+      <!-- Relative links: resolved against the topic page route, /topics/07-routing.
+           routerLink forms: "products" (relative), "/topics/01-components-templates"
+           (absolute), ['products', id] (segments), [] (current route, e.g. with queryParams). -->
       <a routerLink="products" routerLinkActive="is-active" ariaCurrentWhenActive="page">
         Products
       </a>

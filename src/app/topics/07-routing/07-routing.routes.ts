@@ -14,6 +14,15 @@ import { RoutingPage } from './topic-page';
 /**
  * Child routes of /topics/07-routing, lazy-loaded by the registry with `loadChildren`.
  * Everything imported here ends up in this topic's lazy chunk.
+ *
+ * What a route can declare:
+ *   path, component | loadComponent | loadChildren | redirectTo, children, pathMatch
+ *   title           a string or a ResolveFn<string>
+ *   resolve         data loaded before activation, bound to inputs by key
+ *   canActivate, canActivateChild, canDeactivate, canMatch   guards
+ *   providers       services for this route and its children
+ *   data            static data (read with an input or ActivatedRoute.data)
+ * Routes are matched in order: the first match wins, so put '**' last.
  */
 export const ROUTING_ROUTES: Routes = [
   {

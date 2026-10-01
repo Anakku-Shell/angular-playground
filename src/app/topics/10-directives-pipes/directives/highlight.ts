@@ -1,5 +1,15 @@
 import { computed, Directive, input, signal } from '@angular/core';
 
+/*
+ * Three kinds of directives:
+ *   components             a directive with a template (@Component)
+ *   attribute directives   change the look or behaviour of their host (this one, tooltip...)
+ *   structural directives  add or remove DOM by stamping an <ng-template> (has-role.ts)
+ * The selector is a CSS selector: '[appHighlight]' (attribute, the usual), 'button[appX]',
+ * '.some-class', 'app-x'. The 'app' prefix avoids clashes with HTML and libraries.
+ * Host bindings: the 'host' object here; older code uses @HostBinding / @HostListener fields.
+ */
+
 /**
  * Attribute directive: paints the host's background while the pointer is over it.
  * `<p appHighlight>` uses the default color; `<p appHighlight="lightblue">` sets one.

@@ -36,5 +36,7 @@ import { Counter } from './counter';
 })
 export class CounterPanel {
   readonly label = input.required<string>();
+  // Older code asks through the constructor instead, with the same result:
+  //   constructor(private readonly counter: Counter) {}
   protected readonly counter = inject(Counter);
 }

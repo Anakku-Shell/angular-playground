@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 import { DemoCard } from '../../shared/demo-card/demo-card';
+import { ExerciseBox } from '../../shared/exercise-box/exercise-box';
 import { TipsBox } from '../../shared/tips-box/tips-box';
 import { ContextDemo } from './demos/context-demo';
 import { DestroyDemo } from './demos/destroy-demo';
@@ -9,11 +10,13 @@ import { ProvidersDemo } from './demos/providers-demo';
 import { RecipesDemo } from './demos/recipes-demo';
 import { TokensDemo } from './demos/tokens-demo';
 import { ViewProvidersDemo } from './demos/view-providers-demo';
+import { EXERCISES } from './exercises';
 
 /** Topic 05: providers, injectors, tokens, resolution modifiers and injection context. */
 @Component({
   selector: 'app-dependency-injection-page',
   imports: [
+    ExerciseBox,
     DemoCard,
     TipsBox,
     ProvidersDemo,
@@ -28,4 +31,6 @@ import { ViewProvidersDemo } from './demos/view-providers-demo';
   styleUrl: './topic-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DependencyInjectionPage {}
+export class DependencyInjectionPage {
+  protected readonly exercises = EXERCISES;
+}

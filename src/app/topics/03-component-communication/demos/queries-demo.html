@@ -1,3 +1,11 @@
+<!--
+  Queries give the class a handle on something in a template. Each one is a signal.
+    viewChild('ref') / viewChild(Type)       first match in this component's own template
+    viewChildren(Type)                       all matches, as an array signal
+    contentChild('ref') / contentChildren()  the same, among content projected by the parent
+  Read something else from the match with { read: ElementRef } (e.g. a component's element).
+  Older code: @ViewChild('ref') field!: ElementRef, available from ngAfterViewInit.
+-->
 <section class="block">
   <h3>viewChild: an element</h3>
   <div class="demo-row">

@@ -49,7 +49,8 @@ export class LifecycleChild
   private readonly log = inject(HookLog);
 
   constructor() {
-    // Inputs are not set yet: reading label() here throws NG0950 (required input not set).
+    // Inputs are not set yet: reading label() here is a compile error (NG8118); if it got
+    // through, it would throw NG0950 (required input not set) at runtime.
     this.log.add('constructor: injection works, inputs not set yet');
     inject(DestroyRef).onDestroy(() => this.log.add('DestroyRef.onDestroy'));
   }

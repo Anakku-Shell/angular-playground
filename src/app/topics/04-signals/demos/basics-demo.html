@@ -1,3 +1,11 @@
+<!--
+  Reading and writing a signal:
+    quantity()                 read (and, inside a computed/effect/template, subscribe to it)
+    quantity.set(5)            replace the value
+    quantity.update(n => n+1)  derive the next value from the current one
+    quantity.asReadonly()      a read-only view to hand out
+  computed() is lazy and cached: it runs when something reads it and a dependency changed.
+-->
 <div class="demo-row">
   <span>
     Quantity: <strong>{{ quantity() }}</strong>

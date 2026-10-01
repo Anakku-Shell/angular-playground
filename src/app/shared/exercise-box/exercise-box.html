@@ -1,0 +1,48 @@
+<section class="exercise" aria-label="Try it yourself">
+  <p class="exercise__heading">Try it yourself</p>
+  <p class="exercise__files">
+    Files:
+    @for (file of exercise().files; track file) {
+      <code>{{ file }}</code>
+    }
+  </p>
+  <p class="exercise__files">
+    Changes show up as soon as you save, while <code>ng serve</code> runs.
+  </p>
+
+  <ol class="exercise__tasks">
+    @for (item of tasks(); track $index) {
+      <li>
+        <p>
+          <!-- `part.code` decides the element: inline code or plain text. Each part is wrapped in
+               an element so the line breaks of this template add no stray spaces. -->
+          @for (part of item.task; track $index) {
+            @if (part.code) {
+              <code>{{ part.text }}</code>
+            } @else {
+              <span>{{ part.text }}</span>
+            }
+          }
+        </p>
+        <p class="exercise__expect">
+          <strong>Expected:</strong>
+          @for (part of item.expect; track $index) {
+            @if (part.code) {
+              <code>{{ part.text }}</code>
+            } @else {
+              <span>{{ part.text }}</span>
+            }
+          }
+        </p>
+        <details>
+          <summary>Solution</summary>
+          <pre><code>{{ item.solution }}</code></pre>
+        </details>
+      </li>
+    }
+  </ol>
+
+  <p class="exercise__undo">
+    Done? Undo your edits with <code>git restore src/app</code>, or keep them.
+  </p>
+</section>
