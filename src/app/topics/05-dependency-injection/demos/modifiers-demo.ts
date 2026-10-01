@@ -5,6 +5,14 @@ import { Section } from './sections/section';
 import { SectionBox } from './sections/section-box';
 import { SectionProbe } from './sections/section-probe';
 
+/*
+ * Options for inject(Token, { ... }):
+ *   optional: true   return null instead of throwing NG0201 when nothing provides it
+ *   self: true       look only at the requesting element
+ *   skipSelf: true   start at the parent element
+ *   host: true       stop at the host element of the current template
+ * Older code writes them as parameter decorators: @Optional() @Self() @SkipSelf() @Host().
+ */
 @Component({
   selector: 'app-modifiers-demo',
   imports: [SectionBox, SectionProbe, FramedProbe],

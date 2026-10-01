@@ -1,3 +1,12 @@
+<!--
+  @defer (trigger) { content } loads the content's components in a separate chunk, later.
+  Triggers (combine with ; and the first one that fires wins):
+    on idle (default)  on viewport  on interaction  on hover  on immediate  on timer(2s)
+    when expression    (loads once the expression becomes true)
+  prefetch on ... / prefetch when ...  downloads the chunk earlier than it renders.
+  Optional blocks: @placeholder (before loading; minimum Xms), @loading (while loading;
+  after Xms, minimum Xms), @error (the chunk failed to load).
+-->
 <div class="demo-row">
   <button type="button" (click)="replay()">Replay</button>
   <label>

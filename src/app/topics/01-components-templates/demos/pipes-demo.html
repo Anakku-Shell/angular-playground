@@ -1,31 +1,44 @@
+<!--
+  value | pipe              transform a value for display
+  value | pipe: a : b       arguments after colons
+  value | p1 | p2           chain: the output of p1 is the input of p2
+  Pipes only change what is shown; the class keeps the raw value. A pipe can also be used
+  in a binding: [title]="launch | date: 'fullDate'".
+-->
 <dl class="demo-values">
   <dt>date</dt>
   <dd>{{ launch | date }}</dd>
 
+  <!-- Named formats: 'short', 'medium' (default), 'fullDate', 'shortTime'... -->
   <dt>date:'fullDate'</dt>
   <dd>{{ launch | date: 'fullDate' }}</dd>
 
+  <!-- Or a custom pattern: HH 24 h, hh 12 h, mm minutes, MM month, dd day, yyyy year. -->
   <dt>date:'HH:mm'</dt>
   <dd>{{ launch | date: 'HH:mm' }}</dd>
 
+  <!-- Default currency: USD for the en-US locale. -->
   <dt>currency</dt>
   <dd>{{ price | currency }}</dd>
 
   <dt>currency:'EUR'</dt>
   <dd>{{ price | currency: 'EUR' }}</dd>
 
+  <!-- Second argument: how to show the currency ('symbol', 'code', 'symbol-narrow'). -->
   <dt>currency:'EUR':'code'</dt>
   <dd>{{ price | currency: 'EUR' : 'code' }}</dd>
 
   <dt>uppercase</dt>
   <dd>{{ title | uppercase }}</dd>
 
+  <!-- async unwraps the Observable (a Date each second), then date formats it. -->
   <dt>async | date (chained)</dt>
   <dd>{{ clock$ | async | date: 'HH:mm:ss' }}</dd>
 
   <dt>keyvalue</dt>
   <dd>
-    <!-- keyvalue turns an object into [{ key, value }], sorted by key by default. -->
+    <!-- keyvalue turns an object into [{ key, value }], sorted by key by default.
+         Pass a compare function as its argument to sort differently. -->
     @for (entry of scores | keyvalue; track entry.key) {
       <span class="kv">{{ entry.key }}: {{ entry.value }}</span>
     }

@@ -1,3 +1,8 @@
+<!--
+  A signal notifies its readers only when the new value is not equal to the old one.
+  Default equality is Object.is (same primitive, or same object reference). Pass
+  { equal: (a, b) => boolean } to signal() or computed() to compare by content instead.
+-->
 <div class="demo-row">
   <button type="button" (click)="setEqualCopy()">Set an equal copy</button>
   <button type="button" (click)="moveRight()">Move right</button>

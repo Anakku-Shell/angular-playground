@@ -10,6 +10,14 @@ import {
 /** How long the buttons wait before changing state, outside any Angular event. */
 export const ZONELESS_DELAY_MS = 500;
 
+/*
+ * Without zone.js, Angular refreshes the view only when told to. What tells it:
+ *   a signal read by the template changes
+ *   an event bound in the template fires
+ *   markForCheck() (the async pipe calls it for you)
+ *   a component input is set, or a view is attached / removed
+ * With zone.js (older apps), any setTimeout, promise or DOM event did it automatically.
+ */
 @Component({
   selector: 'app-zoneless-demo',
   template: `

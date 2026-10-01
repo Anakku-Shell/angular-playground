@@ -43,7 +43,7 @@ export class OptionPicker {
 
   // Local, writable state that starts from an input and resets when that input changes.
   // A plain `signal(this.options()[0])` would fail here: required inputs are not set yet while
-  // the class fields initialize (error NG0950).
+  // the class fields initialize. The compiler catches it (NG8118); at runtime it is NG0950.
   protected readonly selected = linkedSignal(() => this.options()[0]);
 
   // Read-only value derived from an input and local state.

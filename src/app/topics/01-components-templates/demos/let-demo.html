@@ -1,8 +1,16 @@
-<!-- @let declares a read-only template variable. Each one is recalculated when its inputs change. -->
+<!--
+  @let declares a read-only template variable. Each one is recalculated when its inputs change.
+  Rules: visible only after its declaration (order matters), in the same block and nested
+  blocks; cannot be reassigned from the template. Three ways to name a derived value:
+    @let in the template     view-only values (formatting, a subscription read once)
+    computed() in the class  values the class or the tests also need
+    a method call            recalculated on every render: avoid for anything costly
+-->
 @let subtotal = quantity() * unitPrice;
 @let shipping = subtotal >= 50 ? 0 : 4.99;
 @let total = subtotal + shipping;
-<!-- Subscribe once and reuse the value, instead of repeating `customer$ | async`. -->
+<!-- Subscribe once and reuse the value, instead of repeating `customer$ | async`.
+     Until the Observable emits, the async pipe returns null: hence customer?.name below. -->
 @let customer = customer$ | async;
 
 <dl class="demo-values">
@@ -12,6 +20,8 @@
   <dt>Subtotal</dt>
   <dd>{{ subtotal | currency }}</dd>
 
+  <!-- | has the lowest precedence: without the parentheses, currency would apply to the whole
+       ternary, including the text 'Free (50 or more)'. -->
   <dt>Shipping</dt>
   <dd>{{ shipping === 0 ? 'Free (50 or more)' : (shipping | currency) }}</dd>
 

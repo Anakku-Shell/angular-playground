@@ -1,3 +1,12 @@
+<!--
+  effect() runs code because signals changed: logging, localStorage, a third-party widget,
+  the DOM outside Angular. Pick the right tool:
+    a value derived from signals     computed()
+    a writable value that resets     linkedSignal()
+    a side effect                    effect()
+    DOM work after rendering         afterRenderEffect()
+  Older code does this with ngOnChanges or by subscribing to Observables.
+-->
 <div class="field">
   <label for="effect-draft">Draft (kept in localStorage)</label>
   <textarea id="effect-draft" rows="3" [value]="draft()" (input)="onInput($event)"></textarea>

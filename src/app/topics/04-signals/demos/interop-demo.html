@@ -1,3 +1,10 @@
+<!--
+  Bridges between signals and RxJS (from @angular/core/rxjs-interop):
+    toSignal(obs$, { initialValue })   Observable → signal (subscribes until destroy)
+    toObservable(signal)              signal → Observable (emits after each change)
+  Use RxJS for time and events (debounce, switchMap, retries); signals for state the
+  template reads.
+-->
 <div class="demo-row">
   <label for="interop-search">Search the signal APIs</label>
   <input

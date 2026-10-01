@@ -3,6 +3,13 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { ActivityLog } from './destroy/activity-log';
 import { TickerPanel } from './destroy/ticker-panel';
 
+/*
+ * Cleaning up when something is destroyed:
+ *   inject(DestroyRef).onDestroy(fn)   components, directives, services (used here)
+ *   takeUntilDestroyed()               RxJS: completes a stream on destroy
+ *   ngOnDestroy() { ... }              the lifecycle hook (components, directives, services)
+ * A service is destroyed with the injector that created it: a component's, or the app's.
+ */
 @Component({
   selector: 'app-destroy-demo',
   imports: [TickerPanel],

@@ -57,6 +57,11 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProgressBar {
+  // Forms of input():
+  //   input<T>()             optional, type T | undefined
+  //   input(default)         optional, type inferred from the default
+  //   input.required<T>()    must be bound by the parent (checked at compile time)
+  //   input(default, { transform, alias })   options, as below
   // Required: using <app-progress-bar> without `value` is a template compile error.
   // numberAttribute turns the attribute string "3" into 3 (and "abc" into NaN).
   readonly value = input.required({ transform: numberAttribute });

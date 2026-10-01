@@ -2,6 +2,16 @@ import { computed, Injectable, signal } from '@angular/core';
 
 import { addLine, CartLine, countItems, Product, removeLine, totalPrice } from '../catalog';
 
+/*
+ * Where state can live, from smallest to largest:
+ *   signals in a component        state only that component uses
+ *   signalState() (NgRx)          one local state object with patchState (last card)
+ *   a service with signals        shared state with plain Angular (this file)
+ *   signalStore() (NgRx)          the same, with a standard structure and plugins (next card)
+ *   NgRx Store (@ngrx/store)      the classic Redux pattern: actions, reducers, selectors and
+ *                                 effects. Common in larger v19 codebases; not used here.
+ */
+
 /**
  * A store with nothing but Angular signals:
  * - state lives in a private writable signal, so only this class can change it;

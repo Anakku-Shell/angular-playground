@@ -1,3 +1,5 @@
+<!-- Three child components with the same template and the same class name (.enc-sample), each
+     with a different ViewEncapsulation. Compare how far each one's styles reach. -->
 <label class="demo-row">
   <input type="checkbox" [checked]="showNone()" (change)="showNone.set(!showNone())" />
   Render the ViewEncapsulation.None component
@@ -6,6 +8,7 @@
 <div class="samples">
   <app-emulated-sample />
   <app-shadow-sample />
+  <!-- @if creates and destroys the component, so its global styles come and go with it. -->
   @if (showNone()) {
     <app-none-sample />
   }

@@ -36,6 +36,8 @@ import { Product, PRODUCTS } from '../products';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductDetail {
+  // Without withComponentInputBinding(), or in older code, the same values come from
+  // ActivatedRoute: route.paramMap / route.data (Observables) or route.snapshot (read once).
   /** Route params are strings; the numberAttribute transform turns "2" into 2. */
   readonly id = input.required({ transform: numberAttribute });
   readonly product = input.required<Product>();

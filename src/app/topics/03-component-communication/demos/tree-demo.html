@@ -1,3 +1,8 @@
+<!--
+  Inputs go down one level and outputs go up one level, so a middle component must forward
+  both (see task-list.ts). For deep trees, a service shared by the components avoids that
+  plumbing: see the siblings card.
+-->
 <pre class="diagram" aria-label="Component tree">
 app-tree-demo      owns tasks (signal)
  └ app-task-list   input: tasks   output: toggled (forwarded)

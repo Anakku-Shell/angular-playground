@@ -2,6 +2,12 @@ import { ChangeDetectionStrategy, Component, signal, viewChild } from '@angular/
 
 import { User, UserCard } from './on-push/user-card';
 
+/*
+ * changeDetection strategies:
+ *   ChangeDetectionStrategy.OnPush   checked only when marked dirty (used everywhere here)
+ *   ChangeDetectionStrategy.Eager    checked on every pass (the default; called Default before
+ *                                    v21). With OnPush + signals, a pass skips most of the tree.
+ */
 @Component({
   selector: 'app-on-push-demo',
   imports: [UserCard],

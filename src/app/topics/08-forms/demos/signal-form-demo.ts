@@ -16,6 +16,15 @@ interface Login {
   confirm: string;
 }
 
+/*
+ * Signal forms in short: form(modelSignal, schema) returns a field tree that mirrors the model.
+ *   loginForm.email            a field;  loginForm.email()  its state
+ *   state.value() / valid() / errors() / touched() / dirty() / disabled()   all signals
+ *   [formField]="loginForm.email"   binds an input
+ * Rules live in the schema: required, email, min, max, minLength, maxLength, pattern,
+ * validate (custom), disabled, hidden, readonly...
+ */
+
 /** Signal forms (experimental in v21): the model is a signal and every field state is a signal. */
 @Component({
   selector: 'app-signal-form-demo',

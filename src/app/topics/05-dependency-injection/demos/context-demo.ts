@@ -14,6 +14,14 @@ interface Outcome {
   readonly text: string;
 }
 
+/*
+ * inject() only works in an injection context:
+ *   field initializers and the constructor of a class Angular creates
+ *   provider factories (useFactory, InjectionToken factory)
+ *   functional guards, resolvers and interceptors
+ *   inside runInInjectionContext(injector, fn)
+ * Not in lifecycle hooks, event handlers, timers or promise callbacks (NG0203).
+ */
 @Component({
   selector: 'app-context-demo',
   template: `

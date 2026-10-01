@@ -1,3 +1,10 @@
+<!--
+  A resource turns async loading into signals: value(), status(), error(), isLoading(),
+  hasValue(), plus reload(), set() and update(). Three flavours:
+    resource({ params, loader })      the loader returns a Promise (fetch, a library call)
+    rxResource({ params, stream })    the stream returns an Observable
+    httpResource(() => url)           a GET through HttpClient (HTTP topic)
+-->
 <div class="demo-row" role="group" aria-label="User id">
   <span>User id</span>
   @for (id of ids; track id) {

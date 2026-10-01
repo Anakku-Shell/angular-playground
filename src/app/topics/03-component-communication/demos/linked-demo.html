@@ -1,3 +1,10 @@
+<!--
+  The parent passes sizes() down. The child keeps its own selection with linkedSignal():
+  writable like a signal, but recomputed whenever the input it depends on changes.
+    computed()       derived, read-only
+    linkedSignal()   derived, writable, resets when its source changes
+    signal()         independent state, never resets on its own
+-->
 <div class="demo-row">
   <label for="linked-category">Category (parent)</label>
   <select id="linked-category" (change)="onCategory($event)">

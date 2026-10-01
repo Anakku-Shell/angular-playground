@@ -9,6 +9,7 @@ import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 export class EventsDemo {
   protected readonly lastClick = signal('Click inside the box');
   protected readonly draft = signal('');
+  // The generic is needed: from [] alone TypeScript would infer never[].
   protected readonly items = signal<string[]>(['Learn bindings']);
 
   // `$event` is the native DOM event: a MouseEvent for (click).
@@ -24,8 +25,11 @@ export class EventsDemo {
   protected add(): void {
     const text = this.draft().trim();
     if (text) {
+      // A new array, not items().push(...): a signal only notifies when its value changes,
+      // and pushing into the same array keeps the same reference.
       this.items.update((items) => [...items, text]);
     }
+    // Clearing the signal clears the input too, through [value]="draft()".
     this.draft.set('');
   }
 

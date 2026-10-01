@@ -12,8 +12,14 @@ describe('ComponentsTemplatesPage', () => {
     el = fixture.nativeElement as HTMLElement;
   });
 
-  it('renders one demo card per concept', () => {
-    expect(el.querySelectorAll('app-demo-card').length).toBe(8);
+  it('renders one demo card per concept, each ending with its exercises', () => {
+    const cards = el.querySelectorAll('app-demo-card');
+    expect(cards.length).toBe(8);
+    for (const card of cards) {
+      expect(
+        card.querySelectorAll('app-exercise-box .exercise__tasks > li').length,
+      ).toBeGreaterThan(0);
+    }
   });
 
   it('adds an item on Enter in the events demo', async () => {

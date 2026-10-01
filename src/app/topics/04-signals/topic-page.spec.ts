@@ -46,6 +46,11 @@ describe('SignalsPage', () => {
 
   it('renders one demo card per concept', () => {
     expect(el.querySelectorAll('app-demo-card').length).toBe(8);
+    for (const card of el.querySelectorAll('app-demo-card')) {
+      expect(
+        card.querySelectorAll('app-exercise-box .exercise__tasks > li').length,
+      ).toBeGreaterThan(0);
+    }
   });
 
   it('runs computed() lazily and only after a dependency changed', async () => {

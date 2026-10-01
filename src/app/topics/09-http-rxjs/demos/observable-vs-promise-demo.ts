@@ -5,6 +5,14 @@ import { Observable, Subscription } from 'rxjs';
 /** Time between two values of the demo Observable. */
 export const TICK_MS = 500;
 
+/*
+ * Ways to consume an Observable in Angular:
+ *   obs$.subscribe(...)      by hand; remember to unsubscribe (takeUntilDestroyed)
+ *   obs$ | async             in the template; subscribes and unsubscribes for you
+ *   toSignal(obs$)           as a signal; unsubscribes on destroy
+ *   await firstValueFrom(obs$) / lastValueFrom(obs$)   as a Promise (takes one value)
+ */
+
 /** A Promise is eager, single-valued and not cancellable; an Observable is none of those. */
 @Component({
   selector: 'app-observable-vs-promise-demo',

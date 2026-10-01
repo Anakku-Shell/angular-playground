@@ -8,6 +8,7 @@ import { ProductPicker } from './siblings/product-picker';
   selector: 'app-siblings-demo',
   imports: [ProductPicker, CartSummary],
   // One CartStore instance for this component and everything in its template.
+  // With providedIn: 'root' instead, every page would share a single cart.
   providers: [CartStore],
   template: `
     <!-- No bindings: the siblings talk through the injected CartStore. -->

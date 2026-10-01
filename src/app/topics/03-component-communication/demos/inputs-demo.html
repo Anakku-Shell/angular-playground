@@ -1,3 +1,10 @@
+<!--
+  Three ways to give a child component an input:
+    [value]="expr"        property binding: any type (number, object, signal value...)
+    value="text"          static attribute: always a string (transforms can convert it)
+    value="{{ expr }}"    interpolation: the result is turned into a string
+  The child declares its inputs in progress-bar.ts. Older code uses @Input() fields instead.
+-->
 <div class="demo-row">
   <label for="inputs-uploaded">Uploaded</label>
   <input

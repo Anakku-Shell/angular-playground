@@ -1,3 +1,8 @@
+<!--
+  Dependencies are the signals read while a computed (or effect, or template) runs, and they
+  are collected again on every run: a signal read only in some branch is only a dependency
+  when that branch runs. untracked(fn) reads without registering a dependency.
+-->
 <div class="demo-row">
   <button type="button" (click)="bump('a')">a + 1</button>
   <button type="button" (click)="bump('b')">b + 1</button>

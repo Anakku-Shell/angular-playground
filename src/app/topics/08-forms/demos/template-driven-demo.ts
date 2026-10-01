@@ -2,6 +2,18 @@ import { JsonPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 
+/*
+ * Three ways to build forms in Angular 21:
+ *   template-driven  FormsModule + ngModel; the template declares the controls (this card)
+ *   reactive         ReactiveFormsModule; the class builds FormGroup / FormControl (next cards)
+ *   signal forms     @angular/forms/signals; experimental, the model is a signal (last card)
+ * Every control tracks the same states:
+ *   value · valid / invalid / pending · pristine / dirty (changed by the user) ·
+ *   untouched / touched (blurred) · enabled / disabled
+ * and Angular adds matching CSS classes to the element: ng-valid, ng-invalid, ng-dirty,
+ * ng-touched, ng-pending... Style them to show errors without extra bindings.
+ */
+
 /** A template-driven form: the template declares the controls with ngModel. */
 @Component({
   selector: 'app-template-driven-demo',

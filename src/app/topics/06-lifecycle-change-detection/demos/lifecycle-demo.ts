@@ -5,6 +5,16 @@ import { LifecycleChild } from './lifecycle/lifecycle-child';
 
 const LABELS = ['Alpha', 'Beta', 'Gamma'];
 
+/*
+ * Hook order for a component: constructor → ngOnChanges (inputs set or changed) → ngOnInit →
+ * ngDoCheck → ngAfterContentInit → ngAfterContentChecked → ngAfterViewInit →
+ * ngAfterViewChecked → ... → ngOnDestroy. With signals most of them are rarely needed:
+ *   ngOnChanges         computed() / effect() reading the input signals
+ *   ngOnInit            field initializers (when no input is read) or the constructor
+ *   ngAfterViewInit     afterNextRender() for DOM work, viewChild() signals for queries
+ *   ngOnDestroy         inject(DestroyRef).onDestroy(...)
+ * You will still meet all of them in existing code.
+ */
 @Component({
   selector: 'app-lifecycle-demo',
   imports: [LifecycleChild],

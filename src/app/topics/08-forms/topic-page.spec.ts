@@ -46,6 +46,11 @@ describe('FormsPage', () => {
 
   it('renders one demo card per concept', () => {
     expect(el.querySelectorAll('app-demo-card').length).toBe(5);
+    for (const card of el.querySelectorAll('app-demo-card')) {
+      expect(
+        card.querySelectorAll('app-exercise-box .exercise__tasks > li').length,
+      ).toBeGreaterThan(0);
+    }
   });
 
   it('tracks template-driven values, state and errors', async () => {

@@ -68,6 +68,11 @@ describe('HttpRxjsPage', () => {
 
   it('renders one demo card per concept', () => {
     expect(el.querySelectorAll('app-demo-card').length).toBe(6);
+    for (const card of el.querySelectorAll('app-demo-card')) {
+      expect(
+        card.querySelectorAll('app-exercise-box .exercise__tasks > li').length,
+      ).toBeGreaterThan(0);
+    }
   });
 
   it('shows that a Promise is eager and an Observable is lazy and cancellable', async () => {

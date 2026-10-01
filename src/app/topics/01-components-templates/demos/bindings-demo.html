@@ -1,5 +1,15 @@
+<!--
+  Binding syntax, read from the element's point of view:
+    [target]="expression"   data flows IN  (class → DOM). The right side is an expression.
+    (event)="statement"     events flow OUT (DOM → class). The right side is a statement.
+    [(target)]="signal"     both at once (two-way, see the ngModel demo).
+  Without brackets, the right side is a plain string: value="220" sets the text "220".
+-->
+
+<!-- The controls: each one reads a signal through [checked] / [value] and writes it on change. -->
 <div class="demo-row">
   <label>
+    <!-- disabled() reads the signal; disabled.set(...) writes it. -->
     <input type="checkbox" [checked]="disabled()" (change)="disabled.set(!disabled())" />
     Disabled
   </label>
@@ -13,6 +23,8 @@
   </label>
   <label>
     Width
+    <!-- min / max have no brackets: constant strings. [value] is bound: it follows the signal.
+         An input's value is always a string, so `+` turns it into a number. -->
     <input
       type="range"
       min="120"
@@ -28,13 +40,31 @@
 </div>
 
 <div class="demo-row">
-  <!-- Property binding: sets the DOM property `button.disabled`. -->
-  <!-- Attribute binding: aria-pressed has no DOM property, so it needs attr. -->
+  <!--
+    PROPERTY binding: [disabled] sets the DOM property `button.disabled` (a boolean).
+      It also works on component inputs: [user]="currentUser()".
+    ATTRIBUTE binding: [attr.aria-pressed] sets an HTML attribute. Needed when there is no DOM
+      property with that name: aria-*, colspan, data-*, role, SVG attributes.
+      null removes the attribute; false would render aria-pressed="false" (correct for ARIA).
+  -->
   <button type="button" [disabled]="disabled()" [attr.aria-pressed]="highlighted()">
     Target button
   </button>
 
-  <!-- Class bindings: one class, or a map of classes. Style bindings: one property, with a unit. -->
+  <!--
+    CLASS bindings. All of these combine with the static class="preview":
+      class="preview"                        static, always there
+      [class.is-highlighted]="bool"          one class, on or off
+      [class]="{ 'is-rounded': bool }"       object: each key on or off
+      [class]="'a b'"  /  [class]="['a', 'b']"   string or array: those classes
+      [ngClass]="{ ... }"                    the older directive (needs NgClass); same result
+    STYLE bindings:
+      [style.width.px]="number"              one property, with a unit suffix (px, %, em, rem...)
+      [style.border-color]="string"          one property, the value carries its own unit
+      [style]="{ width: '10px', color: c }"  several at once
+      [ngStyle]="{ ... }"                    the older directive (needs NgStyle)
+    A null value removes the class or style.
+  -->
   <div
     class="preview"
     [class.is-highlighted]="highlighted()"
@@ -42,6 +72,7 @@
     [style.width.px]="width()"
     [style.border-color]="color()"
   >
+    <!-- Interpolation: the same as [textContent]="width() + 'px wide'". -->
     {{ width() }}px wide
   </div>
 </div>

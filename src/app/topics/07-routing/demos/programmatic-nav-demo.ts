@@ -4,6 +4,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { ROUTING_URL } from './routing-url';
 
+/*
+ * router.navigate([...segments], { relativeTo, queryParams, replaceUrl, ... })   commands
+ * router.navigateByUrl('/absolute/url')                                         a full URL
+ * Both return Promise<boolean>. Location.back() / forward() move through browser history.
+ */
+
 /** Buttons that navigate the mini app from code and show what the returned promise resolved to. */
 @Component({
   selector: 'app-programmatic-nav-demo',

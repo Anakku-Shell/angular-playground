@@ -27,8 +27,14 @@ describe('ControlFlowPage', () => {
     button.click();
   }
 
-  it('renders one demo card per concept', () => {
-    expect(el.querySelectorAll('app-demo-card').length).toBe(6);
+  it('renders one demo card per concept, each ending with its exercises', () => {
+    const cards = el.querySelectorAll('app-demo-card');
+    expect(cards.length).toBe(6);
+    for (const card of cards) {
+      expect(
+        card.querySelectorAll('app-exercise-box .exercise__tasks > li').length,
+      ).toBeGreaterThan(0);
+    }
   });
 
   it('shows the @empty block when the list is cleared', async () => {
