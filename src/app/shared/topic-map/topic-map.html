@@ -1,0 +1,43 @@
+<section class="map" aria-labelledby="map-heading">
+  <h2 id="map-heading">Before you start: the map</h2>
+  <ng-content />
+
+  <p>
+    Each card answers one question. Find yours here, or follow them in order from the tabs above.
+  </p>
+  <div class="map__table">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">You want to…</th>
+          <th scope="col">Use</th>
+          <th scope="col">Go to</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row.id; let i = $index) {
+          <tr>
+            <td><app-rich-text [text]="row.question" /></td>
+            <td><app-rich-text [text]="row.use" /></td>
+            <td>
+              <a [routerLink]="[]" [queryParams]="{ card: row.id }">Card {{ i + 1 }} →</a>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    <strong>How to study each card:</strong> read why it exists, play with the demo following the
+    steps, look at the idea in a few lines of code, then open the files in the order given. The
+    comments marked <code>[1]</code>, <code>[2]</code>… in those files match the guide. Finish with
+    the tips and "Try it yourself".
+  </p>
+  <p>
+    <strong>While you do the exercises:</strong> the open card is part of the URL
+    (<code>?card=…</code>), so saving a <code>.ts</code> file (which reloads the whole page) brings
+    you back to it. "↓ Try it yourself" in the tabs also adds <code>#exercises-…</code> to the URL
+    and lands you on the exercises after each reload. "All" shows every card at once.
+  </p>
+</section>

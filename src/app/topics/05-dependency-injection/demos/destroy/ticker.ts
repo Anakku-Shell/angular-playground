@@ -17,10 +17,11 @@ export class Ticker {
 
   constructor() {
     const log = inject(ActivityLog);
+    // [1] Something that would run forever on its own.
     const interval = setInterval(() => this.elapsed.update((n) => n + 1), 1000);
     log.add(`Ticker #${this.id}: created, interval started`);
 
-    // Without this, the interval would keep running (and keep this object alive) forever.
+    // [2] Without this, the interval would keep running (and keep this object alive) forever.
     inject(DestroyRef).onDestroy(() => {
       clearInterval(interval);
       log.add(`Ticker #${this.id}: DestroyRef.onDestroy, interval cleared`);

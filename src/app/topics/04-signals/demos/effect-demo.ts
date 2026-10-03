@@ -24,13 +24,13 @@ export class EffectDemo {
   protected readonly savedAt = signal<string | null>(null);
 
   constructor() {
-    // effect() needs an injection context (a constructor or a field initializer) and is
+    // [1] effect() needs an injection context (a constructor or a field initializer) and is
     // destroyed together with the component.
     effect((onCleanup) => {
-      // The signals read here are the dependencies: only draft().
+      // [2] The signals read here are the dependencies: only draft().
       const text = this.draft();
       const timer = setTimeout(() => this.save(text), SAVE_DELAY_MS);
-      // Runs before the next run and on destroy: a new keystroke cancels the pending save.
+      // [3] Runs before the next run and on destroy: a new keystroke cancels the pending save.
       onCleanup(() => clearTimeout(timer));
     });
   }
@@ -43,7 +43,7 @@ export class EffectDemo {
     this.draft.set('');
   }
 
-  // Called by the timer, outside the effect body, so writing signals here is fine.
+  // [4] Called by the timer, outside the effect body, so writing signals here is fine.
   private save(text: string): void {
     try {
       localStorage.setItem(DRAFT_STORAGE_KEY, text);

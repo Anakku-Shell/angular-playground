@@ -7,6 +7,10 @@ import {
   numberAttribute,
 } from '@angular/core';
 
+/**
+ * THE CHILD of the inputs demo. Its inputs are its public parameters: the parent sets them in
+ * the tag, and this class only reads them. Nothing here knows where the values come from.
+ */
 @Component({
   selector: 'app-progress-bar',
   template: `
@@ -57,12 +61,17 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProgressBar {
+  // [1] Each input is a field initialized with input(). It returns a read-only signal: read it
+  // with value(), in the template or in the class.
+  //
   // Forms of input():
   //   input<T>()             optional, type T | undefined
   //   input(default)         optional, type inferred from the default
   //   input.required<T>()    must be bound by the parent (checked at compile time)
   //   input(default, { transform, alias })   options, as below
   // Required: using <app-progress-bar> without `value` is a template compile error.
+  //
+  // [2] Transforms convert what the parent passes before the child sees it.
   // numberAttribute turns the attribute string "3" into 3 (and "abc" into NaN).
   readonly value = input.required({ transform: numberAttribute });
   readonly max = input(100, { transform: numberAttribute });
@@ -74,7 +83,8 @@ export class ProgressBar {
   // eslint-disable-next-line @angular-eslint/no-input-rename
   readonly label = input('Progress', { alias: 'caption' });
 
-  // Inputs are read-only signals: derive values from them with computed().
+  // [3] Inputs are read-only signals: derive values from them with computed(). It recalculates
+  // when value() or max() change, and the template reads percent() like any other signal.
   protected readonly percent = computed(() => {
     const ratio = this.value() / this.max();
     return Math.round(Math.min(1, Math.max(0, ratio)) * 100);

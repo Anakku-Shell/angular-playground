@@ -1,4 +1,6 @@
 <!--
+  THE PARENT of the projection demo. Read projection/callout.ts and projection/panel.html first.
+
   Content projection: the parent writes content between the child's tags, and the child decides
   where it goes with <ng-content> (one slot) or <ng-content select="..."> (named slots).
   The content is created by the parent even if the child never shows it. For content that
@@ -10,17 +12,20 @@
 </app-callout>
 
 <div class="panels">
+  <!-- [1] An <h3>, a <p> and a [panel-footer] button: title, body and footer slots. -->
   <app-panel class="full">
     <h3>All three slots</h3>
     <p>Title, body and footer each land in their own &lt;ng-content&gt;.</p>
     <button type="button" panel-footer (click)="saved.set(saved() + 1)">Save</button>
   </app-panel>
 
+  <!-- [2] Nothing for the footer slot, so the panel shows its fallback. -->
   <app-panel class="no-footer">
     <span panel-title>No footer</span>
     <p>Nothing matches the footer slot, so it shows its fallback content.</p>
   </app-panel>
 
+  <!-- [3] Two buttons in one <ng-container>, sent to the footer slot with ngProjectAs. -->
   <app-panel class="project-as">
     <h3>ngProjectAs</h3>
     <p>

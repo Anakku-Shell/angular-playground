@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 
 import { StarRating } from './outputs/star-rating';
 
+/** The parent of the outputs demo: owns the rating and reacts to the child's events. */
 @Component({
   selector: 'app-outputs-demo',
   imports: [StarRating],
@@ -14,6 +15,8 @@ export class OutputsDemo {
   // Newest first, capped so the list stays short.
   protected readonly log = signal<readonly string[]>([]);
 
+  // The handlers run when the child emits. The parent decides what the event means: here it
+  // stores the rating, which then flows back down to the stars as [value].
   protected onRated(stars: number): void {
     this.rating.set(stars);
     this.addToLog(`(rated) → ${stars}`);

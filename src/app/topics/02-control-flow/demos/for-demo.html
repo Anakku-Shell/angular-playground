@@ -1,4 +1,6 @@
 <!--
+  Read this template first, then for-demo.ts.
+
   @for (item of list; track key) { ... } @empty { ... }
   Implicit variables available inside the block:
     $index  position (0-based)     $count  length of the list
@@ -13,9 +15,10 @@
 </div>
 
 <ul class="task-list">
-  <!-- `track` is required. `let pos = $index` gives an implicit variable another name, which
+  <!-- [1] `track` is required. `let pos = $index` gives an implicit variable another name, which
        nested loops need (the inner $index would hide the outer one). -->
   @for (task of tasks(); track task.id; let pos = $index) {
+    <!-- [2] $odd, $count, $first and $last: implicit variables, recalculated on every change. -->
     <li [class.is-odd]="$odd">
       <span class="position">{{ pos + 1 }} / {{ $count }}</span>
       <span class="title">{{ task.title }}</span>
@@ -28,6 +31,7 @@
       <button type="button" (click)="remove(task.id)">Remove</button>
     </li>
   } @empty {
+    <!-- [3] Rendered instead of the rows when the list is empty. -->
     <li class="empty">No tasks left: this is the &#64;empty block.</li>
   }
 </ul>

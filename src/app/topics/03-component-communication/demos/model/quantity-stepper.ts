@@ -1,5 +1,9 @@
 import { ChangeDetectionStrategy, Component, input, model } from '@angular/core';
 
+/**
+ * THE CHILD of the model demo: a form-like control that changes its own value. Read this file
+ * first, then model-demo.html.
+ */
 @Component({
   selector: 'app-quantity-stepper',
   template: `
@@ -27,12 +31,14 @@ import { ChangeDetectionStrategy, Component, input, model } from '@angular/core'
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QuantityStepper {
-  // model() is a writable input: the child can set() it, and every change is also emitted as
+  // [1] model() is a writable input: the child can set() it, and every change is also emitted as
   // the `valueChange` output. That pair is what `[(value)]` binds to.
   readonly value = model(1);
   readonly min = input(0);
   readonly max = input(10);
 
+  // [2] The child writes its model like any signal. With [(value)] in the parent, this also
+  // updates the parent's signal; with a one-way [value], only this copy changes.
   protected step(delta: number): void {
     this.value.update((current) => current + delta);
   }

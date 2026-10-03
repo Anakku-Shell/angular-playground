@@ -1,0 +1,27 @@
+<section class="guide" aria-label="Guided tour">
+  <h3 class="guide__heading"><span class="guide__number">1</span> Why it exists</h3>
+  <p class="guide__why"><app-rich-text [text]="guide().why" /></p>
+
+  <h3 class="guide__heading"><span class="guide__number">2</span> Play with the demo above</h3>
+  <ol class="guide__steps">
+    @for (step of guide().steps; track $index) {
+      <li>
+        <p class="guide__action"><app-rich-text [text]="step.action" /></p>
+        <p class="guide__result"><app-rich-text [text]="step.result" /></p>
+      </li>
+    }
+  </ol>
+
+  <h3 class="guide__heading"><span class="guide__number">3</span> The idea in code</h3>
+  <pre><code>{{ guide().snippet }}</code></pre>
+
+  <h3 class="guide__heading"><span class="guide__number">4</span> Read the code, in this order</h3>
+  <ol class="guide__files">
+    @for (item of guide().read; track item.file) {
+      <li>
+        <code>{{ item.file }}</code>
+        <span class="guide__look-for"><app-rich-text [text]="item.lookFor" /></span>
+      </li>
+    }
+  </ol>
+</section>

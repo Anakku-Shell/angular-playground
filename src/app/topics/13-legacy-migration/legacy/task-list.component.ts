@@ -18,7 +18,7 @@ import { Task, TaskFilter } from './task.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TaskListComponent implements OnChanges {
-  // Plain fields: Angular assigns them before each `ngOnChanges`. Nothing stops the component
+  // [1] Plain fields: Angular assigns them before each `ngOnChanges`. Nothing stops the component
   // from reassigning them itself.
   @Input() tasks: Task[] = [];
   @Input() filter: TaskFilter = 'all';
@@ -28,7 +28,7 @@ export class TaskListComponent implements OnChanges {
 
   visible: Task[] = [];
 
-  // Runs before the first render and whenever an input gets a new value. Derived state is
+  // [2] Runs before the first render and whenever an input gets a new value. Derived state is
   // recomputed by hand here; a `computed()` does it on its own.
   ngOnChanges(): void {
     this.visible =

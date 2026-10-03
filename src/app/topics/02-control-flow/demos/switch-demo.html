@@ -1,3 +1,4 @@
+<!-- Read this template first, then switch-demo.ts. -->
 <div class="demo-row" role="radiogroup" aria-label="Plan">
   @for (option of plans; track option) {
     <label>
@@ -24,12 +25,12 @@
     @case ('pro') {
       Pro: unlimited projects, email support.
     }
-    <!-- Consecutive @case blocks share the next body. -->
+    <!-- [1] Consecutive @case blocks share the next body. -->
     @case ('team')
     @case ('enterprise') {
       Team / Enterprise: shared workspace and a dedicated manager.
     }
-    <!-- Exhaustiveness check: adding a new Plan without a @case is a compile error. -->
+    <!-- [2] Exhaustiveness check: adding a new Plan without a @case is a compile error. -->
     @default never;
   }
 </p>
@@ -54,7 +55,7 @@
     @case (500) {
       Server error.
     }
-    <!-- @default renders when no case matches. -->
+    <!-- [3] @default renders when no case matches. -->
     @default {
       Unexpected status {{ status() }}.
     }

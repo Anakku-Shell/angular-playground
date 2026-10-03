@@ -1,4 +1,6 @@
 <!--
+  Read this template first, then two-way-demo.ts.
+
   [(x)]="target" ("banana in a box": the parentheses inside the brackets) is shorthand for
   [x]="target()" plus (xChange)="target.set($event)". The target must be writable:
     a WritableSignal  →  [(ngModel)]="name"     (pass the signal, without parentheses)
@@ -7,12 +9,13 @@
   output `xChange` (model() creates both) supports [(x)] too.
 -->
 <div class="demo-row">
+  <!-- [1] The short form. -->
   <label>
     Banana in a box
     <input type="text" [(ngModel)]="name" />
   </label>
 
-  <!-- The same binding, desugared: a property binding plus an event binding. -->
+  <!-- [2] The same binding, desugared: a property binding plus an event binding. -->
   <label>
     Desugared
     <input type="text" [ngModel]="name()" (ngModelChange)="name.set($event)" />

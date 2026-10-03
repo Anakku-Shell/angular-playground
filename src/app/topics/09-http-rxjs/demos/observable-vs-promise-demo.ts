@@ -44,7 +44,7 @@ export class ObservableVsPromiseDemo {
   private subscription?: Subscription;
 
   protected createPromise(): void {
-    // The executor runs right now, whether anyone uses the result or not.
+    // [1] The executor runs right now, whether anyone uses the result or not.
     const promise = new Promise<number>((resolve) => {
       this.log('Promise: executor runs immediately (eager)');
       setTimeout(() => resolve(1), TICK_MS);
@@ -54,7 +54,7 @@ export class ObservableVsPromiseDemo {
   }
 
   protected createObservable(): void {
-    // Nothing runs yet: an Observable is a recipe that starts once per subscribe() (lazy).
+    // [2] Nothing runs yet: an Observable is a recipe that starts once per subscribe() (lazy).
     this.numbers$ = new Observable<number>((subscriber) => {
       this.log('Observable: producer starts (on subscribe)');
       let n = 0;
@@ -62,7 +62,7 @@ export class ObservableVsPromiseDemo {
         subscriber.next(++n);
         if (n === 3) subscriber.complete();
       }, TICK_MS);
-      // The teardown runs on complete, error or unsubscribe. HttpClient aborts requests here.
+      // [3] The teardown runs on complete, error or unsubscribe. HttpClient aborts requests here.
       return () => {
         clearInterval(id);
         this.log('Observable: teardown (interval cleared)');
@@ -78,7 +78,7 @@ export class ObservableVsPromiseDemo {
     }
     this.subscription?.unsubscribe();
     this.subscription = this.numbers$
-      // Outside the constructor there is no injection context, so pass the DestroyRef. Leaving
+      // [4] Outside the constructor there is no injection context, so pass the DestroyRef. Leaving
       // the page unsubscribes even if the user never presses unsubscribe().
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({

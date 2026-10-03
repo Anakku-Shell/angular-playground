@@ -18,15 +18,17 @@ export interface CartLine {
  */
 @Injectable()
 export class CartStore {
-  // Writable state stays private; the outside world gets read-only signals and methods.
+  // [1] Writable state stays private; the outside world gets read-only signals and methods.
   private readonly cartLines = signal<readonly CartLine[]>([]);
 
+  // [2] What the components read: a read-only view and values derived with computed().
   readonly lines = this.cartLines.asReadonly();
   readonly count = computed(() => this.cartLines().reduce((sum, line) => sum + line.quantity, 0));
   readonly total = computed(() =>
     this.cartLines().reduce((sum, line) => sum + line.quantity * line.product.price, 0),
   );
 
+  // [3] The only ways to change the state. Every component goes through them.
   add(product: Product): void {
     this.cartLines.update((lines) =>
       lines.some((line) => line.product.id === product.id)

@@ -1,4 +1,6 @@
 <!--
+  Read this template first, then if-demo.ts.
+
   @if (condition) { ... } @else if (other) { ... } @else { ... }
   The block's content is created when the condition becomes true and destroyed when it becomes
   false: elements, child components and their state come and go. To only hide something and
@@ -11,7 +13,7 @@
   <span>{{ score() }}</span>
 </div>
 
-<!-- Conditions are checked top to bottom; the first true one wins. -->
+<!-- [1] Conditions are checked top to bottom; the first true one wins. -->
 <p class="grade">
   @if (score() >= 90) {
     <strong>A</strong>: excellent
@@ -34,7 +36,7 @@
   </select>
 </div>
 
-<!-- `as user` stores the condition's value. Inside the block its type is `User`, not `User | undefined`. -->
+<!-- [2] `as user` stores the condition's value. Inside the block its type is `User`, not `User | undefined`. -->
 @if (selectedUser(); as user) {
   <p>
     <strong>{{ user.name }}</strong> has the role <code>{{ user.role }}</code

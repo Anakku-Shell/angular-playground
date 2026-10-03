@@ -11,28 +11,12 @@
   </p>
 
   <ol class="exercise__tasks">
-    @for (item of tasks(); track $index) {
+    @for (item of exercise().tasks; track $index) {
       <li>
-        <p>
-          <!-- `part.code` decides the element: inline code or plain text. Each part is wrapped in
-               an element so the line breaks of this template add no stray spaces. -->
-          @for (part of item.task; track $index) {
-            @if (part.code) {
-              <code>{{ part.text }}</code>
-            } @else {
-              <span>{{ part.text }}</span>
-            }
-          }
-        </p>
+        <p><app-rich-text [text]="item.task" /></p>
         <p class="exercise__expect">
           <strong>Expected:</strong>
-          @for (part of item.expect; track $index) {
-            @if (part.code) {
-              <code>{{ part.text }}</code>
-            } @else {
-              <span>{{ part.text }}</span>
-            }
-          }
+          <app-rich-text [text]="item.expect" />
         </p>
         <details>
           <summary>Solution</summary>

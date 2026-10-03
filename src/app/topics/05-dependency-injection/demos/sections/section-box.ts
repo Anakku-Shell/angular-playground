@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, forwardRef, inject, input } from '@
 import { Section } from './section';
 
 /**
- * A section that provides itself, the pattern behind nested form groups, menus or accordions.
+ * [1] A section that provides itself, the pattern behind nested form groups, menus or accordions.
  * `useExisting` points at this component instance; `forwardRef` lets the decorator mention the
  * class before it is defined.
  */
@@ -44,7 +44,7 @@ import { Section } from './section';
 export class SectionBox extends Section {
   readonly name = input.required<string>();
 
-  // skipSelf: start at the parent element. Without it the lookup finds this box, which is
+  // [2] skipSelf: start at the parent element. Without it the lookup finds this box, which is
   // still being constructed: NG0200 (circular dependency).
   // optional: the outermost box has no parent section, so it gets null instead of an error.
   protected readonly parent = inject(Section, { skipSelf: true, optional: true });

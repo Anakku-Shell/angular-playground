@@ -11,13 +11,14 @@ import { interval, map, startWith } from 'rxjs';
 
 @Component({
   selector: 'app-pipes-demo',
-  // Each pipe is imported where it is used, like components.
+  // [1] Each pipe is imported where it is used, like components.
   imports: [AsyncPipe, CurrencyPipe, DatePipe, JsonPipe, KeyValuePipe, UpperCasePipe],
   templateUrl: './pipes-demo.html',
   styles: '.kv + .kv { margin-left: 0.75rem; }',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PipesDemo {
+  // [2] Raw values: the class never formats them, the template does.
   protected readonly launch = new Date(2026, 0, 15, 9, 30);
   protected readonly price = 1234.5;
   protected readonly title = 'angular playground';

@@ -15,6 +15,7 @@ import { TaskItem } from './task-item';
     <h4>{{ heading() }} ({{ doneCount() }}/{{ tasks().length }})</h4>
     <ul>
       @for (task of tasks(); track task.id) {
+        <!-- [2] Forwarding: one level down with [task], one level up with toggled.emit(). -->
         <li><app-task-item [task]="task" (toggled)="toggled.emit($event)" /></li>
       }
     </ul>
@@ -42,6 +43,7 @@ import { TaskItem } from './task-item';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TaskList {
+  // [1] What the parent sends down, and the event it re-emits upwards.
   readonly heading = input.required<string>();
   readonly tasks = input.required<readonly Task[]>();
   readonly toggled = output<number>();

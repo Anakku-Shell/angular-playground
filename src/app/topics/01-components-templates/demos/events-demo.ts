@@ -12,7 +12,7 @@ export class EventsDemo {
   // The generic is needed: from [] alone TypeScript would infer never[].
   protected readonly items = signal<string[]>(['Learn bindings']);
 
-  // `$event` is the native DOM event: a MouseEvent for (click).
+  // [1] `$event` is the native DOM event: a MouseEvent for (click).
   protected onClick(event: MouseEvent): void {
     this.lastClick.set(`Clicked at x=${event.offsetX}, y=${event.offsetY}`);
   }
@@ -25,7 +25,7 @@ export class EventsDemo {
   protected add(): void {
     const text = this.draft().trim();
     if (text) {
-      // A new array, not items().push(...): a signal only notifies when its value changes,
+      // [2] A new array, not items().push(...): a signal only notifies when its value changes,
       // and pushing into the same array keeps the same reference.
       this.items.update((items) => [...items, text]);
     }

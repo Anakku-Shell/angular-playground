@@ -12,7 +12,7 @@ describe('user routes', () => {
       // The real routes and the same router features as the app.
       providers: [provideRouter(userRoutes, withComponentInputBinding())],
     });
-    // The harness hosts a <router-outlet> and navigates it.
+    // [1] The harness hosts a <router-outlet> and navigates it.
     harness = await RouterTestingHarness.create();
   });
 
@@ -25,6 +25,7 @@ describe('user routes', () => {
   });
 
   it('binds the :id param to the detail input', async () => {
+    // [2] navigateByUrl returns the activated component, so its inputs can be checked.
     const detail = await harness.navigateByUrl('/2', UserDetail);
 
     expect(detail.id()).toBe('2');
@@ -36,6 +37,7 @@ describe('user routes', () => {
     expect(routeText()).toContain('No user with id 42.');
   });
 
+  // [3] Real clicks on real routerLinks.
   it('navigates through the links', async () => {
     const router = TestBed.inject(Router);
     await harness.navigateByUrl('/');

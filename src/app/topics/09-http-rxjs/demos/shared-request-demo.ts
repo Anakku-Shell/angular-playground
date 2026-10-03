@@ -57,15 +57,16 @@ export class SharedRequestDemo {
   protected readonly coldRequests = signal(0);
   protected readonly sharedRequests = signal(0);
 
-  // Cold: every subscriber runs the Observable again, so each one sends its own request.
+  // [1] Cold: every subscriber runs the Observable again, so each one sends its own request.
   protected readonly cold$ = this.api.list(SHARED_LIMIT).pipe(countRequests(this.coldRequests));
 
-  // shareReplay: the first subscriber starts the request, later ones share it and get the last
+  // [2] shareReplay: the first subscriber starts the request, later ones share it and get the last
   // value replayed. refCount: true drops the shared subscription when nobody listens any more.
   protected readonly shared$ = this.api
     .list(SHARED_LIMIT)
     .pipe(countRequests(this.sharedRequests), shareReplay({ bufferSize: 1, refCount: true }));
 
+  // [3] Each stream is read twice: the async pipe in the template, and toSignal() here.
   // No initialValue: the signal holds undefined until the response arrives.
   protected readonly coldProducts = toSignal(this.cold$);
   protected readonly sharedProducts = toSignal(this.shared$);

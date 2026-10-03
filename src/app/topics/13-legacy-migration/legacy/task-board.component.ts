@@ -16,7 +16,7 @@ import { Task, TaskFilter, TaskService } from './task.service';
  */
 @Component({
   selector: 'app-task-board',
-  // Required since v19, when standalone became the default. Before v19 this line did not exist.
+  // [1] Required since v19, when standalone became the default. Before v19 this line did not exist.
   standalone: false,
   templateUrl: './task-board.component.html',
   // `styleUrls` (an array) was the only option before v17 added `styleUrl`.
@@ -24,7 +24,7 @@ import { Task, TaskFilter, TaskService } from './task.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TaskBoardComponent {
-  // `!`: Angular sets it after the view is created, so it is undefined in the constructor.
+  // [2] A decorator query. `!`: Angular sets it after the view is created, so it is undefined in the constructor.
   @ViewChild('titleInput') titleInput!: ElementRef<HTMLInputElement>;
 
   newTitle = '';
@@ -32,7 +32,7 @@ export class TaskBoardComponent {
   readonly filters: TaskFilter[] = ['all', 'open', 'done'];
   readonly tasks$: Observable<Task[]>;
 
-  // `private` in the parameter list declares the field and assigns it in one go.
+  // [3] Constructor injection. `private` in the parameter list declares the field and assigns it in one go.
   constructor(private taskService: TaskService) {
     this.tasks$ = this.taskService.tasks$;
   }
@@ -53,7 +53,7 @@ export class TaskBoardComponent {
     this.taskService.remove(id);
   }
 
-  // Listens on `document` while the component lives; Angular removes the listener on destroy.
+  // [4] Listens on `document` while the component lives; Angular removes the listener on destroy.
   @HostListener('document:keydown.escape')
   clearTitle(): void {
     this.newTitle = '';

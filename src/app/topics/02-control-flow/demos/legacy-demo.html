@@ -1,3 +1,4 @@
+<!-- Read this template first, then legacy-demo.ts. Both columns render the same thing. -->
 <div class="demo-row">
   <label>
     <input type="checkbox" [checked]="loggedIn()" (change)="loggedIn.set(!loggedIn())" />
@@ -20,6 +21,7 @@
      double braces as text. -->
 <div class="legacy-columns">
   <section>
+    <!-- [1] The directives: each one needs an import, and the else needs an <ng-template>. -->
     <h3>Structural directives (legacy)</h3>
     <!-- eslint-disable @angular-eslint/template/prefer-control-flow -- side-by-side comparison -->
     <div class="output">
@@ -55,6 +57,7 @@
   </section>
 
   <section>
+    <!-- [2] The blocks: part of the template syntax, no imports. -->
     <h3>Built-in control flow</h3>
     <div class="output">
       @if (loggedIn()) {

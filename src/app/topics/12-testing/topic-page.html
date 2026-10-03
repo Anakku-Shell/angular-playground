@@ -8,176 +8,215 @@
   </p>
 </header>
 
-<app-demo-card>
-  <h2 demo-title>Running the tests</h2>
-  <pre demo-body><code>{{ snippets.commands }}</code></pre>
-  <p>
-    <code>ng test</code> builds the specs with the same esbuild pipeline as the app and hands them
-    to Vitest. Every <code>*.spec.ts</code> under <code>src/</code> is a test file. Coverage uses
-    <code>&#64;vitest/coverage-v8</code>; open <code>coverage/index.html</code> after a run.
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        <code>describe</code>, <code>it</code>, <code>expect</code>, <code>beforeEach</code> and
-        <code>vi</code> are globals (<code>vitest/globals</code> in
-        <code>tsconfig.spec.json</code>). The syntax is close to Jasmine, so older Angular tests
-        read the same.
-      </li>
-      <li>
-        Focus while you work: <code>it.only</code> / <code>describe.only</code>, or
-        <code>--include</code> with a folder or file. Remove <code>.only</code> before committing.
-      </li>
-      <li>
-        <code>TestBed</code> is reset before every test: providers, components and services do not
-        leak from one test to the next.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.running" />
-</app-demo-card>
+<app-card-nav [cards]="view.cards" [current]="view.current()" />
 
-<app-demo-card>
-  <h2 demo-title>Component tests: inputs, outputs and model</h2>
-  <app-rating-demo demo-body />
-  <p>
-    <code>TestBed.createComponent</code> renders the component into a detached DOM. Tests set inputs
-    with <code>fixture.componentRef.setInput</code>, click real elements, then
-    <code>await fixture.whenStable()</code> before reading the DOM again. To test
-    <code>[(value)]</code> as a parent uses it, the spec renders a tiny host component.
-  </p>
-  <pre><code>{{ snippets.component }}</code></pre>
-  <pre><code>{{ snippets.host }}</code></pre>
-  <p class="source">Spec: <code>subjects/star-rating.spec.ts</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Zoneless fixtures run change detection on their own, like the app, but not synchronously.
-        After an action, <code>await fixture.whenStable()</code> before reading the DOM.
-        <code>fixture.detectChanges()</code> still exists for synchronous cases.
-      </li>
-      <li>
-        Test what the user sees (text, attributes, disabled state), not private fields. A refactor
-        that keeps the behavior should keep the tests green.
-      </li>
-      <li>
-        An <code>output()</code> is an <code>OutputRef</code>: <code>.subscribe()</code> on it
-        directly in the test, or use a host with <code>(rated)="…"</code>.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.component" />
-</app-demo-card>
+@if (view.showMap()) {
+  <app-topic-map [guides]="guides">
+    <p>
+      Every test follows the same three steps: <strong>arrange</strong> (create what you test and
+      give it fake dependencies), <strong>act</strong> (call a method, click, navigate) and
+      <strong>assert</strong> (check the result). <code>TestBed</code> is Angular's tool for the
+      first step: it builds a small app with only the providers each test needs.
+    </p>
+    <pre aria-label="Arrange, act, assert">
+ arrange   TestBed.configureTestingModule(&#123; providers: [fakes…] &#125;)
+           const store = TestBed.inject(Store)  /  TestBed.createComponent(Comp)
+ act       store.setCelsius(30)  /  button.click(); await fixture.whenStable()
+ assert    expect(store.fahrenheit()).toBe(86)</pre>
+    <p>
+      The demos on this page are the subjects under test; the interesting code is in their
+      <code>.spec.ts</code> files, in <code>subjects/</code>.
+    </p>
+  </app-topic-map>
+}
 
-<app-demo-card>
-  <h2 demo-title>Services with signals and computed</h2>
-  <app-temperature-demo demo-body />
-  <p>
-    A service needs no component: <code>TestBed.inject(TemperatureStore)</code> and call it.
-    <code>computed</code> values are read synchronously right after a write. <code>effect</code>s
-    are scheduled, so the test calls <code>TestBed.tick()</code> to run them.
-  </p>
-  <pre><code>{{ snippets.signals }}</code></pre>
-  <p class="source">Spec: <code>subjects/temperature-store.spec.ts</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        <code>it.each</code> runs one test per row: good for boundaries like 9.9 / 10 / 25 °C.
-      </li>
-      <li>
-        A service that does not inject anything could be tested with a plain <code>new</code>;
-        <code>TestBed.inject</code> works either way and keeps DI (<code>inject()</code>) working.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.service" />
-</app-demo-card>
+@if (view.shows('running')) {
+  <app-demo-card>
+    <h2 demo-title>Running the tests</h2>
+    <app-guide-box [guide]="guides.running" />
+    <h3>In short</h3>
+    <pre demo-body><code>{{ snippets.commands }}</code></pre>
+    <p>
+      <code>ng test</code> builds the specs with the same esbuild pipeline as the app and hands them
+      to Vitest. Every <code>*.spec.ts</code> under <code>src/</code> is a test file. Coverage uses
+      <code>&#64;vitest/coverage-v8</code>; open <code>coverage/index.html</code> after a run.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          <code>describe</code>, <code>it</code>, <code>expect</code>, <code>beforeEach</code> and
+          <code>vi</code> are globals (<code>vitest/globals</code> in
+          <code>tsconfig.spec.json</code>). The syntax is close to Jasmine, so older Angular tests
+          read the same.
+        </li>
+        <li>
+          Focus while you work: <code>it.only</code> / <code>describe.only</code>, or
+          <code>--include</code> with a folder or file. Remove <code>.only</code> before committing.
+        </li>
+        <li>
+          <code>TestBed</code> is reset before every test: providers, components and services do not
+          leak from one test to the next.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-running" [exercise]="exercises.running" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>HTTP with HttpTestingController</h2>
-  <app-quote-demo demo-body />
-  <p>
-    The demo calls DummyJSON. The spec replaces the backend with
-    <code>provideHttpClientTesting()</code>: requests are captured, the test checks their URL,
-    method and params, and answers with <code>flush</code> (data or an error status) or
-    <code>error</code> (a network failure).
-  </p>
-  <pre><code>{{ snippets.http }}</code></pre>
-  <p class="source">
-    Spec: <code>subjects/quote-api.spec.ts</code> (topic 09's page spec also runs the real
-    interceptors against the testing backend)
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        <code>HttpClient</code> is lazy: subscribe (here <code>firstValueFrom</code>) before
-        <code>expectOne</code>, or there is no request to find.
-      </li>
-      <li>
-        <code>httpMock.verify()</code> in <code>afterEach</code> fails the test if a request was
-        sent that nobody expected.
-      </li>
-      <li>
-        <code>API_BASE_URL</code> is a token, so the test provides its own base URL. Tokens are the
-        usual way to make configuration testable.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.http" />
-</app-demo-card>
+@if (view.shows('component')) {
+  <app-demo-card>
+    <h2 demo-title>Component tests: inputs, outputs and model</h2>
+    <app-guide-box [guide]="guides.component" />
+    <h3>In short</h3>
+    <app-rating-demo demo-body />
+    <p>
+      <code>TestBed.createComponent</code> renders the component into a detached DOM. Tests set
+      inputs with <code>fixture.componentRef.setInput</code>, click real elements, then
+      <code>await fixture.whenStable()</code> before reading the DOM again. To test
+      <code>[(value)]</code> as a parent uses it, the spec renders a tiny host component.
+    </p>
+    <pre><code>{{ snippets.component }}</code></pre>
+    <pre><code>{{ snippets.host }}</code></pre>
+    <app-tips-box>
+      <ul>
+        <li>
+          Zoneless fixtures run change detection on their own, like the app, but not synchronously.
+          After an action, <code>await fixture.whenStable()</code> before reading the DOM.
+          <code>fixture.detectChanges()</code> still exists for synchronous cases.
+        </li>
+        <li>
+          Test what the user sees (text, attributes, disabled state), not private fields. A refactor
+          that keeps the behavior should keep the tests green.
+        </li>
+        <li>
+          An <code>output()</code> is an <code>OutputRef</code>: <code>.subscribe()</code> on it
+          directly in the test, or use a host with <code>(rated)="…"</code>.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-component" [exercise]="exercises.component" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Mocking dependencies through DI</h2>
-  <app-greeting-demo demo-body />
-  <p>
-    <code>Greeting</code> reads the hour from a <code>Clock</code> service, not from
-    <code>new Date()</code>. The spec provides a fake clock with <code>useValue</code>, so each test
-    picks the hour. <code>vi.spyOn</code> is the lighter option: keep the real service, stub one
-    method and check how it was called.
-  </p>
-  <pre><code>{{ snippets.mocking }}</code></pre>
-  <p class="source">Spec: <code>subjects/greeting.spec.ts</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Configure providers <strong>before</strong> the first <code>createComponent</code> /
-        <code>inject</code>; after that TestBed is frozen for this test.
-      </li>
-      <li>
-        Other options: <code>useClass</code> (a fake class, like the
-        <code>InstantCatalogApi</code> in topic 11), <code>TestBed.overrideComponent</code> to
-        change a component's own providers or imports, and <code>vi.useFakeTimers()</code> to
-        control <code>Date</code> and timers globally.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.mocking" />
-</app-demo-card>
+@if (view.shows('service')) {
+  <app-demo-card>
+    <h2 demo-title>Services with signals and computed</h2>
+    <app-guide-box [guide]="guides.service" />
+    <h3>In short</h3>
+    <app-temperature-demo demo-body />
+    <p>
+      A service needs no component: <code>TestBed.inject(TemperatureStore)</code> and call it.
+      <code>computed</code> values are read synchronously right after a write. <code>effect</code>s
+      are scheduled, so the test calls <code>TestBed.tick()</code> to run them.
+    </p>
+    <pre><code>{{ snippets.signals }}</code></pre>
+    <app-tips-box>
+      <ul>
+        <li>
+          <code>it.each</code> runs one test per row: good for boundaries like 9.9 / 10 / 25 °C.
+        </li>
+        <li>
+          A service that does not inject anything could be tested with a plain <code>new</code>;
+          <code>TestBed.inject</code> works either way and keeps DI (<code>inject()</code>) working.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-service" [exercise]="exercises.service" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Routes with RouterTestingHarness</h2>
-  <pre demo-body><code>{{ snippets.router }}</code></pre>
-  <p>
-    <code>RouterTestingHarness</code> hosts a router outlet and navigates it with the real routes.
-    <code>navigateByUrl(url, Component)</code> also checks which component was activated and returns
-    it, so the test can read the input bound from <code>:id</code>. Clicking a
-    <code>routerLink</code> and awaiting the fixture moves the router like in the app.
-  </p>
-  <p class="source">
-    Spec: <code>subjects/user-routes.spec.ts</code> (the routes are only used by the spec; topic 07
-    has the live routing demos)
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Use the same router features as the app (<code>withComponentInputBinding()</code> here), or
-        inputs bound from the URL stay empty in tests.
-      </li>
-      <li>
-        Guards and resolvers are plain functions: test them through navigation with the harness, or
-        call them inside <code>TestBed.runInInjectionContext</code>.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.routes" />
-</app-demo-card>
+@if (view.shows('http')) {
+  <app-demo-card>
+    <h2 demo-title>HTTP with HttpTestingController</h2>
+    <app-guide-box [guide]="guides.http" />
+    <h3>In short</h3>
+    <app-quote-demo demo-body />
+    <p>
+      The demo calls DummyJSON. The spec replaces the backend with
+      <code>provideHttpClientTesting()</code>: requests are captured, the test checks their URL,
+      method and params, and answers with <code>flush</code> (data or an error status) or
+      <code>error</code> (a network failure).
+    </p>
+    <pre><code>{{ snippets.http }}</code></pre>
+    <app-tips-box>
+      <ul>
+        <li>
+          <code>HttpClient</code> is lazy: subscribe (here <code>firstValueFrom</code>) before
+          <code>expectOne</code>, or there is no request to find.
+        </li>
+        <li>
+          <code>httpMock.verify()</code> in <code>afterEach</code> fails the test if a request was
+          sent that nobody expected.
+        </li>
+        <li>
+          <code>API_BASE_URL</code> is a token, so the test provides its own base URL. Tokens are
+          the usual way to make configuration testable.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-http" [exercise]="exercises.http" />
+  </app-demo-card>
+}
+
+@if (view.shows('mocking')) {
+  <app-demo-card>
+    <h2 demo-title>Mocking dependencies through DI</h2>
+    <app-guide-box [guide]="guides.mocking" />
+    <h3>In short</h3>
+    <app-greeting-demo demo-body />
+    <p>
+      <code>Greeting</code> reads the hour from a <code>Clock</code> service, not from
+      <code>new Date()</code>. The spec provides a fake clock with <code>useValue</code>, so each
+      test picks the hour. <code>vi.spyOn</code> is the lighter option: keep the real service, stub
+      one method and check how it was called.
+    </p>
+    <pre><code>{{ snippets.mocking }}</code></pre>
+    <app-tips-box>
+      <ul>
+        <li>
+          Configure providers <strong>before</strong> the first <code>createComponent</code> /
+          <code>inject</code>; after that TestBed is frozen for this test.
+        </li>
+        <li>
+          Other options: <code>useClass</code> (a fake class, like the
+          <code>InstantCatalogApi</code> in topic 11), <code>TestBed.overrideComponent</code> to
+          change a component's own providers or imports, and <code>vi.useFakeTimers()</code> to
+          control <code>Date</code> and timers globally.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-mocking" [exercise]="exercises.mocking" />
+  </app-demo-card>
+}
+
+@if (view.shows('routes')) {
+  <app-demo-card>
+    <h2 demo-title>Routes with RouterTestingHarness</h2>
+    <app-guide-box [guide]="guides.routes" />
+    <h3>In short</h3>
+    <pre demo-body><code>{{ snippets.router }}</code></pre>
+    <p>
+      <code>RouterTestingHarness</code> hosts a router outlet and navigates it with the real routes.
+      <code>navigateByUrl(url, Component)</code> also checks which component was activated and
+      returns it, so the test can read the input bound from <code>:id</code>. Clicking a
+      <code>routerLink</code> and awaiting the fixture moves the router like in the app.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Use the same router features as the app (<code>withComponentInputBinding()</code> here),
+          or inputs bound from the URL stay empty in tests.
+        </li>
+        <li>
+          Guards and resolvers are plain functions: test them through navigation with the harness,
+          or call them inside <code>TestBed.runInInjectionContext</code>.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-routes" [exercise]="exercises.routes" />
+  </app-demo-card>
+}
+
+@if (view.single(); as card) {
+  <app-card-pager [cards]="view.cards" [current]="card.id" />
+}

@@ -5,7 +5,7 @@ import { Ticker } from './ticker';
 
 @Component({
   selector: 'app-ticker-panel',
-  // A new Ticker per panel, destroyed together with the panel.
+  // [1] A new Ticker per panel, destroyed together with the panel.
   providers: [Ticker],
   template: `Ticker #{{ ticker.id }}: <strong>{{ ticker.seconds() }}</strong> s`,
   styles: `
@@ -24,7 +24,7 @@ export class TickerPanel {
 
   constructor() {
     const log = inject(ActivityLog);
-    // A component can use DestroyRef too, instead of implementing ngOnDestroy.
+    // [2] A component can use DestroyRef too, instead of implementing ngOnDestroy.
     inject(DestroyRef).onDestroy(() => log.add('TickerPanel: DestroyRef.onDestroy'));
   }
 }

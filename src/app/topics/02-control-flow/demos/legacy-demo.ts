@@ -10,7 +10,7 @@ interface Item {
 
 @Component({
   selector: 'app-legacy-demo',
-  // The structural directives are deprecated since v20. Built-in control flow needs no imports.
+  // [1] The structural directives are deprecated since v20. Built-in control flow needs no imports.
   imports: [NgIf, NgFor, NgSwitch, NgSwitchCase, NgSwitchDefault],
   templateUrl: './legacy-demo.html',
   styleUrl: './legacy-demo.scss',
@@ -25,7 +25,7 @@ export class LegacyDemo {
     { id: 2, name: 'Control flow' },
   ];
 
-  // *ngFor takes a function for trackBy; @for takes an expression.
+  // [2] *ngFor takes a function for trackBy; @for takes an expression.
   protected trackById(_index: number, item: Item): number {
     return item.id;
   }

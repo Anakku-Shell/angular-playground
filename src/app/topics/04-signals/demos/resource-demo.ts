@@ -15,7 +15,7 @@ const USERS: readonly User[] = [
 const LATENCY_MS = 600;
 
 /**
- * Fake API call: resolves after a delay, rejects for unknown ids, and stops early (calling
+ * [1] Fake API call: resolves after a delay, rejects for unknown ids, and stops early (calling
  * `onCancel`) when the resource aborts it.
  */
 function fetchUser(id: number, abortSignal: AbortSignal, onCancel: () => void): Promise<User> {
@@ -31,7 +31,7 @@ function fetchUser(id: number, abortSignal: AbortSignal, onCancel: () => void): 
     abortSignal.addEventListener(
       'abort',
       () => {
-        // The resource also aborts finished requests when params change: count only real ones.
+        // [2] The resource also aborts finished requests when params change: count only real ones.
         if (settled) return;
         clearTimeout(timer);
         onCancel();
@@ -53,7 +53,7 @@ export class ResourceDemo {
   protected readonly userId = signal(1);
   protected readonly cancelled = signal(0);
 
-  // resource() is experimental in v21. `params` is reactive: when userId() changes, the loader
+  // [3] resource() is experimental in v21. `params` is reactive: when userId() changes, the loader
   // runs again and the previous request is aborted through `abortSignal`.
   protected readonly user = resource({
     params: () => this.userId(),

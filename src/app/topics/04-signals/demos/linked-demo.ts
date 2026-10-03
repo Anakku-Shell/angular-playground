@@ -17,9 +17,10 @@ type Country = keyof typeof METHODS;
 export class LinkedDemo {
   protected readonly countries = Object.keys(METHODS) as Country[];
   protected readonly country = signal<Country>('Spain');
+  // [1] The source: the methods the current country offers.
   protected readonly methods = computed<readonly string[]>(() => METHODS[this.country()]);
 
-  // Writable (the user picks a method) and recomputed when `source` changes. `previous` holds the
+  // [2] Writable (the user picks a method) and recomputed when `source` changes. `previous` holds the
   // last source and value, so the choice survives when the new country still offers it.
   protected readonly method = linkedSignal<readonly string[], string>({
     source: this.methods,

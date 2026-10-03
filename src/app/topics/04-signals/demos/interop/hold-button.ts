@@ -24,6 +24,7 @@ export class HoldButton {
   // Events from the inner <button> bubble up to the host element.
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 
+  // [1] Press and release, from pointer and keyboard events.
   private readonly press$ = merge(
     fromEvent(this.host, 'pointerdown'),
     fromEvent<KeyboardEvent>(this.host, 'keydown').pipe(filter(isActivationKey)),
@@ -34,7 +35,7 @@ export class HoldButton {
     fromEvent(this.host, 'keyup'),
   );
 
-  // outputFromObservable: an output that emits what the Observable emits. Angular subscribes
+  // [2] outputFromObservable: an output that emits what the Observable emits. Angular subscribes
   // when the parent listens and unsubscribes when this component is destroyed.
   readonly held = outputFromObservable(
     this.press$.pipe(

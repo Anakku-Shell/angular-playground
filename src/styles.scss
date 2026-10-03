@@ -162,3 +162,9 @@ app-tips-box .tips-box > :last-child {
 app-tips-box ul {
   padding-left: 1.25rem;
 }
+
+// Diagrams in a topic's map: smaller, so the boxes fit next to the text.
+app-topic-map pre {
+  font-size: 0.8rem;
+  line-height: 1.35;
+}

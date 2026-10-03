@@ -1,4 +1,6 @@
 <!--
+  Read this template first, then events-demo.ts.
+
   (event)="statement" listens to a DOM event (any name: click, input, mousemove, focus, scroll...)
   or to a component's output. The statement can call a method or set a signal, and $event holds
   the event object. Ways to write the same handler:
@@ -6,13 +8,14 @@
     (click)="count.set(count() + 1)"   short inline statement
     (click)="a(); b()"                 several statements, separated by ;
 -->
+<!-- [1] $event is the MouseEvent: the class reads the position from it. -->
 <button type="button" class="click-area" (click)="onClick($event)">{{ lastClick() }}</button>
 
 <div class="demo-row">
   <label>
     New item
     <!--
-      Key filters run the handler only for that key: (keyup.enter), (keyup.escape),
+      [2] Key filters run the handler only for that key: (keyup.enter), (keyup.escape),
       (keydown.arrowdown), (keydown.control.s), (keyup.shift.enter)...
       Modifiers must match exactly: (keyup.enter) does not fire while Shift is held.
     -->

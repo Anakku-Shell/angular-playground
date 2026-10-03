@@ -1,0 +1,60 @@
+// Sticky: the tabs stay at the top of the window while you scroll through a card.
+:host {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: block;
+}
+
+.card-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+
+  &__tabs {
+    display: flex;
+    flex: 1;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    // One scrollable row instead of several wrapped lines on narrow screens.
+    overflow-x: auto;
+    min-width: 0;
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: var(--radius);
+    color: var(--color-text-muted);
+    text-decoration: none;
+    white-space: nowrap;
+
+    &:hover {
+      background: var(--color-hover);
+    }
+
+    &[aria-current='page'] {
+      background: var(--color-accent-soft);
+      color: var(--color-accent);
+      font-weight: 600;
+    }
+  }
+
+  &__number {
+    font-size: 0.75rem;
+    opacity: 0.75;
+  }
+
+  &__jump {
+    flex: none;
+    border: 1px dashed var(--color-border);
+  }
+}

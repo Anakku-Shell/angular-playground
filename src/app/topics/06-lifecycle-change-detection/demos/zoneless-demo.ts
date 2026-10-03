@@ -66,25 +66,25 @@ export class ZonelessDemo {
   }
 
   protected plainLater(): void {
-    // Nothing tells Angular: the view keeps the old value until something else refreshes it.
+    // [1] Nothing tells Angular: the view keeps the old value until something else refreshes it.
     this.later(() => this.plain++);
   }
 
   protected plainLaterMarked(): void {
     this.later(() => {
       this.plain++;
-      // markForCheck() marks the view dirty and, without zone.js, also schedules the refresh.
+      // [2] markForCheck() marks the view dirty and, without zone.js, also schedules the refresh.
       this.cdr.markForCheck();
     });
   }
 
   protected signalLater(): void {
-    // A signal read by the template notifies Angular by itself.
+    // [3] A signal read by the template notifies Angular by itself.
     this.later(() => this.count.update((n) => n + 1));
   }
 
   protected plainNow(): void {
-    // Events bound in the template mark the view dirty and schedule a refresh afterwards.
+    // [4] Events bound in the template mark the view dirty and schedule a refresh afterwards.
     this.plain++;
   }
 

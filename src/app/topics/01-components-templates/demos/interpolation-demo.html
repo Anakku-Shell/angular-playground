@@ -1,29 +1,31 @@
 <!--
+  Read this template first, then interpolation-demo.ts.
+
   {{ expression }} evaluates a TypeScript-like expression against this component's members and
   renders the result as text. Allowed: member reads, calls, arithmetic, comparisons, ternaries,
   ?. and ??, literals, pipes. Not allowed: assignments (=, ++), new, globals (window, console).
 -->
 <dl class="demo-values">
-  <!-- user is a signal: call it to read the value, then read the property. -->
+  <!-- [1] user is a signal: call it to read the value, then read the property. -->
   <dt>Signal read</dt>
   <dd>{{ user().name }}</dd>
 
-  <!-- unitPrice is a plain field (it never changes), so no parentheses. -->
+  <!-- [2] unitPrice is a plain field (it never changes), so no parentheses. -->
   <dt>Arithmetic</dt>
   <dd>{{ quantity() }} × {{ unitPrice }} = {{ quantity() * unitPrice }}</dd>
 
-  <!-- The same value as above, computed in the class: cached, and reusable from TypeScript. -->
+  <!-- [3] The same value as above, computed in the class: cached, and reusable from TypeScript. -->
   <dt>computed()</dt>
   <dd>{{ total() }}</dd>
 
   <dt>Ternary</dt>
   <dd>{{ quantity() >= 5 ? 'Bulk order' : 'Regular order' }}</dd>
 
-  <!-- ?? falls back only for null / undefined. || would also replace '' and 0. -->
+  <!-- [4] ?? falls back only for null / undefined. || would also replace '' and 0. -->
   <dt>Nullish (??)</dt>
   <dd>{{ user().email ?? 'No email on file' }}</dd>
 
-  <!-- Interpolation escapes HTML: the tags show as text. [innerHTML]="markup" would render them. -->
+  <!-- [5] Interpolation escapes HTML: the tags show as text. [innerHTML]="markup" would render them. -->
   <dt>Escaped HTML</dt>
   <dd>{{ markup }}</dd>
 </dl>

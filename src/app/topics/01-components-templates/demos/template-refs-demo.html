@@ -1,4 +1,6 @@
 <!--
+  Read this template first, then template-refs-demo.ts.
+
   #name declares a template reference variable. What it points to depends on where it is:
     on an HTML element     →  the DOM element (here an HTMLInputElement)
     on a component         →  the component instance (call its public methods)
@@ -8,13 +10,14 @@
   To reach the same element from the class, use viewChild('name') (see Component communication).
 -->
 <div class="demo-row">
+  <!-- [1] The declaration: #nameInput is this <input> element. -->
   <label>
     Name
     <input #nameInput type="text" placeholder="Type, then press Greet" />
   </label>
-  <!-- Read a property of the element and pass it to the class. -->
+  <!-- [2] Read a property of the element and pass it to the class. -->
   <button type="button" (click)="greet(nameInput.value)">Greet</button>
-  <!-- Or call one of its methods directly. -->
+  <!-- [3] Or call one of its methods directly. -->
   <button type="button" (click)="nameInput.focus()">Focus the input</button>
 </div>
 
@@ -23,7 +26,7 @@
     <dt>greeting()</dt>
     <dd>{{ greeting() || '—' }}</dd>
 
-    <!-- Gotcha: typing fires no Angular event here, so nothing triggers a re-render.
+    <!-- [4] Gotcha: typing fires no Angular event here, so nothing triggers a re-render.
        This line only catches up when a button is clicked. -->
     <dt>nameInput.value</dt>
     <dd>"{{ nameInput.value }}"</dd>

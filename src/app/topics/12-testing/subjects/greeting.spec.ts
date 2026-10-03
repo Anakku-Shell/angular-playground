@@ -5,7 +5,7 @@ import { Clock, Greeting } from './greeting';
 /** Creates the component with a fake clock stuck at `hour`. */
 async function renderAt(hour: number, name = 'Ada'): Promise<HTMLElement> {
   TestBed.configureTestingModule({
-    // useValue: any object with the same shape. The real Clock is never created.
+    // [1] useValue: any object with the same shape. The real Clock is never created.
     providers: [{ provide: Clock, useValue: { now: () => new Date(2026, 0, 1, hour) } }],
   });
   const fixture = TestBed.createComponent(Greeting);
@@ -30,7 +30,7 @@ describe('Greeting', () => {
   });
 
   it('can spy on the real service instead of replacing it', async () => {
-    // vi.spyOn keeps the real instance and only stubs one method; it also records the calls.
+    // [2] vi.spyOn keeps the real instance and only stubs one method; it also records the calls.
     const now = vi.spyOn(TestBed.inject(Clock), 'now').mockReturnValue(new Date(2026, 0, 1, 13));
 
     const fixture = TestBed.createComponent(Greeting);

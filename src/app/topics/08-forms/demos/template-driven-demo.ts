@@ -19,13 +19,16 @@ import { FormsModule, NgForm } from '@angular/forms';
   selector: 'app-template-driven-demo',
   imports: [FormsModule, JsonPipe],
   template: `
-    <!-- ngForm is added to every <form> by FormsModule; #f exports it. novalidate turns off the
+    <!-- [1] ngForm is added to every <form> by FormsModule; #f exports it. novalidate turns off the
          browser's own validation bubbles so Angular's messages are the only ones. -->
     <form #f="ngForm" class="demo-form td-form" novalidate (ngSubmit)="save(f)">
+      <!-- [2] name + [(ngModel)] registers a control; required / minlength are its rules;
+           #nameCtrl="ngModel" exports the control to read its state. -->
       <label class="field">
         <span>Name (required, 3+ characters)</span>
         <input name="name" [(ngModel)]="name" #nameCtrl="ngModel" required minlength="3" />
       </label>
+      <!-- [3] Show errors only once the user has left the field (touched). -->
       @if (nameCtrl.invalid && nameCtrl.touched) {
         <p class="error td-name-error">
           @if (nameCtrl.hasError('required')) {
@@ -80,6 +83,7 @@ export class TemplateDrivenDemo {
 
   protected readonly saved = signal('–');
 
+  // [4] The template passes the form in; the class reads its state and value.
   protected save(f: NgForm): void {
     if (f.invalid) {
       // Submitting marks the form as submitted, not the controls as touched: do it by hand so

@@ -1,4 +1,6 @@
 <!--
+  THE PARENT of the outputs demo. Read outputs/star-rating.ts (the child) first.
+
   (rated)="onRated($event)" listens to the child's output, exactly like a DOM event.
   $event is the value passed to emit(): a number here.
   Outputs do not bubble: only the direct parent can listen. Older code declares them with

@@ -26,7 +26,7 @@ const styles = `
   }
 `;
 
-/** `providers`: its view and the projected content see the box's Counter. */
+/** [1] `providers`: its view and the projected content see the box's Counter. */
 @Component({
   selector: 'app-providers-box',
   imports: [CounterPanel],
@@ -38,7 +38,7 @@ const styles = `
 export class ProvidersBox {}
 
 /**
- * `viewProviders`: only its own view sees the box's Counter. Projected content keeps looking
+ * [2] `viewProviders`: only its own view sees the box's Counter. Projected content keeps looking
  * up from where it was declared, so it gets the next Counter above (here, the root one).
  */
 @Component({

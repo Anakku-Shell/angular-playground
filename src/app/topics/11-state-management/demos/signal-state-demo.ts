@@ -64,13 +64,14 @@ type SortKey = 'name' | 'price';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SignalStateDemo {
-  // signalState: a state object without a store class. Nested objects become "deep signals":
+  // [1] signalState: a state object without a store class. Nested objects become "deep signals":
   // state.filters() is the object, state.filters.maxPrice() a single field.
   protected readonly state = signalState({
     filters: { maxPrice: 200, sortBy: 'name' as SortKey },
     changes: 0,
   });
 
+  // [2] A plain computed() over the state signals.
   protected readonly visible = computed(() => {
     const { maxPrice, sortBy } = this.state.filters();
     return PRODUCTS.filter((p) => p.price <= maxPrice).sort((a, b) =>
@@ -80,7 +81,7 @@ export class SignalStateDemo {
 
   protected setMaxPrice(event: Event): void {
     const maxPrice = Number((event.target as HTMLInputElement).value);
-    // patchState merges one level deep, so nested objects are spread by hand.
+    // [3] patchState merges one level deep, so nested objects are spread by hand.
     patchState(this.state, (s) => ({
       filters: { ...s.filters, maxPrice },
       changes: s.changes + 1,

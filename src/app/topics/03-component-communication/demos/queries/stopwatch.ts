@@ -7,7 +7,11 @@ import {
   signal,
 } from '@angular/core';
 
-/** A child with a public API (methods and read-only signals) that a parent reaches via a query. */
+/**
+ * A child with a public API that the parent reaches through viewChildren(): the methods start(),
+ * stop() and reset(), and two read-only signals. It has no outputs: nobody listens to it, the
+ * parent drives it.
+ */
 @Component({
   selector: 'app-stopwatch',
   template: `

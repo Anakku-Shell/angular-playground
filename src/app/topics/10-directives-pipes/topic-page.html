@@ -8,233 +8,273 @@
   </p>
 </header>
 
+<app-card-nav [cards]="view.cards" [current]="view.current()" />
+
+@if (view.showMap()) {
+  <app-topic-map [guides]="guides">
+    <p>
+      Components are one kind of directive: a directive with a template. The other kinds have no
+      template and work on an element that already exists. Pipes are separate: they only transform a
+      value for display.
+    </p>
+    <pre aria-label="Kinds of directives and pipes">
+ component              &lt;app-tag&gt;                  has its own template
+ attribute directive    &lt;p appHighlight&gt;           changes its host: styles, listeners
+ structural directive   &lt;p *appHasRole="'editor'"&gt;  adds or removes its host
+ pipe                   text | truncate: 30         transforms a value in the template</pre>
+  </app-topic-map>
+}
+
 <!-- Code samples in this template: braces are escaped as &#123; &#125;
      (a bare brace would open or close a block). -->
 
-<app-demo-card>
-  <h2 demo-title>Attribute directive with inputs: highlight</h2>
-  <app-highlight-demo demo-body />
-  <p>
-    <code>Highlight</code> listens to <code>mouseenter</code> / <code>mouseleave</code> on its host
-    and binds the host's background. Its main input has the same name as the selector, so
-    <code>appHighlight="pink"</code> both applies the directive and configures it.
-  </p>
-  <p class="source">Code: <code>directives/highlight.ts</code>, <code>highlight-demo.ts</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Selector <code>[appHighlight]</code> = "any element with this attribute". Directive
-        selectors are camelCase attributes with the app prefix; component selectors are kebab-case
-        elements.
-      </li>
-      <li>
-        Host bindings and listeners go in the <code>host</code> metadata:
-        <code>'[style.backgroundColor]': 'color()'</code>, <code>'(mouseenter)': 'onEnter()'</code>.
-        <code>@HostBinding</code> and <code>@HostListener</code> still work (and are common in v19
-        code) but the style guide prefers <code>host</code>.
-      </li>
-      <li>
-        Directive inputs are ordinary <code>input()</code> signals, so <code>computed</code> works
-        on them. A directive is used by adding it to the component's <code>imports</code>, like a
-        component.
-      </li>
-      <li>
-        Avoid touching the DOM directly (<code>ElementRef.nativeElement.style…</code>): host
-        bindings are declarative, work with SSR and are cleaned up for you.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.highlight" />
-</app-demo-card>
+@if (view.shows('highlight')) {
+  <app-demo-card>
+    <h2 demo-title>Attribute directive with inputs: highlight</h2>
+    <app-guide-box [guide]="guides.highlight" />
+    <h3>In short</h3>
+    <app-highlight-demo demo-body />
+    <p>
+      <code>Highlight</code> listens to <code>mouseenter</code> / <code>mouseleave</code> on its
+      host and binds the host's background. Its main input has the same name as the selector, so
+      <code>appHighlight="pink"</code> both applies the directive and configures it.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Selector <code>[appHighlight]</code> = "any element with this attribute". Directive
+          selectors are camelCase attributes with the app prefix; component selectors are kebab-case
+          elements.
+        </li>
+        <li>
+          Host bindings and listeners go in the <code>host</code> metadata:
+          <code>'[style.backgroundColor]': 'color()'</code>,
+          <code>'(mouseenter)': 'onEnter()'</code>. <code>@HostBinding</code> and
+          <code>@HostListener</code> still work (and are common in v19 code) but the style guide
+          prefers <code>host</code>.
+        </li>
+        <li>
+          Directive inputs are ordinary <code>input()</code> signals, so <code>computed</code> works
+          on them. A directive is used by adding it to the component's <code>imports</code>, like a
+          component.
+        </li>
+        <li>
+          Avoid touching the DOM directly (<code>ElementRef.nativeElement.style…</code>): host
+          bindings are declarative, work with SSR and are cleaned up for you.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-highlight" [exercise]="exercises.highlight" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Host listeners and creating a component: tooltip</h2>
-  <app-tooltip-demo demo-body />
-  <p>
-    <code>Tooltip</code> reacts to mouse, focus and Escape on its host. A directive has no template,
-    so to show something it creates a component (<code>TooltipBubble</code>) with
-    <code>ViewContainerRef.createComponent()</code> and passes it inputs with
-    <code>setInput()</code>. It also binds <code>aria-describedby</code> so screen readers read the
-    text.
-  </p>
-  <p class="source">Code: <code>directives/tooltip.ts</code>, <code>tooltip-demo.ts</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        <strong>Directive vs component</strong>: use a directive to add behavior to elements that
-        someone else renders (any button, any input). Use a component when you own the markup and
-        styles. A directive cannot have a template or styles.
-      </li>
-      <li>
-        Listen to focus as well as hover: a tooltip only on <code>mouseenter</code> is invisible to
-        keyboard and touch users.
-      </li>
-      <li>
-        <code>inject(ElementRef)</code> gives the host element,
-        <code>inject(ViewContainerRef)</code>
-        the place next to it where views can be inserted.
-      </li>
-      <li>
-        Real apps use the CDK (<code>&#64;angular/cdk/overlay</code>) or a UI library for tooltips:
-        positioning, scrolling and collisions are harder than this demo shows.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.tooltip" />
-</app-demo-card>
+@if (view.shows('tooltip')) {
+  <app-demo-card>
+    <h2 demo-title>Host listeners and creating a component: tooltip</h2>
+    <app-guide-box [guide]="guides.tooltip" />
+    <h3>In short</h3>
+    <app-tooltip-demo demo-body />
+    <p>
+      <code>Tooltip</code> reacts to mouse, focus and Escape on its host. A directive has no
+      template, so to show something it creates a component (<code>TooltipBubble</code>) with
+      <code>ViewContainerRef.createComponent()</code> and passes it inputs with
+      <code>setInput()</code>. It also binds <code>aria-describedby</code> so screen readers read
+      the text.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          <strong>Directive vs component</strong>: use a directive to add behavior to elements that
+          someone else renders (any button, any input). Use a component when you own the markup and
+          styles. A directive cannot have a template or styles.
+        </li>
+        <li>
+          Listen to focus as well as hover: a tooltip only on <code>mouseenter</code> is invisible
+          to keyboard and touch users.
+        </li>
+        <li>
+          <code>inject(ElementRef)</code> gives the host element,
+          <code>inject(ViewContainerRef)</code>
+          the place next to it where views can be inserted.
+        </li>
+        <li>
+          Real apps use the CDK (<code>&#64;angular/cdk/overlay</code>) or a UI library for
+          tooltips: positioning, scrolling and collisions are harder than this demo shows.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-tooltip" [exercise]="exercises.tooltip" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>exportAs, global listeners and outputs: dropdown</h2>
-  <app-dropdown-demo demo-body />
-  <p>
-    <code>Dropdown</code> holds the open state. <code>exportAs: 'appDropdown'</code> lets the
-    template grab the directive instance with <code>#menu="appDropdown"</code> and call
-    <code>menu.toggle()</code>. It listens to <code>document:click</code> and
-    <code>document:keydown.escape</code> to close, and reports why through a
-    <code>closed</code> output.
-  </p>
-  <p class="source">Code: <code>directives/dropdown.ts</code>, <code>dropdown-demo.ts</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        <code>#ref</code> alone gives the element (or the component);
-        <code>#ref="exportAsName"</code> gives a directive on it. <code>ngModel</code> and
-        <code>ngForm</code> work the same way.
-      </li>
-      <li>
-        Global targets in host listeners: <code>document:</code>, <code>window:</code> and
-        <code>body:</code>. Angular removes the listener when the directive is destroyed.
-      </li>
-      <li>
-        Key filters work in host listeners too: <code>keydown.escape</code>,
-        <code>keydown.enter</code>, <code>keydown.control.s</code>.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.dropdown" />
-</app-demo-card>
+@if (view.shows('dropdown')) {
+  <app-demo-card>
+    <h2 demo-title>exportAs, global listeners and outputs: dropdown</h2>
+    <app-guide-box [guide]="guides.dropdown" />
+    <h3>In short</h3>
+    <app-dropdown-demo demo-body />
+    <p>
+      <code>Dropdown</code> holds the open state. <code>exportAs: 'appDropdown'</code> lets the
+      template grab the directive instance with <code>#menu="appDropdown"</code> and call
+      <code>menu.toggle()</code>. It listens to <code>document:click</code> and
+      <code>document:keydown.escape</code> to close, and reports why through a
+      <code>closed</code> output.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          <code>#ref</code> alone gives the element (or the component);
+          <code>#ref="exportAsName"</code> gives a directive on it. <code>ngModel</code> and
+          <code>ngForm</code> work the same way.
+        </li>
+        <li>
+          Global targets in host listeners: <code>document:</code>, <code>window:</code> and
+          <code>body:</code>. Angular removes the listener when the directive is destroyed.
+        </li>
+        <li>
+          Key filters work in host listeners too: <code>keydown.escape</code>,
+          <code>keydown.enter</code>, <code>keydown.control.s</code>.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-dropdown" [exercise]="exercises.dropdown" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Composition with hostDirectives</h2>
-  <app-host-directives-demo demo-body />
-  <p>
-    <code>&lt;app-tag&gt;</code> declares <code>hostDirectives: [Highlight, Tooltip]</code>, so
-    every tag gets both behaviors with no attributes in the template. The directives' inputs are
-    exposed under new names (<code>color</code>, <code>hint</code>), and the component injects
-    <code>Highlight</code> to show the dot while hovered.
-  </p>
-  <p class="source">Code: <code>host-directives-demo.ts</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Composition instead of inheritance: extending a base component class shares code but not
-        host bindings cleanly, and a class can only extend one.
-      </li>
-      <li>
-        Inputs and outputs of a host directive are hidden unless listed:
-        <code>inputs: ['appTooltip: hint']</code>. A required input must be exposed.
-      </li>
-      <li>
-        Host directives are applied statically (always, not conditionally) and must be standalone.
-        Their selectors are ignored.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.hostDirectives" />
-</app-demo-card>
+@if (view.shows('hostDirectives')) {
+  <app-demo-card>
+    <h2 demo-title>Composition with hostDirectives</h2>
+    <app-guide-box [guide]="guides.hostDirectives" />
+    <h3>In short</h3>
+    <app-host-directives-demo demo-body />
+    <p>
+      <code>&lt;app-tag&gt;</code> declares <code>hostDirectives: [Highlight, Tooltip]</code>, so
+      every tag gets both behaviors with no attributes in the template. The directives' inputs are
+      exposed under new names (<code>color</code>, <code>hint</code>), and the component injects
+      <code>Highlight</code> to show the dot while hovered.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Composition instead of inheritance: extending a base component class shares code but not
+          host bindings cleanly, and a class can only extend one.
+        </li>
+        <li>
+          Inputs and outputs of a host directive are hidden unless listed:
+          <code>inputs: ['appTooltip: hint']</code>. A required input must be exposed.
+        </li>
+        <li>
+          Host directives are applied statically (always, not conditionally) and must be standalone.
+          Their selectors are ignored.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-hostDirectives" [exercise]="exercises.hostDirectives" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>A custom structural directive</h2>
-  <app-structural-demo demo-body />
-  <p>
-    <code>*appHasRole="'editor'; else readOnly"</code> renders its content only for editors and
-    admins. The <code>*</code> wraps the element in an <code>&lt;ng-template&gt;</code>; the
-    directive injects that <code>TemplateRef</code> and a <code>ViewContainerRef</code>, and an
-    <code>effect</code> stamps the template (or the else template) when the role changes.
-  </p>
-  <p class="source">
-    Code: <code>directives/has-role.ts</code>, <code>session.ts</code>,
-    <code>structural-demo.ts</code>
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Since v17, <code>&#64;if</code>, <code>&#64;for</code> and <code>&#64;switch</code> cover
-        what most structural directives did. Custom ones are still handy for app-specific rules like
-        permissions or feature flags.
-      </li>
-      <li>
-        Microsyntax: in <code>*appHasRole="x; else y"</code>, <code>else</code> maps to the input
-        <code>appHasRoleElse</code> (directive name + capitalized key).
-      </li>
-      <li>Hiding a button is UX, not security: the server must check permissions too.</li>
-      <li>
-        A directive can pass variables to its template through a context (<code
-          >createEmbeddedView(tpl, &#123; $implicit: value &#125;)</code
-        >, read with <code>let x</code>). A static <code>ngTemplateContextGuard</code> types them.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.structural" />
-</app-demo-card>
+@if (view.shows('structural')) {
+  <app-demo-card>
+    <h2 demo-title>A custom structural directive</h2>
+    <app-guide-box [guide]="guides.structural" />
+    <h3>In short</h3>
+    <app-structural-demo demo-body />
+    <p>
+      <code>*appHasRole="'editor'; else readOnly"</code> renders its content only for editors and
+      admins. The <code>*</code> wraps the element in an <code>&lt;ng-template&gt;</code>; the
+      directive injects that <code>TemplateRef</code> and a <code>ViewContainerRef</code>, and an
+      <code>effect</code> stamps the template (or the else template) when the role changes.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Since v17, <code>&#64;if</code>, <code>&#64;for</code> and <code>&#64;switch</code> cover
+          what most structural directives did. Custom ones are still handy for app-specific rules
+          like permissions or feature flags.
+        </li>
+        <li>
+          Microsyntax: in <code>*appHasRole="x; else y"</code>, <code>else</code> maps to the input
+          <code>appHasRoleElse</code> (directive name + capitalized key).
+        </li>
+        <li>Hiding a button is UX, not security: the server must check permissions too.</li>
+        <li>
+          A directive can pass variables to its template through a context (<code
+            >createEmbeddedView(tpl, &#123; $implicit: value &#125;)</code
+          >, read with <code>let x</code>). A static <code>ngTemplateContextGuard</code> types them.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-structural" [exercise]="exercises.structural" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>A custom pipe with arguments</h2>
-  <app-truncate-demo demo-body />
-  <p>
-    <code>TruncatePipe</code> implements <code>PipeTransform</code>. The first parameter of
-    <code>transform</code> is the value on the left of the <code>|</code>; each
-    <code>: arg</code> fills the next parameter, and parameters with defaults are optional.
-  </p>
-  <p class="source">Code: <code>pipes/truncate-pipe.ts</code>, <code>truncate-demo.ts</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Pipes can be chained (<code>name | truncate: 10 | uppercase</code>) and can
-        <code>inject()</code> services (e.g. the current locale).
-      </li>
-      <li>
-        The pipe name is camelCase and has no prefix requirement, but it must be unique in the
-        component's imports.
-      </li>
-      <li>
-        Built-in pipes (<code>date</code>, <code>currency</code>, <code>async</code>…) are in topic
-        01.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.truncate" />
-</app-demo-card>
+@if (view.shows('truncate')) {
+  <app-demo-card>
+    <h2 demo-title>A custom pipe with arguments</h2>
+    <app-guide-box [guide]="guides.truncate" />
+    <h3>In short</h3>
+    <app-truncate-demo demo-body />
+    <p>
+      <code>TruncatePipe</code> implements <code>PipeTransform</code>. The first parameter of
+      <code>transform</code> is the value on the left of the <code>|</code>; each
+      <code>: arg</code> fills the next parameter, and parameters with defaults are optional.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Pipes can be chained (<code>name | truncate: 10 | uppercase</code>) and can
+          <code>inject()</code> services (e.g. the current locale).
+        </li>
+        <li>
+          The pipe name is camelCase and has no prefix requirement, but it must be unique in the
+          component's imports.
+        </li>
+        <li>
+          Built-in pipes (<code>date</code>, <code>currency</code>, <code>async</code>…) are in
+          topic 01.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-truncate" [exercise]="exercises.truncate" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Pure vs impure pipes</h2>
-  <app-pure-impure-demo demo-body />
-  <p>
-    Both pipes filter the same array. Press <em>Add with push()</em>: the array changes but its
-    reference does not, so the pure pipe keeps its old result. The impure pipe runs on every check
-    and shows the new item. <em>Add as a new array</em> updates both.
-  </p>
-  <p class="source">Code: <code>pipes/filter-pipe.ts</code>, <code>pure-impure-demo.ts</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        <strong>Pure pipes are memoization</strong>: Angular calls <code>transform</code> only when
-        an argument changes (<code>===</code>). A method call such as <code>filter(items)</code> in
-        an interpolation runs on every check instead.
-      </li>
-      <li>
-        Keep pipes pure and update data immutably (a new array or object). Signals push you in the
-        same direction: <code>signal.set([...list, item])</code>.
-      </li>
-      <li>
-        Impure pipes (<code>pure: false</code>) run on every change detection of the component, so
-        keep them cheap. <code>async</code> is the best-known impure pipe.
-      </li>
-      <li>
-        With signals, derived data often fits better in a <code>computed()</code> in the class; a
-        pipe is for formatting reused across templates.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.pureImpure" />
-</app-demo-card>
+@if (view.shows('pureImpure')) {
+  <app-demo-card>
+    <h2 demo-title>Pure vs impure pipes</h2>
+    <app-guide-box [guide]="guides.pureImpure" />
+    <h3>In short</h3>
+    <app-pure-impure-demo demo-body />
+    <p>
+      Both pipes filter the same array. Press <em>Add with push()</em>: the array changes but its
+      reference does not, so the pure pipe keeps its old result. The impure pipe runs on every check
+      and shows the new item. <em>Add as a new array</em> updates both.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          <strong>Pure pipes are memoization</strong>: Angular calls <code>transform</code> only
+          when an argument changes (<code>===</code>). A method call such as
+          <code>filter(items)</code> in an interpolation runs on every check instead.
+        </li>
+        <li>
+          Keep pipes pure and update data immutably (a new array or object). Signals push you in the
+          same direction: <code>signal.set([...list, item])</code>.
+        </li>
+        <li>
+          Impure pipes (<code>pure: false</code>) run on every change detection of the component, so
+          keep them cheap. <code>async</code> is the best-known impure pipe.
+        </li>
+        <li>
+          With signals, derived data often fits better in a <code>computed()</code> in the class; a
+          pipe is for formatting reused across templates.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-pureImpure" [exercise]="exercises.pureImpure" />
+  </app-demo-card>
+}
+
+@if (view.single(); as card) {
+  <app-card-pager [cards]="view.cards" [current]="card.id" />
+}

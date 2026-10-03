@@ -39,10 +39,12 @@ export class ProgrammaticNavDemo {
 
   protected readonly result = signal('–');
 
+  // [1] Commands relative to the topic page route.
   protected toProduct(): void {
     this.track(this.router.navigate(['products', 1], { relativeTo: this.route }));
   }
 
+  // [2] The same, with query params.
   protected sortByPrice(): void {
     this.track(
       this.router.navigate(['products'], {
@@ -52,6 +54,7 @@ export class ProgrammaticNavDemo {
     );
   }
 
+  // [3] A full URL: no relativeTo needed.
   protected toAdmin(): void {
     this.track(this.router.navigateByUrl(`${ROUTING_URL}/admin`));
   }
@@ -63,7 +66,7 @@ export class ProgrammaticNavDemo {
   }
 
   /**
-   * true = navigated; false = a guard returned false. When a guard redirects, the promise gets the
+   * [4] true = navigated; false = a guard returned false. When a guard redirects, the promise gets the
    * result of the redirected navigation instead (true when the login page opens).
    */
   private track(navigation: Promise<boolean>): void {

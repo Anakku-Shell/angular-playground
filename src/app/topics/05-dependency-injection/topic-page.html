@@ -10,260 +10,299 @@
   </p>
 </header>
 
+<app-card-nav [cards]="view.cards" [current]="view.current()" />
+
+@if (view.showMap()) {
+  <app-topic-map [guides]="guides">
+    <p>
+      A class never creates its dependencies with <code>new</code>. It asks for them with
+      <code>inject(Something)</code>, and Angular decides which instance it gets. To answer, Angular
+      walks up from the component that asks and takes the first provider it finds:
+    </p>
+    <pre aria-label="How inject() finds a provider">
+ inject(Counter) in a component
+   │  looks at its own element      providers / viewProviders
+   ▼  then each parent element      providers: [Counter]   ← the first match wins
+   ▼  then the route                providers: [...]
+   ▼  then the app                  providedIn: 'root', app.config.ts
+   ✗  nothing found                 NG0201 (unless optional: true)</pre>
+    <p>
+      So the same <code>inject(Counter)</code> can return one shared instance or a private one: it
+      depends on where the provider is, not on the code that asks.
+    </p>
+  </app-topic-map>
+}
+
 <!-- Code samples in this template: `@` is escaped as &#64; and braces as &#123; &#125;
      (a bare brace would open or close a block). -->
 
-<app-demo-card>
-  <h2 demo-title>providedIn: 'root' vs component providers</h2>
-  <app-providers-demo demo-body />
-  <p>
-    <code>Counter</code> is <code>&#64;Injectable(&#123; providedIn: 'root' &#125;)</code>: panels A
-    and B find no provider on the way up, reach the root injector and share its single instance.
-    Panels C and D each sit inside an <code>&lt;app-counter-scope&gt;</code> with
-    <code>providers: [Counter]</code>, so each gets its own instance. Press the buttons and compare
-    the instance numbers.
-  </p>
-  <p class="source">
-    Code: <code>providers-demo.ts</code>, <code>counters/counter.ts</code>,
-    <code>counters/counter-scope.ts</code>
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        The root instance lives as long as the app. Leave this page and come back: A and B keep
-        their count, C and D start again at 0 (their instances were destroyed with the scopes).
-      </li>
-      <li>
-        <code>providedIn: 'root'</code> is the default choice for services: no registration needed,
-        and a service nobody injects is removed from the bundle.
-      </li>
-      <li>
-        A component-level service is destroyed with its component: its <code>ngOnDestroy</code> and
-        <code>DestroyRef</code> callbacks run. Root services are only destroyed with the app.
-      </li>
-      <li>
-        <code>&#64;Injectable()</code> without <code>providedIn</code> does nothing by itself: some
-        <code>providers</code> array must list the class, or injecting it throws NG0201.
-      </li>
-      <li>
-        Vue: <code>provide()</code>/<code>inject()</code> only look up the component tree. Angular
-        adds the root and route injectors, and classes can be tokens.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.providers" />
-</app-demo-card>
+@if (view.shows('providers')) {
+  <app-demo-card>
+    <h2 demo-title>providedIn: 'root' vs component providers</h2>
+    <app-guide-box [guide]="guides.providers" />
+    <h3>In short</h3>
+    <app-providers-demo demo-body />
+    <p>
+      <code>Counter</code> is <code>&#64;Injectable(&#123; providedIn: 'root' &#125;)</code>: panels
+      A and B find no provider on the way up, reach the root injector and share its single instance.
+      Panels C and D each sit inside an <code>&lt;app-counter-scope&gt;</code> with
+      <code>providers: [Counter]</code>, so each gets its own instance. Press the buttons and
+      compare the instance numbers.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          The root instance lives as long as the app. Leave this page and come back: A and B keep
+          their count, C and D start again at 0 (their instances were destroyed with the scopes).
+        </li>
+        <li>
+          <code>providedIn: 'root'</code> is the default choice for services: no registration
+          needed, and a service nobody injects is removed from the bundle.
+        </li>
+        <li>
+          A component-level service is destroyed with its component: its
+          <code>ngOnDestroy</code> and <code>DestroyRef</code> callbacks run. Root services are only
+          destroyed with the app.
+        </li>
+        <li>
+          <code>&#64;Injectable()</code> without <code>providedIn</code> does nothing by itself:
+          some <code>providers</code> array must list the class, or injecting it throws NG0201.
+        </li>
+        <li>
+          Vue: <code>provide()</code>/<code>inject()</code> only look up the component tree. Angular
+          adds the root and route injectors, and classes can be tokens.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-providers" [exercise]="exercises.providers" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>providers vs viewProviders</h2>
-  <app-view-providers-demo demo-body />
-  <p>
-    Both boxes provide a <code>Counter</code> and hold one panel in their own template plus one
-    projected panel. With <code>providers</code> both panels share the box's instance. With
-    <code>viewProviders</code> only the box's own view sees it: the projected panel keeps looking up
-    from where it was written and reaches the root instance (the same number as panels A and B).
-  </p>
-  <p class="source">
-    Code: <code>view-providers-demo.ts</code>, <code>counters/scope-boxes.ts</code>
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Use <code>viewProviders</code> when a component's internal services must not leak into
-        content that users of the component project into it.
-      </li>
-      <li>
-        Projected content is created by the template that declares it, so its lookup starts there,
-        not inside the component that displays it.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.viewProviders" />
-</app-demo-card>
+@if (view.shows('viewProviders')) {
+  <app-demo-card>
+    <h2 demo-title>providers vs viewProviders</h2>
+    <app-guide-box [guide]="guides.viewProviders" />
+    <h3>In short</h3>
+    <app-view-providers-demo demo-body />
+    <p>
+      Both boxes provide a <code>Counter</code> and hold one panel in their own template plus one
+      projected panel. With <code>providers</code> both panels share the box's instance. With
+      <code>viewProviders</code> only the box's own view sees it: the projected panel keeps looking
+      up from where it was written and reaches the root instance (the same number as panels A and
+      B).
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Use <code>viewProviders</code> when a component's internal services must not leak into
+          content that users of the component project into it.
+        </li>
+        <li>
+          Projected content is created by the template that declares it, so its lookup starts there,
+          not inside the component that displays it.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-viewProviders" [exercise]="exercises.viewProviders" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>InjectionToken</h2>
-  <app-tokens-demo demo-body />
-  <p>
-    Values that are not classes (config objects, strings, functions, signals) need an
-    <code>InjectionToken</code> as their key. <code>PREFERS_DARK_SCHEME</code> has a
-    <code>factory</code> and <code>providedIn: 'root'</code>, so it works with no provider: the
-    factory injects <code>DOCUMENT</code> and wraps <code>matchMedia</code> in a signal. Angular's
-    own settings are tokens too: <code>&lt;app-euro-price&gt;</code> provides
-    <code>DEFAULT_CURRENCY_CODE</code> as <code>'EUR'</code>, and the <code>currency</code> pipe
-    inside it follows.
-  </p>
-  <p class="source">
-    Code: <code>tokens-demo.ts</code>, <code>tokens/prefers-dark-scheme.ts</code>,
-    <code>tokens/euro-price.ts</code>
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Interfaces and type aliases do not exist at run time, so they cannot be tokens. Pair them
-        with an <code>InjectionToken&lt;MyConfig&gt;</code>, or use an abstract class.
-      </li>
-      <li>
-        Wrapping browser globals (<code>window</code>, <code>localStorage</code>,
-        <code>matchMedia</code>) in tokens makes them easy to replace in tests and on the server.
-        This factory checks for <code>matchMedia</code>, which the test environment (jsdom) lacks.
-      </li>
-      <li>
-        The description string (<code>'PREFERS_DARK_SCHEME'</code>) only appears in error messages.
-        The token object itself is the key: two tokens with the same description are different.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.tokens" />
-</app-demo-card>
+@if (view.shows('tokens')) {
+  <app-demo-card>
+    <h2 demo-title>InjectionToken</h2>
+    <app-guide-box [guide]="guides.tokens" />
+    <h3>In short</h3>
+    <app-tokens-demo demo-body />
+    <p>
+      Values that are not classes (config objects, strings, functions, signals) need an
+      <code>InjectionToken</code> as their key. <code>PREFERS_DARK_SCHEME</code> has a
+      <code>factory</code> and <code>providedIn: 'root'</code>, so it works with no provider: the
+      factory injects <code>DOCUMENT</code> and wraps <code>matchMedia</code> in a signal. Angular's
+      own settings are tokens too: <code>&lt;app-euro-price&gt;</code> provides
+      <code>DEFAULT_CURRENCY_CODE</code> as <code>'EUR'</code>, and the <code>currency</code> pipe
+      inside it follows.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Interfaces and type aliases do not exist at run time, so they cannot be tokens. Pair them
+          with an <code>InjectionToken&lt;MyConfig&gt;</code>, or use an abstract class.
+        </li>
+        <li>
+          Wrapping browser globals (<code>window</code>, <code>localStorage</code>,
+          <code>matchMedia</code>) in tokens makes them easy to replace in tests and on the server.
+          This factory checks for <code>matchMedia</code>, which the test environment (jsdom) lacks.
+        </li>
+        <li>
+          The description string (<code>'PREFERS_DARK_SCHEME'</code>) only appears in error
+          messages. The token object itself is the key: two tokens with the same description are
+          different.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-tokens" [exercise]="exercises.tokens" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>useValue, useClass, useExisting, useFactory</h2>
-  <app-recipes-demo demo-body />
-  <p>
-    A provider is <code>&#123; provide: token, use…: … &#125;</code>. This demo registers all four
-    kinds: a config object with <code>useValue</code>, <code>MemoryLogger</code> behind the abstract
-    <code>Logger</code> with <code>useClass</code>, <code>AUDIT_LOG</code> as an alias with
-    <code>useExisting</code>, and a <code>Greeter</code> built by <code>useFactory</code>. Writing
-    to <code>AUDIT_LOG</code> lands in the Logger list (same instance). <code>DEBUG_LOG</code> is a
-    second <code>useClass</code>, so it has its own list.
-  </p>
-  <p class="source">Code: <code>recipes-demo.ts / .html</code>, <code>recipes/logging.ts</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        <code>providers: [MemoryLogger]</code> is short for
-        <code>&#123; provide: MemoryLogger, useClass: MemoryLogger &#125;</code>.
-      </li>
-      <li>
-        <code>useClass</code> vs <code>useExisting</code>: <code>useClass</code> creates a new
-        instance for that token; <code>useExisting</code> hands out whatever the other token
-        resolves to.
-      </li>
-      <li>
-        Swapping implementations is the point: tests provide
-        <code>&#123; provide: Logger, useValue: fakeLogger &#125;</code> and the code under test
-        does not change.
-      </li>
-      <li>
-        Add <code>multi: true</code> to collect several providers of one token into an array (how
-        <code>HTTP_INTERCEPTORS</code> and validators worked before functional APIs).
-      </li>
-      <li>
-        Legacy: factories received their dependencies through <code>deps: [A, B]</code>; with
-        <code>inject()</code> inside the factory that is no longer needed.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.recipes" />
-</app-demo-card>
+@if (view.shows('recipes')) {
+  <app-demo-card>
+    <h2 demo-title>useValue, useClass, useExisting, useFactory</h2>
+    <app-guide-box [guide]="guides.recipes" />
+    <h3>In short</h3>
+    <app-recipes-demo demo-body />
+    <p>
+      A provider is <code>&#123; provide: token, use…: … &#125;</code>. This demo registers all four
+      kinds: a config object with <code>useValue</code>, <code>MemoryLogger</code> behind the
+      abstract <code>Logger</code> with <code>useClass</code>, <code>AUDIT_LOG</code> as an alias
+      with <code>useExisting</code>, and a <code>Greeter</code> built by <code>useFactory</code>.
+      Writing to <code>AUDIT_LOG</code> lands in the Logger list (same instance).
+      <code>DEBUG_LOG</code> is a second <code>useClass</code>, so it has its own list.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          <code>providers: [MemoryLogger]</code> is short for
+          <code>&#123; provide: MemoryLogger, useClass: MemoryLogger &#125;</code>.
+        </li>
+        <li>
+          <code>useClass</code> vs <code>useExisting</code>: <code>useClass</code> creates a new
+          instance for that token; <code>useExisting</code> hands out whatever the other token
+          resolves to.
+        </li>
+        <li>
+          Swapping implementations is the point: tests provide
+          <code>&#123; provide: Logger, useValue: fakeLogger &#125;</code> and the code under test
+          does not change.
+        </li>
+        <li>
+          Add <code>multi: true</code> to collect several providers of one token into an array (how
+          <code>HTTP_INTERCEPTORS</code> and validators worked before functional APIs).
+        </li>
+        <li>
+          Legacy: factories received their dependencies through <code>deps: [A, B]</code>; with
+          <code>inject()</code> inside the factory that is no longer needed.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-recipes" [exercise]="exercises.recipes" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Resolution modifiers: optional, self, skipSelf, host</h2>
-  <app-modifiers-demo demo-body />
-  <p>
-    Each box provides itself as a <code>Section</code> and finds its parent with
-    <code>inject(Section, &#123; skipSelf: true, optional: true &#125;)</code>. The probes look up
-    <code>Section</code> four ways. The first probe is written directly inside "Inner", so
-    <code>host</code> finds it. The second lives in the template of
-    <code>&lt;app-framed-probe&gt;</code>: <code>host</code> stops at that component, which provides
-    nothing, and returns null, even though "Frame" is right above it.
-  </p>
-  <p class="source">
-    Code: <code>modifiers-demo.ts</code>, <code>sections/section-box.ts</code>,
-    <code>sections/section-probe.ts</code>
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        <code>optional</code>: return <code>null</code> instead of throwing NG0201 when nothing is
-        found. The type becomes <code>T | null</code>.
-      </li>
-      <li>
-        <code>self</code>: only the requesting element. <code>skipSelf</code>: start at the parent,
-        the usual way to find "the enclosing one of me". Here it is required: without it a box would
-        find itself while it is still being created, and throw NG0200 (circular dependency).
-      </li>
-      <li>
-        <code>host</code>: stop at the host element of the current template. At that host only its
-        <code>viewProviders</code> count, not its <code>providers</code>.
-      </li>
-      <li>
-        Legacy: the <code>&#64;Optional()</code>, <code>&#64;Self()</code>,
-        <code>&#64;SkipSelf()</code> and <code>&#64;Host()</code> parameter decorators on
-        constructor parameters.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.modifiers" />
-</app-demo-card>
+@if (view.shows('modifiers')) {
+  <app-demo-card>
+    <h2 demo-title>Resolution modifiers: optional, self, skipSelf, host</h2>
+    <app-guide-box [guide]="guides.modifiers" />
+    <h3>In short</h3>
+    <app-modifiers-demo demo-body />
+    <p>
+      Each box provides itself as a <code>Section</code> and finds its parent with
+      <code>inject(Section, &#123; skipSelf: true, optional: true &#125;)</code>. The probes look up
+      <code>Section</code> four ways. The first probe is written directly inside "Inner", so
+      <code>host</code> finds it. The second lives in the template of
+      <code>&lt;app-framed-probe&gt;</code>: <code>host</code> stops at that component, which
+      provides nothing, and returns null, even though "Frame" is right above it.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          <code>optional</code>: return <code>null</code> instead of throwing NG0201 when nothing is
+          found. The type becomes <code>T | null</code>.
+        </li>
+        <li>
+          <code>self</code>: only the requesting element. <code>skipSelf</code>: start at the
+          parent, the usual way to find "the enclosing one of me". Here it is required: without it a
+          box would find itself while it is still being created, and throw NG0200 (circular
+          dependency).
+        </li>
+        <li>
+          <code>host</code>: stop at the host element of the current template. At that host only its
+          <code>viewProviders</code> count, not its <code>providers</code>.
+        </li>
+        <li>
+          Legacy: the <code>&#64;Optional()</code>, <code>&#64;Self()</code>,
+          <code>&#64;SkipSelf()</code> and <code>&#64;Host()</code> parameter decorators on
+          constructor parameters.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-modifiers" [exercise]="exercises.modifiers" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>DestroyRef</h2>
-  <app-destroy-demo demo-body />
-  <p>
-    <code>inject(DestroyRef).onDestroy(callback)</code> registers cleanup for the current injection
-    context. The ticker panel provides a <code>Ticker</code> service that starts a
-    <code>setInterval</code> and clears it in <code>onDestroy</code>. Unmount the panel: the service
-    is destroyed with it and the log shows both cleanups.
-  </p>
-  <p class="source">Code: <code>destroy-demo.ts</code>, <code>destroy/ticker.ts</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        It works in components, directives, pipes and services, so cleanup sits next to the code
-        that needs it instead of in a separate <code>ngOnDestroy</code>.
-      </li>
-      <li>
-        <code>takeUntilDestroyed()</code> (RxJS interop) uses the same <code>DestroyRef</code> to
-        complete subscriptions: <code>interval(1000).pipe(takeUntilDestroyed())</code>.
-      </li>
-      <li>
-        <code>onDestroy</code> returns a function that unregisters the callback, for cleanup that
-        finishes early.
-      </li>
-      <li>
-        In a root service, <code>DestroyRef</code> belongs to the root injector: the callback runs
-        only when the whole app is destroyed.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.destroy" />
-</app-demo-card>
+@if (view.shows('destroy')) {
+  <app-demo-card>
+    <h2 demo-title>DestroyRef</h2>
+    <app-guide-box [guide]="guides.destroy" />
+    <h3>In short</h3>
+    <app-destroy-demo demo-body />
+    <p>
+      <code>inject(DestroyRef).onDestroy(callback)</code> registers cleanup for the current
+      injection context. The ticker panel provides a <code>Ticker</code> service that starts a
+      <code>setInterval</code> and clears it in <code>onDestroy</code>. Unmount the panel: the
+      service is destroyed with it and the log shows both cleanups.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          It works in components, directives, pipes and services, so cleanup sits next to the code
+          that needs it instead of in a separate <code>ngOnDestroy</code>.
+        </li>
+        <li>
+          <code>takeUntilDestroyed()</code> (RxJS interop) uses the same <code>DestroyRef</code> to
+          complete subscriptions: <code>interval(1000).pipe(takeUntilDestroyed())</code>.
+        </li>
+        <li>
+          <code>onDestroy</code> returns a function that unregisters the callback, for cleanup that
+          finishes early.
+        </li>
+        <li>
+          In a root service, <code>DestroyRef</code> belongs to the root injector: the callback runs
+          only when the whole app is destroyed.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-destroy" [exercise]="exercises.destroy" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>The injection context</h2>
-  <app-context-demo demo-body />
-  <p>
-    <code>inject()</code> only works while Angular is creating something: in a constructor, a field
-    initializer, a provider factory, or inside <code>runInInjectionContext()</code>.
-    <code>injectDocumentTitle()</code> is an "inject function" that calls <code>inject()</code>, so
-    the same rule applies. In a click handler it throws NG0203. Call it at creation and keep the
-    result, or keep the <code>Injector</code> and use <code>runInInjectionContext</code>.
-  </p>
-  <p class="source">
-    Code: <code>context-demo.ts</code>, <code>context/inject-document-title.ts</code>
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Other injection contexts: route guards and resolvers, interceptors, and the factory of an
-        <code>InjectionToken</code>. That is why functional guards can call <code>inject()</code>.
-      </li>
-      <li>
-        <code>assertInInjectionContext(fn)</code> at the top of an inject function gives a clear
-        error that names it.
-      </li>
-      <li>
-        <code>effect()</code>, <code>toSignal()</code> and <code>takeUntilDestroyed()</code> follow
-        the same rule: they need an injection context or an explicit <code>injector</code> /
-        <code>destroyRef</code> option.
-      </li>
-      <li>
-        Legacy: constructor injection (<code>constructor(private logger: Logger)</code>). Migration:
-        <code>ng generate &#64;angular/core:inject</code>.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.context" />
-</app-demo-card>
+@if (view.shows('context')) {
+  <app-demo-card>
+    <h2 demo-title>The injection context</h2>
+    <app-guide-box [guide]="guides.context" />
+    <h3>In short</h3>
+    <app-context-demo demo-body />
+    <p>
+      <code>inject()</code> only works while Angular is creating something: in a constructor, a
+      field initializer, a provider factory, or inside <code>runInInjectionContext()</code>.
+      <code>injectDocumentTitle()</code> is an "inject function" that calls <code>inject()</code>,
+      so the same rule applies. In a click handler it throws NG0203. Call it at creation and keep
+      the result, or keep the <code>Injector</code> and use <code>runInInjectionContext</code>.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Other injection contexts: route guards and resolvers, interceptors, and the factory of an
+          <code>InjectionToken</code>. That is why functional guards can call <code>inject()</code>.
+        </li>
+        <li>
+          <code>assertInInjectionContext(fn)</code> at the top of an inject function gives a clear
+          error that names it.
+        </li>
+        <li>
+          <code>effect()</code>, <code>toSignal()</code> and
+          <code>takeUntilDestroyed()</code> follow the same rule: they need an injection context or
+          an explicit <code>injector</code> / <code>destroyRef</code> option.
+        </li>
+        <li>
+          Legacy: constructor injection (<code>constructor(private logger: Logger)</code>).
+          Migration: <code>ng generate &#64;angular/core:inject</code>.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-context" [exercise]="exercises.context" />
+  </app-demo-card>
+}
+
+@if (view.single(); as card) {
+  <app-card-pager [cards]="view.cards" [current]="card.id" />
+}

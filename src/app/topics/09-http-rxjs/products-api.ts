@@ -39,6 +39,7 @@ export class ProductsApi {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = inject(API_BASE_URL);
 
+  // [1] get<T>() types the response. [2] The URL is built here, never in a component.
   list(limit: number): Observable<Product[]> {
     return this.http
       .get<ProductPage>(`${this.baseUrl}/products`, { params: { limit, select: FIELDS } })

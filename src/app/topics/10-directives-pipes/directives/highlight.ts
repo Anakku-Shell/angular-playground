@@ -15,8 +15,9 @@ import { computed, Directive, input, signal } from '@angular/core';
  * `<p appHighlight>` uses the default color; `<p appHighlight="lightblue">` sets one.
  */
 @Directive({
+  // [1] An attribute selector: the directive attaches to any element with appHighlight.
   selector: '[appHighlight]',
-  // Host bindings and listeners in metadata (preferred over @HostBinding / @HostListener).
+  // [2] Host bindings and listeners in metadata (preferred over @HostBinding / @HostListener).
   host: {
     '[class.is-highlighted]': 'hovered()',
     '[style.backgroundColor]': 'hovered() ? color() : null',
@@ -27,7 +28,7 @@ import { computed, Directive, input, signal } from '@angular/core';
   },
 })
 export class Highlight {
-  // An input named like the selector: the attribute both applies the directive and sets it.
+  // [3] An input named like the selector: the attribute both applies the directive and sets it.
   readonly appHighlight = input('');
   readonly defaultColor = input('#ffe58a');
 

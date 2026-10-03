@@ -20,15 +20,15 @@ import {
 @Component({
   selector: 'app-recipes-demo',
   providers: [
-    // useValue: a ready-made value (config objects, constants, test doubles).
+    // [1] useValue: a ready-made value (config objects, constants, test doubles).
     { provide: GREETER_CONFIG, useValue: { greeting: 'Hello', punctuation: '!' } },
-    // useClass: the token (an abstract class) is backed by a concrete class.
+    // [2] useClass: the token (an abstract class) is backed by a concrete class.
     { provide: Logger, useClass: MemoryLogger },
-    // useExisting: an alias. AUDIT_LOG returns the same instance as Logger.
+    // [3] useExisting: an alias. AUDIT_LOG returns the same instance as Logger.
     { provide: AUDIT_LOG, useExisting: Logger },
-    // useClass again under another token: a second, separate MemoryLogger.
+    // [4] useClass again under another token: a second, separate MemoryLogger.
     { provide: DEBUG_LOG, useClass: MemoryLogger },
-    // useFactory: any code that returns the value. It runs in an injection context.
+    // [5] useFactory: any code that returns the value. It runs in an injection context.
     { provide: Greeter, useFactory: () => new Greeter(inject(GREETER_CONFIG), inject(Logger)) },
   ],
   templateUrl: './recipes-demo.html',

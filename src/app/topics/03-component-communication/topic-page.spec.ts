@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { ComponentCommunicationPage } from './topic-page';
 
@@ -7,7 +8,10 @@ describe('ComponentCommunicationPage', () => {
   let el: HTMLElement;
 
   beforeEach(async () => {
+    TestBed.configureTestingModule({ providers: [provideRouter([])] });
     fixture = TestBed.createComponent(ComponentCommunicationPage);
+    // ?card=all: every card on the page, as the demo tests below need.
+    fixture.componentRef.setInput('card', 'all');
     await fixture.whenStable();
     el = fixture.nativeElement as HTMLElement;
   });
@@ -26,13 +30,35 @@ describe('ComponentCommunicationPage', () => {
     button.click();
   }
 
-  it('renders one demo card per concept', () => {
+  it('renders the map and one demo card per concept, each with a guide and exercises', () => {
+    expect(el.querySelectorAll('.map tbody tr').length).toBe(8);
     expect(el.querySelectorAll('app-demo-card').length).toBe(8);
     for (const card of el.querySelectorAll('app-demo-card')) {
+      expect(card.querySelectorAll('app-guide-box .guide__steps > li').length).toBeGreaterThan(0);
+      expect(card.querySelectorAll('app-guide-box .guide__files > li').length).toBeGreaterThan(0);
       expect(
         card.querySelectorAll('app-exercise-box .exercise__tasks > li').length,
       ).toBeGreaterThan(0);
     }
+  });
+
+  it('shows only the map without ?card, and one card with its pager for ?card=<id>', async () => {
+    fixture.componentRef.setInput('card', undefined);
+    await fixture.whenStable();
+    expect(el.querySelector('.map')).not.toBeNull();
+    expect(el.querySelectorAll('app-demo-card').length).toBe(0);
+
+    fixture.componentRef.setInput('card', 'outputs');
+    await fixture.whenStable();
+    expect(el.querySelector('.map')).toBeNull();
+    expect(el.querySelectorAll('app-demo-card').length).toBe(1);
+    expect(el.querySelector('app-star-rating')).not.toBeNull();
+    expect(el.querySelector('app-card-nav [aria-current="page"]')?.textContent).toContain(
+      'output()',
+    );
+    expect(el.querySelector('#exercises-outputs')).not.toBeNull();
+    const pager = [...el.querySelectorAll('app-card-pager a')].map((a) => a.textContent?.trim());
+    expect(pager).toEqual(['← linkedSignal()', 'model() →']);
   });
 
   it('converts static attributes with the input transforms', () => {

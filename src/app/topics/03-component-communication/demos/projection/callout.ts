@@ -1,6 +1,10 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 
-/** Single-slot projection: everything between the tags goes into the one <ng-content>. */
+/**
+ * Single-slot projection: everything the parent writes between <app-callout> and </app-callout>
+ * goes into the one <ng-content>. The callout draws the frame; the parent supplies the content.
+ * Read this file first, then projection/panel.html.
+ */
 @Component({
   selector: 'app-callout',
   template: `

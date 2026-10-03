@@ -7,216 +7,257 @@
   </p>
 </header>
 
+<app-card-nav [cards]="view.cards" [current]="view.current()" />
+
+@if (view.showMap()) {
+  <app-topic-map [guides]="guides">
+    <p>
+      Templates are not static: parts of them appear, repeat or wait depending on the data. Angular
+      has built-in blocks for that, written with <code>&#64;</code>. A block decides which DOM
+      exists, not only what is visible:
+    </p>
+    <pre aria-label="The control flow blocks">
+ &#64;if       show one block or another     creates and destroys its content
+ &#64;for      repeat a block per item       keeps each row by its track key
+ &#64;switch   one block among several values
+ &#64;defer    load a block, and its code, later</pre>
+  </app-topic-map>
+}
+
 <!-- Code samples in this template: `@` is escaped as &#64; and braces as &#123; &#125;
      (a bare brace would open or close a block). -->
 
-<app-demo-card>
-  <h2 demo-title>&#64;if, &#64;else if, &#64;else</h2>
-  <app-if-demo demo-body />
-  <p>
-    <code>&#64;if (condition) &#123; ... &#125;</code> renders its block only while the condition is
-    truthy. Chain <code>&#64;else if</code> and a final <code>&#64;else</code>. With
-    <code>&#64;if (expr; as name)</code> the value of <code>expr</code> gets a name inside the
-    block, and TypeScript narrows its type (here <code>User | undefined</code> becomes
-    <code>User</code>).
-  </p>
-  <p class="source">Code: <code>if-demo.ts / .html</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        A hidden block is removed from the DOM and its components are destroyed. To only hide
-        something and keep its state, bind <code>[hidden]</code> or a class instead.
-      </li>
-      <li>
-        <code>as</code> is handy with values that may be missing: signals returning
-        <code>T | undefined</code>, or <code>obs$ | async</code>.
-      </li>
-      <li>
-        Gotcha: <code>&#64;if</code> tests truthiness, so <code>0</code> and <code>''</code> count
-        as false. Write <code>value !== undefined</code> when zero is a valid value.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.if" />
-</app-demo-card>
+@if (view.shows('if')) {
+  <app-demo-card>
+    <h2 demo-title>&#64;if, &#64;else if, &#64;else</h2>
+    <app-guide-box [guide]="guides.if" />
+    <h3>In short</h3>
+    <app-if-demo demo-body />
+    <p>
+      <code>&#64;if (condition) &#123; ... &#125;</code> renders its block only while the condition
+      is truthy. Chain <code>&#64;else if</code> and a final <code>&#64;else</code>. With
+      <code>&#64;if (expr; as name)</code> the value of <code>expr</code> gets a name inside the
+      block, and TypeScript narrows its type (here <code>User | undefined</code> becomes
+      <code>User</code>).
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          A hidden block is removed from the DOM and its components are destroyed. To only hide
+          something and keep its state, bind <code>[hidden]</code> or a class instead.
+        </li>
+        <li>
+          <code>as</code> is handy with values that may be missing: signals returning
+          <code>T | undefined</code>, or <code>obs$ | async</code>.
+        </li>
+        <li>
+          Gotcha: <code>&#64;if</code> tests truthiness, so <code>0</code> and <code>''</code> count
+          as false. Write <code>value !== undefined</code> when zero is a valid value.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-if" [exercise]="exercises.if" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>&#64;for and &#64;empty</h2>
-  <app-for-demo demo-body />
-  <p>
-    <code>&#64;for (item of items; track item.id) &#123; ... &#125;</code> repeats a block per item.
-    <code>track</code> is required. <code>&#64;empty</code> renders when the list is empty. The
-    implicit variables <code>$index</code>, <code>$count</code>, <code>$first</code>,
-    <code>$last</code>, <code>$even</code> and <code>$odd</code> are always available;
-    <code>let pos = $index</code> gives one a new name.
-  </p>
-  <p class="source">Code: <code>for-demo.ts / .html</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Rename the implicit variables in nested loops (<code>let row = $index</code>): the inner
-        loop's <code>$index</code> hides the outer one.
-      </li>
-      <li>
-        <code>&#64;for</code> works with any iterable: arrays, <code>Set</code>,
-        <code>Map</code> (items are <code>[key, value]</code> pairs). For plain objects use the
-        <code>keyvalue</code> pipe.
-      </li>
-      <li>
-        Update lists immutably (<code>[...tasks, newTask]</code>). Setting a signal to the same
-        array reference does not notify its readers.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.for" />
-</app-demo-card>
+@if (view.shows('for')) {
+  <app-demo-card>
+    <h2 demo-title>&#64;for and &#64;empty</h2>
+    <app-guide-box [guide]="guides.for" />
+    <h3>In short</h3>
+    <app-for-demo demo-body />
+    <p>
+      <code>&#64;for (item of items; track item.id) &#123; ... &#125;</code> repeats a block per
+      item. <code>track</code> is required. <code>&#64;empty</code> renders when the list is empty.
+      The implicit variables <code>$index</code>, <code>$count</code>, <code>$first</code>,
+      <code>$last</code>, <code>$even</code> and <code>$odd</code> are always available;
+      <code>let pos = $index</code> gives one a new name.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Rename the implicit variables in nested loops (<code>let row = $index</code>): the inner
+          loop's <code>$index</code> hides the outer one.
+        </li>
+        <li>
+          <code>&#64;for</code> works with any iterable: arrays, <code>Set</code>,
+          <code>Map</code> (items are <code>[key, value]</code> pairs). For plain objects use the
+          <code>keyvalue</code> pipe.
+        </li>
+        <li>
+          Update lists immutably (<code>[...tasks, newTask]</code>). Setting a signal to the same
+          array reference does not notify its readers.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-for" [exercise]="exercises.for" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>track and DOM reuse</h2>
-  <app-track-demo demo-body />
-  <p>
-    <code>track</code> tells Angular which DOM rows belong to which items. After a change, rows with
-    a known key are kept (and moved if needed); only new keys create rows. Each row here is a
-    component whose <code>#number</code> increases every time one is created. Type something in the
-    inputs, then use the buttons.
-  </p>
-  <ul>
-    <li>
-      <strong>Reverse</strong>: with <code>track fruit.id</code> the rows move along with your text.
-      With <code>track $index</code> the rows stay in place and only the names change, so your text
-      now sits next to another fruit.
-    </li>
-    <li>
-      <strong>Reload</strong> creates equal but new objects. <code>track fruit.id</code> and
-      <code>track $index</code> keep every row. Tracking by identity recreates all of them and your
-      text is lost. Angular logs the warning <code>NG0956</code> in the console about it.
-    </li>
-  </ul>
-  <p class="source">Code: <code>track-demo.ts / .html</code>, <code>track/track-row.ts</code></p>
-  <app-tips-box>
+@if (view.shows('track')) {
+  <app-demo-card>
+    <h2 demo-title>track and DOM reuse</h2>
+    <app-guide-box [guide]="guides.track" />
+    <h3>In short</h3>
+    <app-track-demo demo-body />
+    <p>
+      <code>track</code> tells Angular which DOM rows belong to which items. After a change, rows
+      with a known key are kept (and moved if needed); only new keys create rows. Each row here is a
+      component whose <code>#number</code> increases every time one is created. Type something in
+      the inputs, then use the buttons.
+    </p>
     <ul>
-      <li>Track by a unique, stable id from your data. Duplicate keys log <code>NG0955</code>.</li>
       <li>
-        <code>track $index</code> is fine for static lists that never reorder. With rows that hold
-        state (inputs, child components) it attaches that state to the wrong item.
+        <strong>Reverse</strong>: with <code>track fruit.id</code> the rows move along with your
+        text. With <code>track $index</code> the rows stay in place and only the names change, so
+        your text now sits next to another fruit.
       </li>
       <li>
-        In <code>*ngFor</code>, <code>trackBy</code> was optional and took a function. Without it
-        items were tracked by identity, a classic performance bug; <code>&#64;for</code> makes you
-        choose.
+        <strong>Reload</strong> creates equal but new objects. <code>track fruit.id</code> and
+        <code>track $index</code> keep every row. Tracking by identity recreates all of them and
+        your text is lost. Angular logs the warning <code>NG0956</code> in the console about it.
       </li>
     </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.track" />
-</app-demo-card>
+    <app-tips-box>
+      <ul>
+        <li>
+          Track by a unique, stable id from your data. Duplicate keys log <code>NG0955</code>.
+        </li>
+        <li>
+          <code>track $index</code> is fine for static lists that never reorder. With rows that hold
+          state (inputs, child components) it attaches that state to the wrong item.
+        </li>
+        <li>
+          In <code>*ngFor</code>, <code>trackBy</code> was optional and took a function. Without it
+          items were tracked by identity, a classic performance bug; <code>&#64;for</code> makes you
+          choose.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-track" [exercise]="exercises.track" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>&#64;switch</h2>
-  <app-switch-demo demo-body />
-  <p>
-    <code>&#64;switch (expr)</code> renders the first <code>&#64;case</code> whose value is equal
-    (<code>===</code>) to <code>expr</code>, or <code>&#64;default</code> when none matches. There
-    is no fall-through. Consecutive <code>&#64;case</code> blocks share one body, and
-    <code>&#64;default never;</code> makes the type checker report a union member without a case.
-  </p>
-  <p class="source">Code: <code>switch-demo.ts / .html</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Try it: add <code>'student'</code> to the <code>Plan</code> type in
-        <code>switch-demo.ts</code> and the build fails until you add a case for it.
-      </li>
-      <li>
-        Grouped cases and <code>&#64;default never;</code> are recent additions (this project runs
-        Angular 21.2). You will not find them in v19/v20 code, which uses a
-        <code>&#64;default</code> block or repeated bodies instead.
-      </li>
-      <li>
-        The <code>&#64;case</code> value is an expression: <code>&#64;case (Status.Done)</code>
-        works with enums or constants the component exposes.
-      </li>
-      <li>
-        Gotcha: <code>&#64;default never;</code> fails on <code>&#64;switch (plan())</code>.
-        TypeScript cannot narrow the result of a function call, and a signal read is one. Store it
-        first with <code>&#64;let currentPlan = plan();</code> and switch on that.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.switch" />
-</app-demo-card>
+@if (view.shows('switch')) {
+  <app-demo-card>
+    <h2 demo-title>&#64;switch</h2>
+    <app-guide-box [guide]="guides.switch" />
+    <h3>In short</h3>
+    <app-switch-demo demo-body />
+    <p>
+      <code>&#64;switch (expr)</code> renders the first <code>&#64;case</code> whose value is equal
+      (<code>===</code>) to <code>expr</code>, or <code>&#64;default</code> when none matches. There
+      is no fall-through. Consecutive <code>&#64;case</code> blocks share one body, and
+      <code>&#64;default never;</code> makes the type checker report a union member without a case.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Try it: add <code>'student'</code> to the <code>Plan</code> type in
+          <code>switch-demo.ts</code> and the build fails until you add a case for it.
+        </li>
+        <li>
+          Grouped cases and <code>&#64;default never;</code> are recent additions (this project runs
+          Angular 21.2). You will not find them in v19/v20 code, which uses a
+          <code>&#64;default</code> block or repeated bodies instead.
+        </li>
+        <li>
+          The <code>&#64;case</code> value is an expression: <code>&#64;case (Status.Done)</code>
+          works with enums or constants the component exposes.
+        </li>
+        <li>
+          Gotcha: <code>&#64;default never;</code> fails on <code>&#64;switch (plan())</code>.
+          TypeScript cannot narrow the result of a function call, and a signal read is one. Store it
+          first with <code>&#64;let currentPlan = plan();</code> and switch on that.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-switch" [exercise]="exercises.switch" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>&#64;defer</h2>
-  <app-defer-demo demo-body />
-  <p>
-    <code>&#64;defer</code> lazy-loads part of a template: the components, directives and pipes used
-    only inside it go into a separate JavaScript chunk, fetched when a
-    <strong>trigger</strong> fires. <code>&#64;placeholder</code> shows before that,
-    <code>&#64;loading</code> while the chunk downloads, and <code>&#64;error</code> if it fails.
-    Without a trigger, <code>on idle</code> is used.
-  </p>
-  <p>
-    Other triggers: <code>on hover</code>, <code>on immediate</code>, and
-    <code>prefetch on ...</code> to download early but render later (e.g.
-    <code>&#64;defer (on interaction; prefetch on idle)</code>).
-  </p>
-  <p class="source">Code: <code>defer-demo.ts / .html</code>, <code>defer/heavy-widget.ts</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        A dependency is only deferred if it is standalone and not used anywhere else in the same
-        component (outside <code>&#64;defer</code> in the template, or in a <code>viewChild</code>).
-        Otherwise it stays in the parent's chunk.
-      </li>
-      <li>
-        <code>minimum</code> keeps a block on screen for some time to avoid flicker.
-        <code>&#64;loading (after 100ms)</code> shows the loader only when loading is slow.
-      </li>
-      <li>
-        Once loaded, a block stays loaded: <code>when</code> is a one-way switch, not an
-        <code>&#64;if</code>.
-      </li>
-      <li>
-        Gotcha: with HMR on (the <code>ng serve</code> default) Angular loads every
-        <code>&#64;defer</code> dependency eagerly and logs <code>NG0751</code>. Triggers and
-        placeholders still work, but no chunk is fetched. Run <code>ng serve --no-hmr</code> to
-        watch the <code>heavy-widget</code> chunk arrive in DevTools → Network, or check the lazy
-        chunks listed by <code>npm run build</code>.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.defer" />
-</app-demo-card>
+@if (view.shows('defer')) {
+  <app-demo-card>
+    <h2 demo-title>&#64;defer</h2>
+    <app-guide-box [guide]="guides.defer" />
+    <h3>In short</h3>
+    <app-defer-demo demo-body />
+    <p>
+      <code>&#64;defer</code> lazy-loads part of a template: the components, directives and pipes
+      used only inside it go into a separate JavaScript chunk, fetched when a
+      <strong>trigger</strong> fires. <code>&#64;placeholder</code> shows before that,
+      <code>&#64;loading</code> while the chunk downloads, and <code>&#64;error</code> if it fails.
+      Without a trigger, <code>on idle</code> is used.
+    </p>
+    <p>
+      Other triggers: <code>on hover</code>, <code>on immediate</code>, and
+      <code>prefetch on ...</code> to download early but render later (e.g.
+      <code>&#64;defer (on interaction; prefetch on idle)</code>).
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          A dependency is only deferred if it is standalone and not used anywhere else in the same
+          component (outside <code>&#64;defer</code> in the template, or in a
+          <code>viewChild</code>). Otherwise it stays in the parent's chunk.
+        </li>
+        <li>
+          <code>minimum</code> keeps a block on screen for some time to avoid flicker.
+          <code>&#64;loading (after 100ms)</code> shows the loader only when loading is slow.
+        </li>
+        <li>
+          Once loaded, a block stays loaded: <code>when</code> is a one-way switch, not an
+          <code>&#64;if</code>.
+        </li>
+        <li>
+          Gotcha: with HMR on (the <code>ng serve</code> default) Angular loads every
+          <code>&#64;defer</code> dependency eagerly and logs <code>NG0751</code>. Triggers and
+          placeholders still work, but no chunk is fetched. Run <code>ng serve --no-hmr</code> to
+          watch the <code>heavy-widget</code> chunk arrive in DevTools → Network, or check the lazy
+          chunks listed by <code>npm run build</code>.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-defer" [exercise]="exercises.defer" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Legacy: *ngIf, *ngFor, [ngSwitch]</h2>
-  <app-legacy-demo demo-body />
-  <p>
-    Before v17, templates used <strong>structural directives</strong> from
-    <code>&#64;angular/common</code>, imported in each component. The <code>*</code> is shorthand
-    for wrapping the element in an <code>&lt;ng-template&gt;</code>. They still work, are deprecated
-    since v20, and appear in most v19 codebases.
-  </p>
-  <p>
-    <code>ng generate &#64;angular/core:control-flow</code> migrates a project to the built-in
-    syntax. The Legacy &amp; migration topic covers old-style Angular as a whole.
-  </p>
-  <p class="source">Code: <code>legacy-demo.ts / .html</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        <code>*ngIf ... else</code> needs a separate <code>&lt;ng-template #ref&gt;</code>;
-        <code>&#64;else</code> is inline.
-      </li>
-      <li>
-        Only one structural directive fits on an element. <code>*ngIf</code> plus
-        <code>*ngFor</code> needed an extra <code>&lt;ng-container&gt;</code>. Blocks nest freely.
-      </li>
-      <li>
-        Built-in blocks need no imports and type-check better (e.g. narrowing in
-        <code>&#64;if</code>).
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.legacy" />
-</app-demo-card>
+@if (view.shows('legacy')) {
+  <app-demo-card>
+    <h2 demo-title>Legacy: *ngIf, *ngFor, [ngSwitch]</h2>
+    <app-guide-box [guide]="guides.legacy" />
+    <h3>In short</h3>
+    <app-legacy-demo demo-body />
+    <p>
+      Before v17, templates used <strong>structural directives</strong> from
+      <code>&#64;angular/common</code>, imported in each component. The <code>*</code> is shorthand
+      for wrapping the element in an <code>&lt;ng-template&gt;</code>. They still work, are
+      deprecated since v20, and appear in most v19 codebases.
+    </p>
+    <p>
+      <code>ng generate &#64;angular/core:control-flow</code> migrates a project to the built-in
+      syntax. The Legacy &amp; migration topic covers old-style Angular as a whole.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          <code>*ngIf ... else</code> needs a separate <code>&lt;ng-template #ref&gt;</code>;
+          <code>&#64;else</code> is inline.
+        </li>
+        <li>
+          Only one structural directive fits on an element. <code>*ngIf</code> plus
+          <code>*ngFor</code> needed an extra <code>&lt;ng-container&gt;</code>. Blocks nest freely.
+        </li>
+        <li>
+          Built-in blocks need no imports and type-check better (e.g. narrowing in
+          <code>&#64;if</code>).
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-legacy" [exercise]="exercises.legacy" />
+  </app-demo-card>
+}
+
+@if (view.single(); as card) {
+  <app-card-pager [cards]="view.cards" [current]="card.id" />
+}

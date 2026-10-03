@@ -9,278 +9,325 @@
   </p>
 </header>
 
+<app-card-nav [cards]="view.cards" [current]="view.current()" />
+
+@if (view.showMap()) {
+  <app-topic-map [guides]="guides">
+    <p>
+      A signal is a value that knows who reads it. When it changes, everything that read it is told:
+      templates re-render, <code>computed()</code> values recalculate and effects run again. You
+      never write "refresh the view": you change the value, and the rest follows.
+    </p>
+    <pre ngNonBindable aria-label="How a change spreads">
+ quantity = signal(1)          you write it:  quantity.set(2)
+        │
+        ├──▶ total = computed(...)        recalculated when read
+        ├──▶ template: {{ quantity() }}    re-rendered
+        └──▶ effect(...)                   runs again: save, log, sync</pre>
+  </app-topic-map>
+}
+
 <!-- Code samples in this template: `@` is escaped as &#64; and braces as &#123; &#125;
      (a bare brace would open or close a block). -->
 
-<app-demo-card>
-  <h2 demo-title>signal() and computed()</h2>
-  <app-basics-demo demo-body />
-  <p>
-    <code>quantity = signal(1)</code> creates a writable signal: read it with
-    <code>quantity()</code>, change it with <code>set(value)</code> or <code>update(fn)</code>.
-    <code>total = computed(() =&gt; ...)</code> is a read-only signal derived from others. It is
-    <strong>lazy</strong> (it runs only when something reads it) and <strong>memoized</strong> (it
-    reruns only after a dependency changed). Change the quantity while the total is hidden, then
-    show it, hide it and show it again, and watch the run number.
-  </p>
-  <p class="source">Code: <code>basics-demo.ts / .html</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Dependencies are found at run time: the signals a computation actually read on its last run.
-        A signal read only inside a branch that did not run is not a dependency until it does.
-      </li>
-      <li>
-        Signals hold values, so use immutable updates for objects and arrays:
-        <code>items.update((list) =&gt; [...list, item])</code>. Mutating the array in place keeps
-        the same reference, and readers are not notified.
-      </li>
-      <li>
-        A <code>computed()</code> must be a pure function of its dependencies: writing signals
-        inside it throws an error.
-      </li>
-      <li>
-        Signals + <code>OnPush</code> = fine-grained updates: a signal read by a template marks only
-        that component for refresh, not the whole tree.
-      </li>
-      <li>
-        Vue: <code>signal</code> ≈ <code>ref</code> (read with <code>count()</code>, not
-        <code>.value</code>), <code>computed</code> ≈ <code>computed</code>.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.basics" />
-</app-demo-card>
+@if (view.shows('basics')) {
+  <app-demo-card>
+    <h2 demo-title>signal() and computed()</h2>
+    <app-guide-box [guide]="guides.basics" />
+    <h3>In short</h3>
+    <app-basics-demo demo-body />
+    <p>
+      <code>quantity = signal(1)</code> creates a writable signal: read it with
+      <code>quantity()</code>, change it with <code>set(value)</code> or <code>update(fn)</code>.
+      <code>total = computed(() =&gt; ...)</code> is a read-only signal derived from others. It is
+      <strong>lazy</strong> (it runs only when something reads it) and <strong>memoized</strong> (it
+      reruns only after a dependency changed). Change the quantity while the total is hidden, then
+      show it, hide it and show it again, and watch the run number.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Dependencies are found at run time: the signals a computation actually read on its last
+          run. A signal read only inside a branch that did not run is not a dependency until it
+          does.
+        </li>
+        <li>
+          Signals hold values, so use immutable updates for objects and arrays:
+          <code>items.update((list) =&gt; [...list, item])</code>. Mutating the array in place keeps
+          the same reference, and readers are not notified.
+        </li>
+        <li>
+          A <code>computed()</code> must be a pure function of its dependencies: writing signals
+          inside it throws an error.
+        </li>
+        <li>
+          Signals + <code>OnPush</code> = fine-grained updates: a signal read by a template marks
+          only that component for refresh, not the whole tree.
+        </li>
+        <li>
+          Vue: <code>signal</code> ≈ <code>ref</code> (read with <code>count()</code>, not
+          <code>.value</code>), <code>computed</code> ≈ <code>computed</code>.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-basics" [exercise]="exercises.basics" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Equality functions</h2>
-  <app-equality-demo demo-body />
-  <p>
-    A signal notifies its readers only when the new value is different from the current one. By
-    default "different" means <code>!Object.is(a, b)</code>, so a new object with the same fields is
-    a change. The option <code>signal(point, &#123; equal: samePoint &#125;)</code> replaces that
-    comparison: here an equal copy is ignored, and the computed that depends on it does not rerun.
-  </p>
-  <p class="source">Code: <code>equality-demo.ts / .html</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        <code>computed()</code> and <code>linkedSignal()</code> accept <code>equal</code> too: a
-        derived value that did not change stops the update from reaching its own readers.
-      </li>
-      <li>
-        Mutating an object in place and calling <code>set()</code> with the same reference is
-        ignored by the default equality. Create a new object instead.
-      </li>
-      <li>
-        Keep equality functions cheap: they run on every <code>set()</code>. Deep comparisons of
-        large structures cost more than the update they save.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.equality" />
-</app-demo-card>
+@if (view.shows('equality')) {
+  <app-demo-card>
+    <h2 demo-title>Equality functions</h2>
+    <app-guide-box [guide]="guides.equality" />
+    <h3>In short</h3>
+    <app-equality-demo demo-body />
+    <p>
+      A signal notifies its readers only when the new value is different from the current one. By
+      default "different" means <code>!Object.is(a, b)</code>, so a new object with the same fields
+      is a change. The option <code>signal(point, &#123; equal: samePoint &#125;)</code> replaces
+      that comparison: here an equal copy is ignored, and the computed that depends on it does not
+      rerun.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          <code>computed()</code> and <code>linkedSignal()</code> accept <code>equal</code> too: a
+          derived value that did not change stops the update from reaching its own readers.
+        </li>
+        <li>
+          Mutating an object in place and calling <code>set()</code> with the same reference is
+          ignored by the default equality. Create a new object instead.
+        </li>
+        <li>
+          Keep equality functions cheap: they run on every <code>set()</code>. Deep comparisons of
+          large structures cost more than the update they save.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-equality" [exercise]="exercises.equality" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>untracked(): reading without depending</h2>
-  <app-untracked-demo demo-body />
-  <p>
-    Inside a computation, <code>untracked(b)</code> (or <code>untracked(() =&gt; b())</code>) reads
-    the current value of <code>b</code> without making it a dependency. Press "b + 1": the first sum
-    updates, the second does not. Press "a + 1": the second sum reruns and picks up the latest
-    <code>b</code>.
-  </p>
-  <p class="source">Code: <code>untracked-demo.ts / .html</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Its main use is in <code>effect()</code>: react to one signal and read others as context,
-        e.g. log a page view with the current user, without logging again when the user changes.
-      </li>
-      <li>
-        Also wrap calls into code you do not control (a service method, a third-party library)
-        inside an effect: any signal they read would otherwise become a dependency too.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.untracked" />
-</app-demo-card>
+@if (view.shows('untracked')) {
+  <app-demo-card>
+    <h2 demo-title>untracked(): reading without depending</h2>
+    <app-guide-box [guide]="guides.untracked" />
+    <h3>In short</h3>
+    <app-untracked-demo demo-body />
+    <p>
+      Inside a computation, <code>untracked(b)</code> (or <code>untracked(() =&gt; b())</code>)
+      reads the current value of <code>b</code> without making it a dependency. Press "b + 1": the
+      first sum updates, the second does not. Press "a + 1": the second sum reruns and picks up the
+      latest <code>b</code>.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Its main use is in <code>effect()</code>: react to one signal and read others as context,
+          e.g. log a page view with the current user, without logging again when the user changes.
+        </li>
+        <li>
+          Also wrap calls into code you do not control (a service method, a third-party library)
+          inside an effect: any signal they read would otherwise become a dependency too.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-untracked" [exercise]="exercises.untracked" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>effect(): syncing with the outside world</h2>
-  <app-effect-demo demo-body />
-  <p>
-    <code>effect(() =&gt; ...)</code> runs a function now and again whenever the signals it read
-    change. It is for side effects outside Angular's data flow: storage, logging, a canvas, a
-    third-party widget. This one saves the draft to <code>localStorage</code> half a second after
-    the last keystroke. The <code>onCleanup</code> callback cancels the pending save when the draft
-    changes again, so typing quickly produces a single save.
-  </p>
-  <p class="source">Code: <code>effect-demo.ts / .html</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Do not use an effect to copy one signal into another (<code
-          >effect(() =&gt; this.total.set(this.a() + this.b()))</code
-        >). Derive it instead: <code>computed()</code>, or <code>linkedSignal()</code> when it must
-        also be writable. Effects that write signals cause extra change detection passes and are
-        hard to follow.
-      </li>
-      <li>
-        Effects run asynchronously, during change detection, not synchronously on
-        <code>set()</code>. Several changes in a row produce one run.
-      </li>
-      <li>
-        <code>effect()</code> needs an injection context (constructor or field initializer), or
-        <code>&#123; injector &#125;</code>. A component's effects are destroyed with it; the
-        returned <code>EffectRef</code> has <code>destroy()</code> for earlier cleanup.
-      </li>
-      <li>
-        For DOM work after rendering use <code>afterRenderEffect()</code> or
-        <code>afterNextRender()</code> (Lifecycle topic).
-      </li>
-      <li>
-        Vue: <code>effect</code> ≈ <code>watchEffect</code>. There is no
-        <code>watch(source, cb)</code>: read the source in the effect and wrap the rest in
-        <code>untracked()</code>.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.effect" />
-</app-demo-card>
+@if (view.shows('effect')) {
+  <app-demo-card>
+    <h2 demo-title>effect(): syncing with the outside world</h2>
+    <app-guide-box [guide]="guides.effect" />
+    <h3>In short</h3>
+    <app-effect-demo demo-body />
+    <p>
+      <code>effect(() =&gt; ...)</code> runs a function now and again whenever the signals it read
+      change. It is for side effects outside Angular's data flow: storage, logging, a canvas, a
+      third-party widget. This one saves the draft to <code>localStorage</code> half a second after
+      the last keystroke. The <code>onCleanup</code> callback cancels the pending save when the
+      draft changes again, so typing quickly produces a single save.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Do not use an effect to copy one signal into another (<code
+            >effect(() =&gt; this.total.set(this.a() + this.b()))</code
+          >). Derive it instead: <code>computed()</code>, or <code>linkedSignal()</code> when it
+          must also be writable. Effects that write signals cause extra change detection passes and
+          are hard to follow.
+        </li>
+        <li>
+          Effects run asynchronously, during change detection, not synchronously on
+          <code>set()</code>. Several changes in a row produce one run.
+        </li>
+        <li>
+          <code>effect()</code> needs an injection context (constructor or field initializer), or
+          <code>&#123; injector &#125;</code>. A component's effects are destroyed with it; the
+          returned <code>EffectRef</code> has <code>destroy()</code> for earlier cleanup.
+        </li>
+        <li>
+          For DOM work after rendering use <code>afterRenderEffect()</code> or
+          <code>afterNextRender()</code> (Lifecycle topic).
+        </li>
+        <li>
+          Vue: <code>effect</code> ≈ <code>watchEffect</code>. There is no
+          <code>watch(source, cb)</code>: read the source in the effect and wrap the rest in
+          <code>untracked()</code>.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-effect" [exercise]="exercises.effect" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>linkedSignal(): writable derived state</h2>
-  <app-linked-demo demo-body />
-  <p>
-    The shipping method depends on the country but the user can also pick one. A
-    <code>linkedSignal</code> is a writable signal that is recomputed whenever its source changes.
-    The long form
-    <code>linkedSignal(&#123; source, computation: (methods, previous) =&gt; ... &#125;)</code> also
-    receives the previous value: pick "Express", switch to Portugal and it is kept; switch to
-    Andorra and it falls back to "Standard".
-  </p>
-  <p class="source">Code: <code>linked-demo.ts / .html</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        The short form <code>linkedSignal(() =&gt; this.methods()[0])</code> always resets to the
-        first option (see the Component communication topic).
-      </li>
-      <li>
-        A <code>set()</code> lasts until the source changes. Then the computation runs again and
-        decides.
-      </li>
-      <li>
-        Stable since v20. Without it, the usual pattern was an <code>effect()</code> that writes a
-        signal, which is the pattern the effect demo warns about.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.linked" />
-</app-demo-card>
+@if (view.shows('linked')) {
+  <app-demo-card>
+    <h2 demo-title>linkedSignal(): writable derived state</h2>
+    <app-guide-box [guide]="guides.linked" />
+    <h3>In short</h3>
+    <app-linked-demo demo-body />
+    <p>
+      The shipping method depends on the country but the user can also pick one. A
+      <code>linkedSignal</code> is a writable signal that is recomputed whenever its source changes.
+      The long form
+      <code>linkedSignal(&#123; source, computation: (methods, previous) =&gt; ... &#125;)</code>
+      also receives the previous value: pick "Express", switch to Portugal and it is kept; switch to
+      Andorra and it falls back to "Standard".
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          The short form <code>linkedSignal(() =&gt; this.methods()[0])</code> always resets to the
+          first option (see the Component communication topic).
+        </li>
+        <li>
+          A <code>set()</code> lasts until the source changes. Then the computation runs again and
+          decides.
+        </li>
+        <li>
+          Stable since v20. Without it, the usual pattern was an <code>effect()</code> that writes a
+          signal, which is the pattern the effect demo warns about.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-linked" [exercise]="exercises.linked" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>resource(): async data as signals</h2>
-  <app-resource-demo demo-body />
-  <p>
-    <code>resource(&#123; params, loader &#125;)</code> runs an async <code>loader</code> (a
-    Promise) whenever <code>params()</code> changes, and exposes the result as signals:
-    <code>value()</code>, <code>status()</code>, <code>isLoading()</code>, <code>error()</code> and
-    <code>hasValue()</code>. A new request aborts the previous one through the
-    <code>abortSignal</code> passed to the loader: click several ids quickly and watch the cancelled
-    count. User 4 does not exist, to show the error state.
-  </p>
-  <p class="source">Code: <code>resource-demo.ts / .html</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        <strong>Experimental</strong> in v21: the API may still change. Stable alternatives are a
-        service with an <code>HttpClient</code> Observable plus <code>toSignal()</code>.
-      </li>
-      <li>
-        Variants: <code>rxResource</code> (loader returns an Observable, from
-        <code>&#64;angular/core/rxjs-interop</code>) and <code>httpResource</code> (an HTTP GET
-        driven by signals, from <code>&#64;angular/common/http</code>; HTTP topic). Both
-        experimental.
-      </li>
-      <li>
-        <code>value()</code> throws while the resource is in the error state: check
-        <code>error()</code> or <code>hasValue()</code> first, as this template does.
-      </li>
-      <li>
-        <code>reload()</code> runs the loader again with the same params. If
-        <code>params()</code> returns <code>undefined</code>, the resource goes
-        <code>idle</code> and the loader does not run.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.resource" />
-</app-demo-card>
+@if (view.shows('resource')) {
+  <app-demo-card>
+    <h2 demo-title>resource(): async data as signals</h2>
+    <app-guide-box [guide]="guides.resource" />
+    <h3>In short</h3>
+    <app-resource-demo demo-body />
+    <p>
+      <code>resource(&#123; params, loader &#125;)</code> runs an async <code>loader</code> (a
+      Promise) whenever <code>params()</code> changes, and exposes the result as signals:
+      <code>value()</code>, <code>status()</code>, <code>isLoading()</code>,
+      <code>error()</code> and <code>hasValue()</code>. A new request aborts the previous one
+      through the <code>abortSignal</code> passed to the loader: click several ids quickly and watch
+      the cancelled count. User 4 does not exist, to show the error state.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          <strong>Experimental</strong> in v21: the API may still change. Stable alternatives are a
+          service with an <code>HttpClient</code> Observable plus <code>toSignal()</code>.
+        </li>
+        <li>
+          Variants: <code>rxResource</code> (loader returns an Observable, from
+          <code>&#64;angular/core/rxjs-interop</code>) and <code>httpResource</code> (an HTTP GET
+          driven by signals, from <code>&#64;angular/common/http</code>; HTTP topic). Both
+          experimental.
+        </li>
+        <li>
+          <code>value()</code> throws while the resource is in the error state: check
+          <code>error()</code> or <code>hasValue()</code> first, as this template does.
+        </li>
+        <li>
+          <code>reload()</code> runs the loader again with the same params. If
+          <code>params()</code> returns <code>undefined</code>, the resource goes
+          <code>idle</code> and the loader does not run.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-resource" [exercise]="exercises.resource" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>RxJS interop: toSignal() and toObservable()</h2>
-  <app-interop-demo demo-body />
-  <p>
-    <code>toObservable(this.query)</code> turns a signal into an Observable, so RxJS operators such
-    as <code>debounceTime</code> can process it.
-    <code>toSignal(observable$, &#123; initialValue &#125;)</code> turns the result back into a
-    signal the template can read. Type in the box: the raw query changes on every key, the debounced
-    one 300 ms after you stop. The seconds counter is <code>toSignal(interval(1000))</code>.
-  </p>
-  <p class="source">Code: <code>interop-demo.ts / .html</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        <code>toSignal</code> subscribes immediately and unsubscribes when the component (its
-        injection context) is destroyed: no <code>async</code> pipe, no manual unsubscribe.
-      </li>
-      <li>
-        Without <code>initialValue</code> the signal is <code>T | undefined</code> until the first
-        emission. Use <code>&#123; requireSync: true &#125;</code> for Observables that emit
-        synchronously (like a <code>BehaviorSubject</code>).
-      </li>
-      <li>
-        <code>toObservable</code> emits asynchronously, once per change detection pass: several
-        <code>set()</code> calls in a row emit only the last value.
-      </li>
-      <li>
-        Use signals for state the template shows; keep RxJS for events over time (debounce,
-        cancellation, combining streams). Stable since v20.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.interop" />
-</app-demo-card>
+@if (view.shows('interop')) {
+  <app-demo-card>
+    <h2 demo-title>RxJS interop: toSignal() and toObservable()</h2>
+    <app-guide-box [guide]="guides.interop" />
+    <h3>In short</h3>
+    <app-interop-demo demo-body />
+    <p>
+      <code>toObservable(this.query)</code> turns a signal into an Observable, so RxJS operators
+      such as <code>debounceTime</code> can process it.
+      <code>toSignal(observable$, &#123; initialValue &#125;)</code> turns the result back into a
+      signal the template can read. Type in the box: the raw query changes on every key, the
+      debounced one 300 ms after you stop. The seconds counter is
+      <code>toSignal(interval(1000))</code>.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          <code>toSignal</code> subscribes immediately and unsubscribes when the component (its
+          injection context) is destroyed: no <code>async</code> pipe, no manual unsubscribe.
+        </li>
+        <li>
+          Without <code>initialValue</code> the signal is <code>T | undefined</code> until the first
+          emission. Use <code>&#123; requireSync: true &#125;</code> for Observables that emit
+          synchronously (like a <code>BehaviorSubject</code>).
+        </li>
+        <li>
+          <code>toObservable</code> emits asynchronously, once per change detection pass: several
+          <code>set()</code> calls in a row emit only the last value.
+        </li>
+        <li>
+          Use signals for state the template shows; keep RxJS for events over time (debounce,
+          cancellation, combining streams). Stable since v20.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-interop" [exercise]="exercises.interop" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>outputFromObservable(): an Observable as an output</h2>
-  <app-output-observable-demo demo-body />
-  <p>
-    The hold button builds a stream with RxJS: each press starts an 800 ms timer and a release
-    cancels it (<code>switchMap</code> + <code>takeUntil</code>).
-    <code>held = outputFromObservable(stream$)</code> exposes that stream as a regular output, so
-    the parent listens with <code>(held)="onHeld($event)"</code>. Press and hold, then try a quick
-    click. Keyboard: hold Space or Enter.
-  </p>
-  <p class="source">
-    Code: <code>output-observable-demo.ts</code>, <code>interop/hold-button.ts</code>
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        The opposite direction, <code>outputToObservable(child.held)</code>, turns an output into an
-        Observable.
-      </li>
-      <li>
-        Unsubscribing is automatic when the component is destroyed. For other subscriptions use
-        <code>takeUntilDestroyed()</code> in an injection context.
-      </li>
-      <li>
-        Legacy: an <code>&#64;Output()</code> was an <code>EventEmitter</code> (a
-        <code>Subject</code>), so components often exposed Observables as outputs directly.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.outputObservable" />
-</app-demo-card>
+@if (view.shows('outputObservable')) {
+  <app-demo-card>
+    <h2 demo-title>outputFromObservable(): an Observable as an output</h2>
+    <app-guide-box [guide]="guides.outputObservable" />
+    <h3>In short</h3>
+    <app-output-observable-demo demo-body />
+    <p>
+      The hold button builds a stream with RxJS: each press starts an 800 ms timer and a release
+      cancels it (<code>switchMap</code> + <code>takeUntil</code>).
+      <code>held = outputFromObservable(stream$)</code> exposes that stream as a regular output, so
+      the parent listens with <code>(held)="onHeld($event)"</code>. Press and hold, then try a quick
+      click. Keyboard: hold Space or Enter.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          The opposite direction, <code>outputToObservable(child.held)</code>, turns an output into
+          an Observable.
+        </li>
+        <li>
+          Unsubscribing is automatic when the component is destroyed. For other subscriptions use
+          <code>takeUntilDestroyed()</code> in an injection context.
+        </li>
+        <li>
+          Legacy: an <code>&#64;Output()</code> was an <code>EventEmitter</code> (a
+          <code>Subject</code>), so components often exposed Observables as outputs directly.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-outputObservable" [exercise]="exercises.outputObservable" />
+  </app-demo-card>
+}
+
+@if (view.single(); as card) {
+  <app-card-pager [cards]="view.cards" [current]="card.id" />
+}

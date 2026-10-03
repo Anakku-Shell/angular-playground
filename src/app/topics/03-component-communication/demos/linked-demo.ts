@@ -10,6 +10,7 @@ const SIZES = {
 
 type Category = keyof typeof SIZES;
 
+/** The parent of the linked demo: picks a category and passes its sizes to the picker. */
 @Component({
   selector: 'app-linked-demo',
   imports: [OptionPicker],
@@ -19,6 +20,7 @@ type Category = keyof typeof SIZES;
 export class LinkedDemo {
   protected readonly categories = Object.keys(SIZES) as Category[];
   protected readonly category = signal<Category>('shirts');
+  // A new array whenever the category changes. The picker receives it as its `options` input.
   protected readonly sizes = computed(() => SIZES[this.category()]);
 
   protected onCategory(event: Event): void {

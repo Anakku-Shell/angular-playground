@@ -17,16 +17,16 @@ const initialState: CartState = { lines: [] };
  * component), so each provider gets its own instance, destroyed with that component.
  */
 export const CartSignalStore = signalStore(
-  // State: every property becomes a readonly signal (store.lines()). Only patchState() can
+  // [1] State: every property becomes a readonly signal (store.lines()). Only patchState() can
   // change it, and by default only from inside the store (protectedState: true).
   withState(initialState),
-  // Derived state, from the state signals above.
+  // [2] Derived state, from the state signals above.
   withComputed(({ lines }) => ({
     count: computed(() => countItems(lines())),
     total: computed(() => totalPrice(lines())),
     isEmpty: computed(() => lines().length === 0),
   })),
-  // Methods: the actions. patchState takes a partial state or an updater function, and always
+  // [3] Methods: the actions. patchState takes a partial state or an updater function, and always
   // replaces the state with a new object (immutable updates).
   withMethods((store) => ({
     add(product: Product): void {

@@ -1,4 +1,6 @@
 <!--
+  Read this template first, then bindings-demo.ts.
+
   Binding syntax, read from the element's point of view:
     [target]="expression"   data flows IN  (class → DOM). The right side is an expression.
     (event)="statement"     events flow OUT (DOM → class). The right side is a statement.
@@ -41,7 +43,7 @@
 
 <div class="demo-row">
   <!--
-    PROPERTY binding: [disabled] sets the DOM property `button.disabled` (a boolean).
+    [1] PROPERTY binding: [disabled] sets the DOM property `button.disabled` (a boolean).
       It also works on component inputs: [user]="currentUser()".
     ATTRIBUTE binding: [attr.aria-pressed] sets an HTML attribute. Needed when there is no DOM
       property with that name: aria-*, colspan, data-*, role, SVG attributes.
@@ -52,7 +54,7 @@
   </button>
 
   <!--
-    CLASS bindings. All of these combine with the static class="preview":
+    [2] CLASS bindings. All of these combine with the static class="preview":
       class="preview"                        static, always there
       [class.is-highlighted]="bool"          one class, on or off
       [class]="{ 'is-rounded': bool }"       object: each key on or off

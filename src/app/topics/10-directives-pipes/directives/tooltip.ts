@@ -16,7 +16,7 @@ const GAP_PX = 6;
 
 let nextId = 0;
 
-/** The visual part of the tooltip: a directive has no template or styles, so it uses a component. */
+/** [1] The visual part of the tooltip: a directive has no template or styles, so it uses a component. */
 @Component({
   selector: 'app-tooltip-bubble',
   template: '{{ text() }}',
@@ -55,6 +55,7 @@ export class TooltipBubble {
  */
 @Directive({
   selector: '[appTooltip]',
+  // [2] Listeners on the element the directive sits on.
   host: {
     '(mouseenter)': 'show()',
     '(focusin)': 'show()',
@@ -81,6 +82,7 @@ export class Tooltip {
     const rect = this.host.nativeElement.getBoundingClientRect();
     const maxLeft = window.innerWidth - BUBBLE_MAX_PX - GAP_PX;
 
+    // [3] A component created from code, placed right after the host element.
     this.bubble = this.viewContainer.createComponent(TooltipBubble);
     this.bubble.setInput('text', this.appTooltip());
     this.bubble.setInput('bubbleId', this.id);
@@ -90,7 +92,7 @@ export class Tooltip {
   }
 
   protected hide(): void {
-    // No DestroyRef cleanup needed: views in the container are destroyed with the host.
+    // [4] No DestroyRef cleanup needed: views in the container are destroyed with the host.
     this.bubble?.destroy();
     this.bubble = null;
     this.isOpen.set(false);

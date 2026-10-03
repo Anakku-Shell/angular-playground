@@ -2,7 +2,10 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 
 import { Task } from './task';
 
-/** Grandchild: shows one task and reports clicks. It does not change the task itself. */
+/**
+ * THE GRANDCHILD of the tree demo: shows one task and reports clicks. It does not change the
+ * task itself. Read this file first, then task-list.ts and ../tree-demo.ts, going up the tree.
+ */
 @Component({
   selector: 'app-task-item',
   template: `

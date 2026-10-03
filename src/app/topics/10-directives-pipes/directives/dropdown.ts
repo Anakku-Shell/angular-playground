@@ -8,10 +8,11 @@ export type CloseReason = 'outside click' | 'Escape' | 'item picked';
  */
 @Directive({
   selector: '[appDropdown]',
+  // [1] The name for template references: #menu="appDropdown".
   exportAs: 'appDropdown',
   host: {
     '[class.is-open]': 'isOpen()',
-    // Global targets: `document:` and `window:` listen outside the host element.
+    // [2] Global targets: `document:` and `window:` listen outside the host element.
     '(document:click)': 'onDocumentClick($event)',
     '(document:keydown.escape)': 'close("Escape")',
   },
@@ -22,7 +23,7 @@ export class Dropdown {
   private readonly openState = signal(false);
   readonly isOpen = this.openState.asReadonly();
 
-  /** Directives can have outputs too: `<div appDropdown (closed)="…">`. */
+  /** [3] Directives can have outputs too: `<div appDropdown (closed)="…">`. */
   readonly closed = output<CloseReason>();
 
   toggle(): void {

@@ -14,7 +14,7 @@ export function pageTitle(page: string): string {
 }
 
 /**
- * Loads the product before the route activates. The component receives it as the `product` input
+ * [1] Loads the product before the route activates. The component receives it as the `product` input
  * (the key used in `resolve: { product: ... }`).
  */
 export const productResolver: ResolveFn<Product> = async (route) => {
@@ -28,13 +28,13 @@ export const productResolver: ResolveFn<Product> = async (route) => {
   if (product) {
     return product;
   }
-  // Unknown id: cancel this navigation and go to the list instead.
+  // [2] Unknown id: cancel this navigation and go to the list instead.
   return new RedirectCommand(
     router.createUrlTree([ROUTING_URL, 'products'], { queryParams: { missing: id } }),
   );
 };
 
-/** A route `title` can be a resolver too. It runs next to the others, so it cannot read their data. */
+/** [3] A route `title` can be a resolver too. It runs next to the others, so it cannot read their data. */
 export const productTitleResolver: ResolveFn<string> = (route) => {
   const product = findProduct(Number(route.paramMap.get('id')));
   return pageTitle(product?.name ?? 'Product not found');
