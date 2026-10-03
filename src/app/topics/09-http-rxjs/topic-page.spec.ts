@@ -1,6 +1,7 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { FAKE_TOKEN } from '../../core/http/auth-interceptor';
 import { APP_INTERCEPTORS } from '../../core/http/interceptors';
@@ -30,10 +31,13 @@ describe('HttpRxjsPage', () => {
       providers: [
         provideHttpClient(withInterceptors(APP_INTERCEPTORS)),
         provideHttpClientTesting(),
+        provideRouter([]),
       ],
     });
     httpMock = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(HttpRxjsPage);
+    // ?card=all: every card on the page, as the tests below need.
+    fixture.componentRef.setInput('card', 'all');
     el = fixture.nativeElement as HTMLElement;
     fixture.detectChanges();
 
@@ -69,6 +73,7 @@ describe('HttpRxjsPage', () => {
   it('renders one demo card per concept', () => {
     expect(el.querySelectorAll('app-demo-card').length).toBe(6);
     for (const card of el.querySelectorAll('app-demo-card')) {
+      expect(card.querySelectorAll('app-guide-box .guide__steps > li').length).toBeGreaterThan(0);
       expect(
         card.querySelectorAll('app-exercise-box .exercise__tasks > li').length,
       ).toBeGreaterThan(0);

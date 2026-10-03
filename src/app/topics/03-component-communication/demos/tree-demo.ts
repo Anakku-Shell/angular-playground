@@ -11,7 +11,10 @@ const INITIAL_TASKS: readonly Task[] = [
   { id: 5, title: 'Call the bank', done: true },
 ];
 
-/** Parent: owns the state. Children only display it and report events. */
+/**
+ * THE PARENT of the tree demo: owns the state. Children only display it and report events.
+ * This is the only place where a task changes.
+ */
 @Component({
   selector: 'app-tree-demo',
   imports: [TaskList],

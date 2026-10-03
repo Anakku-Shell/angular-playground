@@ -7,6 +7,7 @@ describe('StarRating', () => {
   let fixture: ComponentFixture<StarRating>;
   let el: HTMLElement;
 
+  // [1] Render the component alone, with its default inputs.
   beforeEach(async () => {
     fixture = TestBed.createComponent(StarRating);
     el = fixture.nativeElement as HTMLElement;
@@ -22,7 +23,7 @@ describe('StarRating', () => {
   });
 
   it('reacts to inputs set through componentRef.setInput', async () => {
-    // setInput goes through Angular like a template binding would; assigning a field would not.
+    // [2] setInput goes through Angular like a template binding would; assigning a field would not.
     fixture.componentRef.setInput('max', 3);
     fixture.componentRef.setInput('value', 2);
     await fixture.whenStable();
@@ -41,7 +42,7 @@ describe('StarRating', () => {
 
   it('emits rated on click; clicking the same star clears it', async () => {
     const rated: number[] = [];
-    // An OutputRef can be subscribed to directly, no EventEmitter needed.
+    // [3] An OutputRef can be subscribed to directly, no EventEmitter needed.
     fixture.componentInstance.rated.subscribe((value) => rated.push(value));
 
     stars()[3].click();
@@ -64,7 +65,7 @@ describe('StarRating', () => {
   });
 });
 
-/** A host component: the only way to test `[(value)]` exactly as a parent uses it. */
+/** [4] A host component: the only way to test `[(value)]` exactly as a parent uses it. */
 @Component({
   imports: [StarRating],
   template: `<app-star-rating [(value)]="score" (rated)="lastRated = $event" />`,

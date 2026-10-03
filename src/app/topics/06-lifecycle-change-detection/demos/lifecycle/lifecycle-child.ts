@@ -49,12 +49,13 @@ export class LifecycleChild
   private readonly log = inject(HookLog);
 
   constructor() {
-    // Inputs are not set yet: reading label() here is a compile error (NG8118); if it got
+    // [1] Inputs are not set yet: reading label() here is a compile error (NG8118); if it got
     // through, it would throw NG0950 (required input not set) at runtime.
     this.log.add('constructor: injection works, inputs not set yet');
     inject(DestroyRef).onDestroy(() => this.log.add('DestroyRef.onDestroy'));
   }
 
+  // [2] Runs before ngOnInit and again on every input change.
   // SimpleChanges<LifecycleChild> (typed since v21) knows the input names and value types.
   ngOnChanges(changes: SimpleChanges<LifecycleChild>): void {
     const change = changes.label;
@@ -64,10 +65,12 @@ export class LifecycleChild
     }
   }
 
+  // [3] Once, after the first ngOnChanges: the inputs are set.
   ngOnInit(): void {
     this.log.add(`ngOnInit: inputs are set, label() = "${this.label()}"`);
   }
 
+  // [4] Once each: after the projected content, then after the view, is created.
   ngAfterContentInit(): void {
     this.log.add('ngAfterContentInit: projected content is ready');
   }

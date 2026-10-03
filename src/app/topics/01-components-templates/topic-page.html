@@ -7,238 +7,291 @@
   </p>
 </header>
 
+<app-card-nav [cards]="view.cards" [current]="view.current()" />
+
+@if (view.showMap()) {
+  <app-topic-map [guides]="guides">
+    <p>
+      A component is a class plus a template. The class holds the data (usually in signals) and the
+      logic; the template describes the HTML. Almost everything in this topic is a way to connect
+      the two, and the brackets tell you which way the data flows:
+    </p>
+    <pre ngNonBindable aria-label="How the class and the template connect">
+ class                           template
+ name = signal('Ada')   ──▶     {{ name() }}             interpolation: text
+ off = signal(true)     ──▶     [disabled]="off()"       [ ]  class → DOM
+ save()                 ◀──     (click)="save()"         ( )  DOM → class
+ name                   ◀─▶     [(ngModel)]="name"       [( )] both ways</pre>
+  </app-topic-map>
+}
+
 <!-- Code samples in this template: `@` is escaped as &#64; (it starts a block otherwise), and
      ngNonBindable turns off Angular syntax inside an element so double braces print as text. -->
 
-<app-demo-card>
-  <h2 demo-title>Interpolation</h2>
-  <app-interpolation-demo demo-body />
-  <p>
-    <code ngNonBindable>{{ expression }}</code> renders the result of a TypeScript-like expression
-    as text. It can read class members (signals are called: <code>user().name</code>), do
-    arithmetic, use ternaries, <code>?.</code> and <code>??</code>.
-  </p>
-  <p class="source">Code: <code>interpolation-demo.ts / .html</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Keep templates light: move non-trivial logic into a <code>computed()</code> in the class
-        (like <code>total</code>). It is cached and only recomputed when its signals change.
-      </li>
-      <li>
-        Interpolation always escapes HTML. To render markup, bind <code>[innerHTML]</code>; Angular
-        sanitizes it and strips anything dangerous.
-      </li>
-      <li>
-        Templates only see the component's members: no <code>window</code>, <code>console</code> or
-        globals. Expose what you need from the class.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.interpolation" />
-</app-demo-card>
+@if (view.shows('interpolation')) {
+  <app-demo-card>
+    <h2 demo-title>Interpolation</h2>
+    <app-guide-box [guide]="guides.interpolation" />
+    <h3>In short</h3>
+    <app-interpolation-demo demo-body />
+    <p>
+      <code ngNonBindable>{{ expression }}</code> renders the result of a TypeScript-like expression
+      as text. It can read class members (signals are called: <code>user().name</code>), do
+      arithmetic, use ternaries, <code>?.</code> and <code>??</code>.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Keep templates light: move non-trivial logic into a <code>computed()</code> in the class
+          (like <code>total</code>). It is cached and only recomputed when its signals change.
+        </li>
+        <li>
+          Interpolation always escapes HTML. To render markup, bind <code>[innerHTML]</code>;
+          Angular sanitizes it and strips anything dangerous.
+        </li>
+        <li>
+          Templates only see the component's members: no <code>window</code>,
+          <code>console</code> or globals. Expose what you need from the class.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-interpolation" [exercise]="exercises.interpolation" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Property, attribute, class and style bindings</h2>
-  <app-bindings-demo demo-body />
-  <p>
-    <code>[prop]="expr"</code> sets a <strong>DOM property</strong> (<code>[disabled]</code>,
-    <code>[value]</code>). Things that only exist as HTML attributes, like <code>aria-*</code> or
-    <code>colspan</code>, need <code>[attr.name]</code>. <code>[class.name]</code> toggles one class
-    and <code>[class]</code> takes a string, array or map. <code>[style.prop]</code> sets one style,
-    with an optional unit: <code>[style.width.px]</code>.
-  </p>
-  <p class="source">Code: <code>bindings-demo.ts / .html</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Inspect the button in DevTools: <code>aria-pressed</code> appears as an attribute, while
-        <code>disabled</code> is a property (the attribute is added by the browser).
-      </li>
-      <li>
-        <code>[attr.x]="null"</code> removes the attribute. With <code>false</code> it is set to the
-        text <code>"false"</code>.
-      </li>
-      <li>
-        Static <code>class="..."</code>, <code>[class]</code> and <code>[class.x]</code> merge; they
-        do not overwrite each other.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.bindings" />
-</app-demo-card>
+@if (view.shows('bindings')) {
+  <app-demo-card>
+    <h2 demo-title>Property, attribute, class and style bindings</h2>
+    <app-guide-box [guide]="guides.bindings" />
+    <h3>In short</h3>
+    <app-bindings-demo demo-body />
+    <p>
+      <code>[prop]="expr"</code> sets a <strong>DOM property</strong> (<code>[disabled]</code>,
+      <code>[value]</code>). Things that only exist as HTML attributes, like <code>aria-*</code> or
+      <code>colspan</code>, need <code>[attr.name]</code>. <code>[class.name]</code> toggles one
+      class and <code>[class]</code> takes a string, array or map. <code>[style.prop]</code> sets
+      one style, with an optional unit: <code>[style.width.px]</code>.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Inspect the button in DevTools: <code>aria-pressed</code> appears as an attribute, while
+          <code>disabled</code> is a property (the attribute is added by the browser).
+        </li>
+        <li>
+          <code>[attr.x]="null"</code> removes the attribute. With <code>false</code> it is set to
+          the text <code>"false"</code>.
+        </li>
+        <li>
+          Static <code>class="..."</code>, <code>[class]</code> and <code>[class.x]</code> merge;
+          they do not overwrite each other.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-bindings" [exercise]="exercises.bindings" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Event binding</h2>
-  <app-events-demo demo-body />
-  <p>
-    <code>(event)="statement"</code> runs a statement when the DOM event fires.
-    <code>$event</code> is the native event object (<code>MouseEvent</code>,
-    <code>KeyboardEvent</code>...). Key events accept filters: <code>(keyup.enter)</code>,
-    <code>(keyup.escape)</code>, <code>(keydown.shift.tab)</code>.
-  </p>
-  <p class="source">Code: <code>events-demo.ts / .html</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        For <code>(input)</code>, <code>$event</code> is a plain <code>Event</code>: cast its
-        <code>target</code> (<code>event.target as HTMLInputElement</code>) in the class, not in the
-        template.
-      </li>
-      <li>
-        Prefer calling a method (<code>add()</code>) over long statements in the template: it is
-        easier to read and to test.
-      </li>
-      <li>An event handled by a template listener also schedules a re-render of the component.</li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.events" />
-</app-demo-card>
+@if (view.shows('events')) {
+  <app-demo-card>
+    <h2 demo-title>Event binding</h2>
+    <app-guide-box [guide]="guides.events" />
+    <h3>In short</h3>
+    <app-events-demo demo-body />
+    <p>
+      <code>(event)="statement"</code> runs a statement when the DOM event fires.
+      <code>$event</code> is the native event object (<code>MouseEvent</code>,
+      <code>KeyboardEvent</code>...). Key events accept filters: <code>(keyup.enter)</code>,
+      <code>(keyup.escape)</code>, <code>(keydown.shift.tab)</code>.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          For <code>(input)</code>, <code>$event</code> is a plain <code>Event</code>: cast its
+          <code>target</code> (<code>event.target as HTMLInputElement</code>) in the class, not in
+          the template.
+        </li>
+        <li>
+          Prefer calling a method (<code>add()</code>) over long statements in the template: it is
+          easier to read and to test.
+        </li>
+        <li>
+          An event handled by a template listener also schedules a re-render of the component.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-events" [exercise]="exercises.events" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Two-way binding with ngModel</h2>
-  <app-two-way-demo demo-body />
-  <p>
-    <code>[(ngModel)]="name"</code> ("banana in a box") is shorthand for a property binding plus an
-    event binding: <code>[ngModel]="name()" (ngModelChange)="name.set($event)"</code>. Both inputs
-    above share the same signal. <code>ngModel</code> comes from <code>FormsModule</code>; forms get
-    their own topic.
-  </p>
-  <p class="source">Code: <code>two-way-demo.ts / .html</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        <code>[(x)]</code> works with any component that has an input <code>x</code> and an output
-        <code>xChange</code>. The <code>model()</code> API creates that pair (see Component
-        communication).
-      </li>
-      <li>
-        With a signal, write <code>[(ngModel)]="name"</code> (no parentheses): Angular needs the
-        signal itself to call <code>set()</code> on it.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.twoWay" />
-</app-demo-card>
+@if (view.shows('twoWay')) {
+  <app-demo-card>
+    <h2 demo-title>Two-way binding with ngModel</h2>
+    <app-guide-box [guide]="guides.twoWay" />
+    <h3>In short</h3>
+    <app-two-way-demo demo-body />
+    <p>
+      <code>[(ngModel)]="name"</code> ("banana in a box") is shorthand for a property binding plus
+      an event binding: <code>[ngModel]="name()" (ngModelChange)="name.set($event)"</code>. Both
+      inputs above share the same signal. <code>ngModel</code> comes from <code>FormsModule</code>;
+      forms get their own topic.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          <code>[(x)]</code> works with any component that has an input <code>x</code> and an output
+          <code>xChange</code>. The <code>model()</code> API creates that pair (see Component
+          communication).
+        </li>
+        <li>
+          With a signal, write <code>[(ngModel)]="name"</code> (no parentheses): Angular needs the
+          signal itself to call <code>set()</code> on it.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-twoWay" [exercise]="exercises.twoWay" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Template reference variables</h2>
-  <app-template-refs-demo demo-body />
-  <p>
-    <code>#name</code> on an element creates a template variable pointing to that DOM element (or to
-    the component instance, when placed on a component). It can be used anywhere in the same
-    template, for example to pass a value to a method: <code>greet(nameInput.value)</code>.
-  </p>
-  <p class="source">Code: <code>template-refs-demo.ts / .html</code></p>
-  <app-tips-box tone="warning" heading="Gotcha">
-    <ul>
-      <li>
-        Type in the input and watch <code>nameInput.value</code>: it does not update. Nothing tells
-        Angular to re-render, because typing triggers no bound event. Click a button and it catches
-        up. Keep state in signals, not in DOM elements.
-      </li>
-      <li>
-        <code>#ref="exportName"</code> points to a directive instead (e.g.
-        <code>#m="ngModel"</code>). It shows up in the Forms topic.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.templateRefs" />
-</app-demo-card>
+@if (view.shows('templateRefs')) {
+  <app-demo-card>
+    <h2 demo-title>Template reference variables</h2>
+    <app-guide-box [guide]="guides.templateRefs" />
+    <h3>In short</h3>
+    <app-template-refs-demo demo-body />
+    <p>
+      <code>#name</code> on an element creates a template variable pointing to that DOM element (or
+      to the component instance, when placed on a component). It can be used anywhere in the same
+      template, for example to pass a value to a method: <code>greet(nameInput.value)</code>.
+    </p>
+    <app-tips-box tone="warning" heading="Gotcha">
+      <ul>
+        <li>
+          Type in the input and watch <code>nameInput.value</code>: it does not update. Nothing
+          tells Angular to re-render, because typing triggers no bound event. Click a button and it
+          catches up. Keep state in signals, not in DOM elements.
+        </li>
+        <li>
+          <code>#ref="exportName"</code> points to a directive instead (e.g.
+          <code>#m="ngModel"</code>). It shows up in the Forms topic.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-templateRefs" [exercise]="exercises.templateRefs" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>&#64;let</h2>
-  <app-let-demo demo-body />
-  <p>
-    <code>&#64;let name = expression;</code> declares a read-only variable in the template. Its
-    value is kept up to date when the expression's inputs change. A common use is subscribing once
-    with <code>&#64;let customer = customer$ | async;</code> and reusing the value.
-  </p>
-  <p class="source">Code: <code>let-demo.ts / .html</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Stable since Angular 19 (developer preview in 18.1). Not available in older codebases.
-      </li>
-      <li>
-        A <code>&#64;let</code> is visible in its block and nested blocks, only after its
-        declaration. It cannot be reassigned from the template.
-      </li>
-      <li>
-        If the value belongs to the component's logic (not just the view), use a
-        <code>computed()</code> in the class instead.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.let" />
-</app-demo-card>
+@if (view.shows('let')) {
+  <app-demo-card>
+    <h2 demo-title>&#64;let</h2>
+    <app-guide-box [guide]="guides.let" />
+    <h3>In short</h3>
+    <app-let-demo demo-body />
+    <p>
+      <code>&#64;let name = expression;</code> declares a read-only variable in the template. Its
+      value is kept up to date when the expression's inputs change. A common use is subscribing once
+      with <code>&#64;let customer = customer$ | async;</code> and reusing the value.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Stable since Angular 19 (developer preview in 18.1). Not available in older codebases.
+        </li>
+        <li>
+          A <code>&#64;let</code> is visible in its block and nested blocks, only after its
+          declaration. It cannot be reassigned from the template.
+        </li>
+        <li>
+          If the value belongs to the component's logic (not just the view), use a
+          <code>computed()</code> in the class instead.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-let" [exercise]="exercises.let" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Built-in pipes</h2>
-  <app-pipes-demo demo-body />
-  <p>
-    A pipe transforms a value for display: <code>value | pipe: arg1 : arg2</code>. Pipes chain left
-    to right (<code>clock$ | async | date: 'HH:mm:ss'</code>). They come from
-    <code>&#64;angular/common</code> and are imported per component, like components are.
-  </p>
-  <p class="source">Code: <code>pipes-demo.ts / .html</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        <code>date</code> and <code>currency</code> format with the app's locale (<code>en-US</code>
-        by default). Other locales need <code>registerLocaleData</code> and <code>LOCALE_ID</code>.
-      </li>
-      <li>
-        <code>async</code> subscribes to an Observable or Promise and unsubscribes when the
-        component is destroyed: no manual cleanup.
-      </li>
-      <li>
-        Most pipes are <strong>pure</strong>: they only re-run when the input value (or object
-        reference) changes. <code>async</code>, <code>json</code> and <code>keyvalue</code> are
-        impure and re-run on every check.
-      </li>
-      <li><code>json</code> is a debugging aid: handy while developing, rarely shipped.</li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.pipes" />
-</app-demo-card>
+@if (view.shows('pipes')) {
+  <app-demo-card>
+    <h2 demo-title>Built-in pipes</h2>
+    <app-guide-box [guide]="guides.pipes" />
+    <h3>In short</h3>
+    <app-pipes-demo demo-body />
+    <p>
+      A pipe transforms a value for display: <code>value | pipe: arg1 : arg2</code>. Pipes chain
+      left to right (<code>clock$ | async | date: 'HH:mm:ss'</code>). They come from
+      <code>&#64;angular/common</code> and are imported per component, like components are.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          <code>date</code> and <code>currency</code> format with the app's locale (<code
+            >en-US</code
+          >
+          by default). Other locales need <code>registerLocaleData</code> and
+          <code>LOCALE_ID</code>.
+        </li>
+        <li>
+          <code>async</code> subscribes to an Observable or Promise and unsubscribes when the
+          component is destroyed: no manual cleanup.
+        </li>
+        <li>
+          Most pipes are <strong>pure</strong>: they only re-run when the input value (or object
+          reference) changes. <code>async</code>, <code>json</code> and <code>keyvalue</code> are
+          impure and re-run on every check.
+        </li>
+        <li><code>json</code> is a debugging aid: handy while developing, rarely shipped.</li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-pipes" [exercise]="exercises.pipes" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Component styles and ViewEncapsulation</h2>
-  <app-encapsulation-demo demo-body />
-  <p>
-    Component styles are scoped by default. <code>encapsulation</code> controls how:
-    <strong>Emulated</strong> (default) adds unique attributes to the component's elements and
-    rules; <strong>None</strong> adds the styles globally; <strong>ShadowDom</strong> uses the
-    browser's native shadow DOM. <code>:host</code> targets the component's own element.
-  </p>
-  <p>
-    Tick the checkbox: the None component's <code>.enc-sample</code> rule underlines every element
-    with that class, in the parent and in the other samples. Untick it and the rule is gone: Angular
-    removes a component's styles when its last instance is destroyed. The ShadowDom button ignores
-    the page's global button style, because <code>styles.scss</code> cannot enter a shadow root.
-  </p>
-  <p class="source">Code: <code>encapsulation-demo.ts</code>, <code>encapsulation/*.ts</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Stay with Emulated. <code>None</code> is for deliberate global styles (e.g. theming a
-        third-party widget) and needs unique class names.
-      </li>
-      <li>
-        Emulated styles do not reach projected content or child components.
-        <code>::ng-deep</code> pierces that but is deprecated; prefer global styles or CSS custom
-        properties.
-      </li>
-      <li>
-        CSS custom properties (<code>var(--x)</code>) cross every boundary, shadow DOM included: the
-        standard way to theme components.
-      </li>
-      <li>
-        Gotcha: ShadowDom does not fully isolate an Angular component. Angular copies the styles of
-        its other components into every shadow root, so a <code>None</code> rule still reaches in.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.encapsulation" />
-</app-demo-card>
+@if (view.shows('encapsulation')) {
+  <app-demo-card>
+    <h2 demo-title>Component styles and ViewEncapsulation</h2>
+    <app-guide-box [guide]="guides.encapsulation" />
+    <h3>In short</h3>
+    <app-encapsulation-demo demo-body />
+    <p>
+      Component styles are scoped by default. <code>encapsulation</code> controls how:
+      <strong>Emulated</strong> (default) adds unique attributes to the component's elements and
+      rules; <strong>None</strong> adds the styles globally; <strong>ShadowDom</strong> uses the
+      browser's native shadow DOM. <code>:host</code> targets the component's own element.
+    </p>
+    <p>
+      Tick the checkbox: the None component's <code>.enc-sample</code> rule underlines every element
+      with that class, in the parent and in the other samples. Untick it and the rule is gone:
+      Angular removes a component's styles when its last instance is destroyed. The ShadowDom button
+      ignores the page's global button style, because <code>styles.scss</code> cannot enter a shadow
+      root.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Stay with Emulated. <code>None</code> is for deliberate global styles (e.g. theming a
+          third-party widget) and needs unique class names.
+        </li>
+        <li>
+          Emulated styles do not reach projected content or child components.
+          <code>::ng-deep</code> pierces that but is deprecated; prefer global styles or CSS custom
+          properties.
+        </li>
+        <li>
+          CSS custom properties (<code>var(--x)</code>) cross every boundary, shadow DOM included:
+          the standard way to theme components.
+        </li>
+        <li>
+          Gotcha: ShadowDom does not fully isolate an Angular component. Angular copies the styles
+          of its other components into every shadow root, so a <code>None</code> rule still reaches
+          in.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-encapsulation" [exercise]="exercises.encapsulation" />
+  </app-demo-card>
+}
+
+@if (view.single(); as card) {
+  <app-card-pager [cards]="view.cards" [current]="card.id" />
+}

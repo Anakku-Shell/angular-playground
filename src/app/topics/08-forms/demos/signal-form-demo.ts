@@ -33,7 +33,7 @@ interface Login {
     <form class="demo-form signal-form" novalidate (submit)="onSubmit($event)">
       <label class="field">
         <span>Email</span>
-        <!-- [formField] binds the input to a field of the tree: value, touched, disabled... -->
+        <!-- [3] [formField] binds the input to a field of the tree: value, touched, disabled... -->
         <input type="email" class="sf-email" [formField]="loginForm.email" />
       </label>
       @if (loginForm.email().touched()) {
@@ -81,10 +81,10 @@ interface Login {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SignalFormDemo {
-  // The model is a plain WritableSignal: the form reads and writes it, it does not copy it.
+  // [1] The model is a plain WritableSignal: the form reads and writes it, it does not copy it.
   protected readonly model = signal<Login>({ email: '', password: '', confirm: '' });
 
-  // form() builds a FieldTree from the model. The schema function declares the rules per path.
+  // [2] form() builds a FieldTree from the model. The schema function declares the rules per path.
   protected readonly loginForm = form(this.model, (path) => {
     required(path.email, { message: 'Email is required.' });
     email(path.email, { message: 'Enter a valid email.' });
@@ -107,7 +107,7 @@ export class SignalFormDemo {
 
   protected onSubmit(event: Event): void {
     event.preventDefault();
-    // submit() marks every field as touched and only runs the action when the form is valid.
+    // [4] submit() marks every field as touched and only runs the action when the form is valid.
     // The action returns a Promise (usually the server call); resolving to errors would show them
     // on the fields, null means success.
     void submit(this.loginForm, (field) => {

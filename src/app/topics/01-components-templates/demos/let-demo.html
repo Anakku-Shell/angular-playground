@@ -1,4 +1,6 @@
 <!--
+  Read this template first, then let-demo.ts.
+
   @let declares a read-only template variable. Each one is recalculated when its inputs change.
   Rules: visible only after its declaration (order matters), in the same block and nested
   blocks; cannot be reassigned from the template. Three ways to name a derived value:
@@ -6,10 +8,11 @@
     computed() in the class  values the class or the tests also need
     a method call            recalculated on every render: avoid for anything costly
 -->
+<!-- [1] Each value builds on the previous one, so the order matters. -->
 @let subtotal = quantity() * unitPrice;
 @let shipping = subtotal >= 50 ? 0 : 4.99;
 @let total = subtotal + shipping;
-<!-- Subscribe once and reuse the value, instead of repeating `customer$ | async`.
+<!-- [2] Subscribe once and reuse the value, instead of repeating `customer$ | async`.
      Until the Observable emits, the async pipe returns null: hence customer?.name below. -->
 @let customer = customer$ | async;
 

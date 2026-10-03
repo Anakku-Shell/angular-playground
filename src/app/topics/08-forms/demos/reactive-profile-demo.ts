@@ -18,6 +18,7 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
   selector: 'app-reactive-profile-demo',
   imports: [ReactiveFormsModule, JsonPipe],
   template: `
+    <!-- [2] [formGroup] connects the model; formControlName binds each input by its key. -->
     <form [formGroup]="form" class="demo-form profile-form" novalidate>
       <label class="field">
         <span>Name (required, 3+ characters)</span>
@@ -92,7 +93,7 @@ export class ReactiveProfileDemo {
   // reset() goes back to the initial value instead of null.
   private readonly fb = inject(NonNullableFormBuilder);
 
-  // The type is inferred: FormGroup<{ name: FormControl<string>; age: FormControl<number>; ... }>.
+  // [1] The form model. The type is inferred: FormGroup<{ name: FormControl<string>; age: FormControl<number>; ... }>.
   protected readonly form = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(3)]],
     age: [30, [Validators.min(18), Validators.max(120)]],
@@ -102,7 +103,7 @@ export class ReactiveProfileDemo {
     }),
   });
 
-  // Forms are not signals: bridge the Observables so the zoneless view refreshes on every change,
+  // [3] Forms are not signals: bridge the Observables so the zoneless view refreshes on every change,
   // including changes made from code (setValue, reset...).
   protected readonly value = toSignal(this.form.valueChanges, { initialValue: this.form.value });
   protected readonly status = toSignal(this.form.statusChanges, {
@@ -119,6 +120,7 @@ export class ReactiveProfileDemo {
       .subscribe((name) => this.nameLog.update((log) => [...log.slice(-4), JSON.stringify(name)]));
   }
 
+  // [4] Changing the form from code.
   protected fillAll(): void {
     // setValue needs the whole shape; TypeScript checks it.
     this.form.setValue({

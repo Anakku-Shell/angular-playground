@@ -17,7 +17,7 @@ export const MAX_SKILLS = 5;
         <input formControlName="developer" />
       </label>
 
-      <!-- formArrayName scopes the controls below to the array; each one binds by its index. -->
+      <!-- [2] formArrayName scopes the controls below to the array; each one binds by its index. -->
       <ol formArrayName="skills" class="skills">
         <!-- track the control object, not $index: removing an item must not move the other
              inputs' DOM (and focus) to a different control. -->
@@ -81,7 +81,7 @@ export class FormArrayDemo {
 
   protected readonly form = this.fb.group({
     developer: ['Ada'],
-    // Array validators check the number of items. required fails on an empty array; minLength(n)
+    // [1] A FormArray of controls. Array validators check the number of items. required fails on an empty array; minLength(n)
     // would skip it (like an empty string), so "at least one" needs required.
     skills: this.fb.array([this.skill('TypeScript'), this.skill('Angular')], Validators.required),
   });
@@ -91,6 +91,7 @@ export class FormArrayDemo {
   /** Typed as FormArray<FormControl<string>>. The array object never changes, only its items. */
   protected readonly skills = this.form.controls.skills;
 
+  // [3] The array changes in place: push and removeAt.
   protected add(): void {
     this.skills.push(this.skill());
   }

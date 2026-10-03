@@ -9,142 +9,172 @@
   </p>
 </header>
 
+<app-card-nav [cards]="view.cards" [current]="view.current()" />
+
+@if (view.showMap()) {
+  <app-topic-map [guides]="guides">
+    <p>
+      State is the data that changes while the app runs: a cart, filters, search results. The main
+      question is <strong>where it lives</strong>, because that decides who can read it, who can
+      change it, and how long it lasts:
+    </p>
+    <pre aria-label="Where state can live">
+ signals in a component     only that component            destroyed with it
+ signalState()              one local object, patchState    destroyed with it
+ a service with signals     every component that injects it  as long as its provider
+ signalStore()              the same, with a fixed structure as long as its provider</pre>
+    <p>
+      The rule every store follows: components read signals and call methods; only the store writes
+      its state.
+    </p>
+  </app-topic-map>
+}
+
 <!-- Code samples in this template: braces are escaped as &#123; &#125;
      (a bare brace would open or close a block). -->
 
-<app-demo-card>
-  <h2 demo-title>A store service with signals</h2>
-  <app-service-store-demo demo-body />
-  <p>
-    <code>CartStore</code> keeps the lines in a <strong>private</strong> writable signal and exposes
-    a readonly view (<code>asReadonly()</code>) plus <code>computed</code> count and total. Its
-    methods (<code>add</code>, <code>remove</code>, <code>clear</code>) are the only way to change
-    the state. The badge injects the same store, so it updates without any input.
-  </p>
-  <p class="source">
-    Code: <code>stores/cart-store.ts</code>, <code>service-store-demo.ts</code>,
-    <code>catalog.ts</code>
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        This pattern is enough for most apps: no library, easy to test, and it is what many teams
-        mean by "a service with signals". It replaces the older "service with a
-        <code>BehaviorSubject</code>" pattern.
-      </li>
-      <li>
-        Update immutably (<code>update(lines =&gt; [...lines, line])</code>). Signals compare with
-        <code>===</code>: pushing into the same array does not notify anyone.
-      </li>
-      <li>
-        <strong>Container / presentational</strong>: the demo (container) talks to the store;
-        <code>ProductList</code> and <code>CartView</code> only have inputs and outputs, so they are
-        reused by the next demo unchanged.
-      </li>
-      <li>
-        Where it is provided decides its lifetime: <code>providedIn: 'root'</code> is one instance
-        for the app (topic 05 shows the scopes).
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.serviceStore" />
-</app-demo-card>
+@if (view.shows('serviceStore')) {
+  <app-demo-card>
+    <h2 demo-title>A store service with signals</h2>
+    <app-guide-box [guide]="guides.serviceStore" />
+    <h3>In short</h3>
+    <app-service-store-demo demo-body />
+    <p>
+      <code>CartStore</code> keeps the lines in a <strong>private</strong> writable signal and
+      exposes a readonly view (<code>asReadonly()</code>) plus <code>computed</code> count and
+      total. Its methods (<code>add</code>, <code>remove</code>, <code>clear</code>) are the only
+      way to change the state. The badge injects the same store, so it updates without any input.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          This pattern is enough for most apps: no library, easy to test, and it is what many teams
+          mean by "a service with signals". It replaces the older "service with a
+          <code>BehaviorSubject</code>" pattern.
+        </li>
+        <li>
+          Update immutably (<code>update(lines =&gt; [...lines, line])</code>). Signals compare with
+          <code>===</code>: pushing into the same array does not notify anyone.
+        </li>
+        <li>
+          <strong>Container / presentational</strong>: the demo (container) talks to the store;
+          <code>ProductList</code> and <code>CartView</code> only have inputs and outputs, so they
+          are reused by the next demo unchanged.
+        </li>
+        <li>
+          Where it is provided decides its lifetime: <code>providedIn: 'root'</code> is one instance
+          for the app (topic 05 shows the scopes).
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-serviceStore" [exercise]="exercises.serviceStore" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>The same cart with NgRx SignalStore</h2>
-  <app-signal-store-demo demo-body />
-  <p>
-    <code>signalStore()</code> builds the store class from features: <code>withState</code> (each
-    property becomes a signal), <code>withComputed</code> and <code>withMethods</code>, where
-    <code>patchState</code> writes new state. The component provides it in its own
-    <code>providers</code>, so it gets a fresh cart that is destroyed with it.
-    <code>watchState</code> logs every state change.
-  </p>
-  <p class="source">
-    Code: <code>stores/cart-signal-store.ts</code>, <code>signal-store-demo.ts</code>
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        State is protected by default: <code>patchState(store, …)</code> only works inside the
-        store, so components must go through its methods (like the private signal above).
-      </li>
-      <li>
-        <code>patchState</code> takes a partial object or an updater function
-        <code>(state) =&gt; (&#123; … &#125;)</code>, and merges it one level deep.
-      </li>
-      <li>
-        What the library adds over a plain service: less boilerplate for big states, deep signals
-        for nested objects, hooks, reusable features (<code>signalStoreFeature</code>),
-        <code>withEntities</code> for collections and a Redux DevTools integration (from the
-        community <code>&#64;angular-architects/ngrx-toolkit</code>).
-      </li>
-      <li>
-        <code>signalStore(&#123; providedIn: 'root' &#125;, …)</code> makes a global store instead.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.signalStore" />
-</app-demo-card>
+@if (view.shows('signalStore')) {
+  <app-demo-card>
+    <h2 demo-title>The same cart with NgRx SignalStore</h2>
+    <app-guide-box [guide]="guides.signalStore" />
+    <h3>In short</h3>
+    <app-signal-store-demo demo-body />
+    <p>
+      <code>signalStore()</code> builds the store class from features: <code>withState</code> (each
+      property becomes a signal), <code>withComputed</code> and <code>withMethods</code>, where
+      <code>patchState</code> writes new state. The component provides it in its own
+      <code>providers</code>, so it gets a fresh cart that is destroyed with it.
+      <code>watchState</code> logs every state change.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          State is protected by default: <code>patchState(store, …)</code> only works inside the
+          store, so components must go through its methods (like the private signal above).
+        </li>
+        <li>
+          <code>patchState</code> takes a partial object or an updater function
+          <code>(state) =&gt; (&#123; … &#125;)</code>, and merges it one level deep.
+        </li>
+        <li>
+          What the library adds over a plain service: less boilerplate for big states, deep signals
+          for nested objects, hooks, reusable features (<code>signalStoreFeature</code>),
+          <code>withEntities</code> for collections and a Redux DevTools integration (from the
+          community <code>&#64;angular-architects/ngrx-toolkit</code>).
+        </li>
+        <li>
+          <code>signalStore(&#123; providedIn: 'root' &#125;, …)</code> makes a global store
+          instead.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-signalStore" [exercise]="exercises.signalStore" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Async side effects with rxMethod</h2>
-  <app-rx-method-demo demo-body />
-  <p>
-    <code>CatalogStore.search</code> is an <code>rxMethod</code>: an RxJS pipeline (debounce,
-    <code>distinctUntilChanged</code>, <code>switchMap</code> to the API) exposed as a method. In
-    <code>withHooks</code> <code>onInit</code>, the store calls
-    <code>search(store.query)</code> with the query <strong>signal</strong>, so every change of the
-    query runs the pipeline. Loading, results and errors are all state.
-  </p>
-  <p class="source">
-    Code: <code>stores/catalog-store.ts</code>, <code>rx-method-demo.ts</code>,
-    <code>catalog.ts</code> (a fake API with a delay)
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        <code>rxMethod</code> accepts a value (runs once), a signal or an Observable (runs on each
-        emission), and unsubscribes when the store is destroyed.
-      </li>
-      <li>
-        Catch errors inside <code>switchMap</code>. An error reaching the outer pipeline ends it,
-        and the method stops working. <code>tapResponse</code> from
-        <code>&#64;ngrx/operators</code> packages this next / error handling.
-      </li>
-      <li>
-        No RxJS needed? <code>signalMethod</code> is the same idea for plain functions, and a
-        <code>resource</code> / <code>httpResource</code> (topic 09) can live in a store too.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.rxMethod" />
-</app-demo-card>
+@if (view.shows('rxMethod')) {
+  <app-demo-card>
+    <h2 demo-title>Async side effects with rxMethod</h2>
+    <app-guide-box [guide]="guides.rxMethod" />
+    <h3>In short</h3>
+    <app-rx-method-demo demo-body />
+    <p>
+      <code>CatalogStore.search</code> is an <code>rxMethod</code>: an RxJS pipeline (debounce,
+      <code>distinctUntilChanged</code>, <code>switchMap</code> to the API) exposed as a method. In
+      <code>withHooks</code> <code>onInit</code>, the store calls
+      <code>search(store.query)</code> with the query <strong>signal</strong>, so every change of
+      the query runs the pipeline. Loading, results and errors are all state.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          <code>rxMethod</code> accepts a value (runs once), a signal or an Observable (runs on each
+          emission), and unsubscribes when the store is destroyed.
+        </li>
+        <li>
+          Catch errors inside <code>switchMap</code>. An error reaching the outer pipeline ends it,
+          and the method stops working. <code>tapResponse</code> from
+          <code>&#64;ngrx/operators</code> packages this next / error handling.
+        </li>
+        <li>
+          No RxJS needed? <code>signalMethod</code> is the same idea for plain functions, and a
+          <code>resource</code> / <code>httpResource</code> (topic 09) can live in a store too.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-rxMethod" [exercise]="exercises.rxMethod" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Local state with signalState</h2>
-  <app-signal-state-demo demo-body />
-  <p>
-    <code>signalState</code> is the state part of SignalStore without the class: one object, read
-    through signals, changed with <code>patchState</code>. Nested objects become
-    <strong>deep signals</strong>: <code>state.filters.maxPrice()</code> reads one field.
-  </p>
-  <p class="source">Code: <code>signal-state-demo.ts</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Good for a component with several related fields (filters, a wizard) that would otherwise be
-        many separate signals.
-      </li>
-      <li>
-        <code>patchState</code> is shallow: to change <code>filters.maxPrice</code>, spread
-        <code>filters</code> yourself.
-      </li>
-      <li>
-        Not everything is store state: form input, hover or "is this panel open" usually stay in the
-        component.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.signalState" />
-</app-demo-card>
+@if (view.shows('signalState')) {
+  <app-demo-card>
+    <h2 demo-title>Local state with signalState</h2>
+    <app-guide-box [guide]="guides.signalState" />
+    <h3>In short</h3>
+    <app-signal-state-demo demo-body />
+    <p>
+      <code>signalState</code> is the state part of SignalStore without the class: one object, read
+      through signals, changed with <code>patchState</code>. Nested objects become
+      <strong>deep signals</strong>: <code>state.filters.maxPrice()</code> reads one field.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Good for a component with several related fields (filters, a wizard) that would otherwise
+          be many separate signals.
+        </li>
+        <li>
+          <code>patchState</code> is shallow: to change <code>filters.maxPrice</code>, spread
+          <code>filters</code> yourself.
+        </li>
+        <li>
+          Not everything is store state: form input, hover or "is this panel open" usually stay in
+          the component.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-signalState" [exercise]="exercises.signalState" />
+  </app-demo-card>
+}
+
+@if (view.single(); as card) {
+  <app-card-pager [cards]="view.cards" [current]="card.id" />
+}

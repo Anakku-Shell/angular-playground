@@ -34,7 +34,7 @@ export const SEARCH_DEBOUNCE_MS = 300;
 export class InteropDemo {
   protected readonly query = signal('');
 
-  // Signal → Observable (toObservable) → RxJS operators → back to a signal (toSignal).
+  // [1] Signal → Observable (toObservable) → RxJS operators → back to a signal (toSignal).
   // Both need an injection context; toSignal unsubscribes when the component is destroyed.
   protected readonly debouncedQuery = toSignal(
     toObservable(this.query).pipe(
@@ -46,11 +46,12 @@ export class InteropDemo {
     { initialValue: '' },
   );
 
+  // [2] A plain computed() on top of the debounced signal.
   protected readonly matches = computed(() =>
     API_NAMES.filter((name) => name.toLowerCase().includes(this.debouncedQuery())),
   );
 
-  // Any Observable becomes a signal: here a timer that ticks every second.
+  // [3] Any Observable becomes a signal: here a timer that ticks every second.
   protected readonly secondsHere = toSignal(interval(1000).pipe(map((n) => n + 1)), {
     initialValue: 0,
   });

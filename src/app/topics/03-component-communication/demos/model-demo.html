@@ -1,15 +1,17 @@
 <!--
+  THE PARENT of the model demo: the same stepper bound in two ways, so you can compare them.
+
   model() = an input plus an output named <name>Change. The parent can bind it three ways:
     [(value)]="quantity"                                   two-way (pass the signal)
     [value]="quantity()" (valueChange)="quantity.set($event)"  the same, written out
     [value]="quantity()"                                   one-way: the child's changes stay local
 -->
 <dl class="demo-values">
-  <!-- Two-way: pass the signal itself (no parentheses). The child writes straight into it. -->
+  <!-- [1] Two-way: pass the signal itself (no parentheses). The child writes straight into it. -->
   <dt>Two-way <code>[(value)]="quantity"</code></dt>
   <dd><app-quantity-stepper class="two-way" [(value)]="quantity" [max]="5" /></dd>
 
-  <!-- One-way: the parent's value flows down, but the child's changes stay local until the
+  <!-- [2] One-way: the parent's value flows down, but the child's changes stay local until the
        parent's value changes again and overwrites them. -->
   <dt>One-way <code>[value]="quantity()"</code></dt>
   <dd><app-quantity-stepper class="one-way" [value]="quantity()" [max]="5" /></dd>

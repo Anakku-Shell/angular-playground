@@ -1,8 +1,14 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
+/**
+ * THE CHILD of the outputs demo. It shows a rating and reports clicks, but never stores the
+ * rating itself: the parent does. Read this file first, then outputs-demo.html.
+ */
 @Component({
   selector: 'app-star-rating',
   template: `
+    <!-- [3] Each click emits an output. The child does not touch value(): it waits for the
+         parent to send the new rating back down. -->
     @for (star of stars; track star) {
       <button
         type="button"
@@ -41,11 +47,11 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 export class StarRating {
   protected readonly stars = [1, 2, 3, 4, 5];
 
-  // The child only displays `value`; it never changes it. It reports the user's
+  // [1] The child only displays `value`; it never changes it. It reports the user's
   // choice and lets the parent decide ("data down, events up").
   readonly value = input(0);
 
-  // output<T>() declares a custom event with a payload of type T; `$event` in the parent.
+  // [2] output<T>() declares a custom event with a payload of type T; `$event` in the parent.
   readonly rated = output<number>();
   // No payload: output() is output<void>().
   readonly cleared = output();

@@ -21,7 +21,7 @@ import { Product, ProductsApi } from '../products-api';
 /** Quiet time after the last keystroke before searching. */
 export const SEARCH_DEBOUNCE_MS = 300;
 
-/** Every state the UI can be in, as one union: the template can never show two at once. */
+/** [1] Every state the UI can be in, as one union: the template can never show two at once. */
 type SearchState =
   | { readonly status: 'idle' }
   | { readonly status: 'loading'; readonly term: string }
@@ -118,6 +118,7 @@ export class SearchDemo {
   protected readonly failRequests = new FormControl(false, { nonNullable: true });
   protected readonly requests = signal(0);
 
+  // [2] From keystrokes to UI states, one operator per line.
   private readonly state$: Observable<SearchState> = this.query.valueChanges.pipe(
     map((term) => term.trim()),
     // Wait until the user pauses typing: one request instead of one per keystroke.
@@ -131,14 +132,14 @@ export class SearchDemo {
     switchMap((term) => (term ? this.search(term) : of(IDLE))),
   );
 
-  // toSignal subscribes now and unsubscribes when the component is destroyed.
+  // [4] toSignal subscribes now and unsubscribes when the component is destroyed.
   protected readonly state = toSignal(this.state$, { initialValue: IDLE });
 
   private search(term: string): Observable<SearchState> {
     this.requests.update((n) => n + 1);
     return this.api.search(term, this.failRequests.value).pipe(
       map((page): SearchState => ({ status: 'success', term, ...page })),
-      // catchError INSIDE switchMap: the error ends this inner request only. Outside, it would
+      // [3] catchError INSIDE switchMap: the error ends this inner request only. Outside, it would
       // complete the whole stream and the search box would stop working.
       catchError((error: unknown) =>
         of<SearchState>({

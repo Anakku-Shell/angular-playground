@@ -1,15 +1,19 @@
+<!--
+  Multi-slot projection. The parent writes all of its content in one place, between the tags,
+  and each <ng-content> below picks the pieces that match its selector.
+-->
 <header class="panel__header">
-  <!-- `select` takes a CSS selector (element, attribute, class) or a comma-separated list. -->
+  <!-- [1] Title slot. `select` takes a CSS selector (element, attribute, class) or a comma-separated list. -->
   <ng-content select="h3, [panel-title]" />
 </header>
 
 <div class="panel__body">
-  <!-- Default slot: whatever no other <ng-content> matched. -->
+  <!-- [2] Default slot: whatever no other <ng-content> matched. -->
   <ng-content />
 </div>
 
 <footer class="panel__footer">
-  <!-- Fallback content (v18+): shown only when nothing is projected into this slot. -->
+  <!-- [3] Footer slot, with fallback content (v18+): shown only when nothing is projected into this slot. -->
   <ng-content select="[panel-footer]">
     <span class="panel__fallback">No actions (fallback content)</span>
   </ng-content>

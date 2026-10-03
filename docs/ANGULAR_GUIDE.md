@@ -2,7 +2,9 @@
 
 Companion notes for this playground. It targets **Angular 21** and points out what differs in v19/v20 codebases. Each topic page in the app has a matching subsection in [Topics](#5-topics).
 
-How to study a topic: try the demos, then read their code. The demo files are commented for learning (what each syntax does and the other ways to write it, including older forms). Every card ends with **Try it yourself** exercises: a change to make in the demo code, what you should see, and a folded solution. Some are "predict first" tasks that break something on purpose so you can read Angular's error. The exercises live in each topic's `exercises.ts` and render with `app-exercise-box`; undo your edits with `git restore src/app` before running the tests.
+How to study a topic: every topic page opens on a **map** (the topic's main idea and a "you want to… → use…" table) and has a sticky tab bar with one tab per card. Each card starts with a **guided tour**: why the feature exists, steps to try in the live demo, the idea in a few lines of code, and the files to read in order; comments marked `[1]`, `[2]`… in those files match the tour. Every card ends with **Try it yourself** exercises: a change to make in the demo code, what you should see, and a folded solution. Some are "predict first" tasks that break something on purpose so you can read Angular's error.
+
+The open card is part of the URL (`?card=outputs`), so saving a `.ts` file, which reloads the whole page while `ng serve` runs, brings you back to it; "↓ Try it yourself" also adds `#exercises-…` so you land on the exercises. Guides and exercises are data (`guides.ts`, `exercises.ts` per topic), rendered by `app-guide-box`, `app-exercise-box`, `app-topic-map` and `app-card-nav`. Undo your edits with `git restore src/app` before running the tests.
 
 ## Contents
 

@@ -70,7 +70,7 @@ export class RenderHooksDemo {
   private renders = 0;
 
   constructor() {
-    // Once, after the first render: the DOM exists, so it can be measured. In the constructor
+    // [1] Once, after the first render: the DOM exists, so it can be measured. In the constructor
     // the element is not created yet, and on the server these hooks never run.
     afterNextRender({
       read: () => {
@@ -80,7 +80,7 @@ export class RenderHooksDemo {
       },
     });
 
-    // After every render of the whole app, not only of this component. Phases split DOM work:
+    // [2] After every render of the whole app, not only of this component. Phases split DOM work:
     // `write` runs before `read`, so the browser lays out once per render.
     afterEveryRender({
       write: () => {
@@ -88,7 +88,7 @@ export class RenderHooksDemo {
         const list = this.messageList().nativeElement;
         list.scrollTop = list.scrollHeight;
 
-        // A plain field and a direct DOM write. Setting a signal here would schedule another
+        // [3] A plain field and a direct DOM write. Setting a signal here would schedule another
         // render, which runs this hook again: an endless loop.
         this.renders++;
         this.renderCount().nativeElement.textContent = String(this.renders);

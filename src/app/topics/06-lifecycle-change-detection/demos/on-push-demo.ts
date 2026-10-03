@@ -33,16 +33,17 @@ export class OnPushDemo {
   private readonly card = viewChild.required(UserCard);
 
   protected mutate(): void {
-    // Same reference: the signal is not notified and the child's input does not change.
+    // [1] Same reference: the signal is not notified and the child's input does not change.
     // The parent still re-renders because the click happened in its template.
     this.user().visits++;
   }
 
   protected replace(): void {
-    // New reference: the input changes, so the OnPush child is checked.
+    // [2] New reference: the input changes, so the OnPush child is checked.
     this.user.update((user) => ({ ...user, visits: user.visits + 1 }));
   }
 
+  // [3] Calls the child's markForCheck() through a viewChild query.
   protected markChild(): void {
     this.card().refresh();
   }

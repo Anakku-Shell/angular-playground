@@ -25,19 +25,22 @@ import { RoutingPage } from './topic-page';
  * Routes are matched in order: the first match wins, so put '**' last.
  */
 export const ROUTING_ROUTES: Routes = [
+  // [1] The parent route: this topic's page, whose mini app holds the nested <router-outlet>.
   {
     path: '',
     component: RoutingPage,
     // Route-level providers: one FakeAuth for this route, its children and their guards.
     providers: [FakeAuth],
+    // [2] The children render in that nested outlet.
     children: [
-      // The topic URL itself shows the product list. pathMatch 'full': '' is a prefix of every URL.
+      // [4] The topic URL itself shows the product list. pathMatch 'full': '' is a prefix of every URL.
       { path: '', redirectTo: 'products', pathMatch: 'full' },
       {
         // Componentless route: it only groups the list and the detail under one URL segment.
         path: 'products',
         children: [
           { path: '', title: pageTitle('Products'), component: ProductList },
+          // [3] A route param, a resolver for the data and another one for the title.
           {
             path: ':id',
             title: productTitleResolver,
@@ -46,7 +49,7 @@ export const ROUTING_ROUTES: Routes = [
           },
         ],
       },
-      // Old URL kept alive: redirectTo can be a function that builds the new path.
+      // [5] Old URL kept alive: redirectTo can be a function that builds the new path.
       { path: 'catalog/:id', redirectTo: ({ params }) => `products/${params['id']}` },
       { path: 'admin', title: pageTitle('Admin'), canActivate: [authGuard], component: AdminView },
       { path: 'login', title: pageTitle('Log in'), component: LoginView },
@@ -56,7 +59,7 @@ export const ROUTING_ROUTES: Routes = [
         canDeactivate: [unsavedChangesGuard],
         component: EditView,
       },
-      // Wildcard for this topic only. It must be the last child.
+      // [6] Wildcard for this topic only. It must be the last child.
       { path: '**', title: pageTitle('Not found'), component: MissingView },
     ],
   },

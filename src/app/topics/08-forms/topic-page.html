@@ -10,194 +10,236 @@
   </p>
 </header>
 
+<app-card-nav [cards]="view.cards" [current]="view.current()" />
+
+@if (view.showMap()) {
+  <app-topic-map [guides]="guides">
+    <p>
+      Every form control tracks the same things, whatever API you use: its <strong>value</strong>,
+      whether it is <strong>valid</strong> (its rules pass), <strong>dirty</strong> (the user
+      changed it) and <strong>touched</strong> (the user left it). Error messages usually depend on
+      all three. Angular has three ways to build forms; they differ in where that model lives:
+    </p>
+    <pre aria-label="Three ways to build forms">
+ template-driven   the template declares it    ngModel + required, minlength…
+ reactive          the class builds it         FormGroup, FormControl, FormArray
+ signal forms      a signal is the model       form(signal, schema)  (experimental)</pre>
+    <p>
+      Template-driven suits small forms; reactive is what most existing apps use; signal forms are
+      the future but still experimental.
+    </p>
+  </app-topic-map>
+}
+
 <!-- Code samples in this template: braces are escaped as &#123; &#125;
      (a bare brace would open or close a block). -->
 
-<app-demo-card>
-  <h2 demo-title>Template-driven forms: ngModel</h2>
-  <app-template-driven-demo demo-body />
-  <p>
-    <code>FormsModule</code> gives every <code>&lt;form&gt;</code> an <code>NgForm</code> and every
-    input with <code>ngModel</code> and a <code>name</code> a control inside it. Validation comes
-    from HTML attributes (<code>required</code>, <code>minlength</code>, <code>email</code>), which
-    are Angular validator directives. <code>#nameCtrl="ngModel"</code> exports the control to read
-    its state. Type, leave the field, then press Reset: the border colour comes from the
-    <code>ng-invalid</code> / <code>ng-touched</code> / <code>ng-dirty</code> classes.
-  </p>
-  <p class="source">Code: <code>template-driven-demo.ts</code>, <code>forms-demo.scss</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Each <code>ngModel</code> inside a form needs a <code>name</code>: it is the key in
-        <code>f.value</code>. Without it Angular throws.
-      </li>
-      <li>
-        <code>touched</code> = the field lost focus once; <code>dirty</code> = the user changed the
-        value. Show errors on <code>touched</code> (or after submit), not while the form is empty.
-      </li>
-      <li>
-        <code>(ngSubmit)</code> instead of <code>(submit)</code>: it also sets
-        <code>f.submitted</code>. <code>resetForm()</code> clears values and states and
-        <code>submitted</code>.
-      </li>
-      <li>
-        Template-driven vs reactive: template-driven is quick for small, static forms (login,
-        search). Choose reactive for dynamic fields, cross-field rules, complex validation or when
-        you want to unit test the form without a template. Most company codebases use reactive.
-      </li>
-      <li>
-        Vue comparison: <code>[(ngModel)]</code> ≈ <code>v-model</code>, but Angular also tracks
-        validity and touched/dirty per field.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.templateDriven" />
-</app-demo-card>
+@if (view.shows('templateDriven')) {
+  <app-demo-card>
+    <h2 demo-title>Template-driven forms: ngModel</h2>
+    <app-guide-box [guide]="guides.templateDriven" />
+    <h3>In short</h3>
+    <app-template-driven-demo demo-body />
+    <p>
+      <code>FormsModule</code> gives every <code>&lt;form&gt;</code> an <code>NgForm</code> and
+      every input with <code>ngModel</code> and a <code>name</code> a control inside it. Validation
+      comes from HTML attributes (<code>required</code>, <code>minlength</code>,
+      <code>email</code>), which are Angular validator directives.
+      <code>#nameCtrl="ngModel"</code> exports the control to read its state. Type, leave the field,
+      then press Reset: the border colour comes from the <code>ng-invalid</code> /
+      <code>ng-touched</code> / <code>ng-dirty</code> classes.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Each <code>ngModel</code> inside a form needs a <code>name</code>: it is the key in
+          <code>f.value</code>. Without it Angular throws.
+        </li>
+        <li>
+          <code>touched</code> = the field lost focus once; <code>dirty</code> = the user changed
+          the value. Show errors on <code>touched</code> (or after submit), not while the form is
+          empty.
+        </li>
+        <li>
+          <code>(ngSubmit)</code> instead of <code>(submit)</code>: it also sets
+          <code>f.submitted</code>. <code>resetForm()</code> clears values and states and
+          <code>submitted</code>.
+        </li>
+        <li>
+          Template-driven vs reactive: template-driven is quick for small, static forms (login,
+          search). Choose reactive for dynamic fields, cross-field rules, complex validation or when
+          you want to unit test the form without a template. Most company codebases use reactive.
+        </li>
+        <li>
+          Vue comparison: <code>[(ngModel)]</code> ≈ <code>v-model</code>, but Angular also tracks
+          validity and touched/dirty per field.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-templateDriven" [exercise]="exercises.templateDriven" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Typed reactive forms</h2>
-  <app-reactive-profile-demo demo-body />
-  <p>
-    The class builds a <code>FormGroup</code> with <code>NonNullableFormBuilder</code>; the template
-    binds to it with <code>[formGroup]</code>, <code>formControlName</code> and
-    <code>formGroupName</code>. The types are inferred from the initial values, so
-    <code>form.controls.age.value</code> is a <code>number</code>. Compare the buttons:
-    <code>setValue</code> needs every field (try "name only"), <code>patchValue</code> takes any
-    subset. Disable the age and compare <code>form.value</code> with <code>getRawValue()</code>.
-  </p>
-  <p class="source">Code: <code>reactive-profile-demo.ts</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Why typed forms matter (v14+): <code>setValue(&#123; nme: 'x' &#125;)</code> or
-        <code>controls.nmae</code> fail at compile time, and <code>value</code> is typed. Old code
-        with <code>UntypedFormGroup</code> or <code>any</code> loses all of that.
-      </li>
-      <li>
-        <code>FormBuilder</code> makes <code>FormControl&lt;T | null&gt;</code>, because
-        <code>reset()</code> sets <code>null</code>. <code>NonNullableFormBuilder</code> (or
-        <code>fb.nonNullable</code>) makes <code>FormControl&lt;T&gt;</code> and resets to the
-        initial value.
-      </li>
-      <li>
-        <code>form.value</code> is <code>Partial&lt;…&gt;</code> because disabled controls are left
-        out. <code>getRawValue()</code> includes them and is fully typed.
-      </li>
-      <li>
-        <code>valueChanges</code> / <code>statusChanges</code> are Observables that fire on user
-        input and on <code>setValue</code>, <code>patchValue</code> and <code>reset</code> (pass
-        <code>&#123; emitEvent: false &#125;</code> to stay silent). Forms are not signals yet: this
-        demo wraps them with <code>toSignal()</code> so the zoneless view refreshes after changes
-        made from code.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.reactive" />
-</app-demo-card>
+@if (view.shows('reactive')) {
+  <app-demo-card>
+    <h2 demo-title>Typed reactive forms</h2>
+    <app-guide-box [guide]="guides.reactive" />
+    <h3>In short</h3>
+    <app-reactive-profile-demo demo-body />
+    <p>
+      The class builds a <code>FormGroup</code> with <code>NonNullableFormBuilder</code>; the
+      template binds to it with <code>[formGroup]</code>, <code>formControlName</code> and
+      <code>formGroupName</code>. The types are inferred from the initial values, so
+      <code>form.controls.age.value</code> is a <code>number</code>. Compare the buttons:
+      <code>setValue</code> needs every field (try "name only"), <code>patchValue</code> takes any
+      subset. Disable the age and compare <code>form.value</code> with <code>getRawValue()</code>.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Why typed forms matter (v14+): <code>setValue(&#123; nme: 'x' &#125;)</code> or
+          <code>controls.nmae</code> fail at compile time, and <code>value</code> is typed. Old code
+          with <code>UntypedFormGroup</code> or <code>any</code> loses all of that.
+        </li>
+        <li>
+          <code>FormBuilder</code> makes <code>FormControl&lt;T | null&gt;</code>, because
+          <code>reset()</code> sets <code>null</code>. <code>NonNullableFormBuilder</code> (or
+          <code>fb.nonNullable</code>) makes <code>FormControl&lt;T&gt;</code> and resets to the
+          initial value.
+        </li>
+        <li>
+          <code>form.value</code> is <code>Partial&lt;…&gt;</code> because disabled controls are
+          left out. <code>getRawValue()</code> includes them and is fully typed.
+        </li>
+        <li>
+          <code>valueChanges</code> / <code>statusChanges</code> are Observables that fire on user
+          input and on <code>setValue</code>, <code>patchValue</code> and <code>reset</code> (pass
+          <code>&#123; emitEvent: false &#125;</code> to stay silent). Forms are not signals yet:
+          this demo wraps them with <code>toSignal()</code> so the zoneless view refreshes after
+          changes made from code.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-reactive" [exercise]="exercises.reactive" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>FormArray: a dynamic list</h2>
-  <app-form-array-demo demo-body />
-  <p>
-    A <code>FormArray</code> holds a list of controls (or groups) whose length changes at runtime:
-    <code>push()</code> adds one, <code>removeAt(i)</code> removes one. In the template,
-    <code>formArrayName</code> scopes the list and each input binds by index with
-    <code>[formControlName]="i"</code>. Remove every skill to see the array validator.
-  </p>
-  <p class="source">Code: <code>form-array-demo.ts</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        In <code>&#64;for</code>, track the control object, not <code>$index</code>. With
-        <code>$index</code>, removing the first item reuses its input for the second control, and
-        the focus jumps to the wrong field.
-      </li>
-      <li>
-        Validators can go on the array itself and count its items. Gotcha: for "at least one" use
-        <code>Validators.required</code>; <code>minLength(1)</code> skips empty values, and an empty
-        array counts as empty. Each item keeps its own validators.
-      </li>
-      <li>
-        For a list of objects, push <code>fb.group(&#123; … &#125;)</code> items and use
-        <code>[formGroupName]="i"</code> in the loop.
-      </li>
-      <li>
-        <code>FormRecord</code> is the variant for keys unknown at compile time (a map instead of a
-        list).
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.formArray" />
-</app-demo-card>
+@if (view.shows('formArray')) {
+  <app-demo-card>
+    <h2 demo-title>FormArray: a dynamic list</h2>
+    <app-guide-box [guide]="guides.formArray" />
+    <h3>In short</h3>
+    <app-form-array-demo demo-body />
+    <p>
+      A <code>FormArray</code> holds a list of controls (or groups) whose length changes at runtime:
+      <code>push()</code> adds one, <code>removeAt(i)</code> removes one. In the template,
+      <code>formArrayName</code> scopes the list and each input binds by index with
+      <code>[formControlName]="i"</code>. Remove every skill to see the array validator.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          In <code>&#64;for</code>, track the control object, not <code>$index</code>. With
+          <code>$index</code>, removing the first item reuses its input for the second control, and
+          the focus jumps to the wrong field.
+        </li>
+        <li>
+          Validators can go on the array itself and count its items. Gotcha: for "at least one" use
+          <code>Validators.required</code>; <code>minLength(1)</code> skips empty values, and an
+          empty array counts as empty. Each item keeps its own validators.
+        </li>
+        <li>
+          For a list of objects, push <code>fb.group(&#123; … &#125;)</code> items and use
+          <code>[formGroupName]="i"</code> in the loop.
+        </li>
+        <li>
+          <code>FormRecord</code> is the variant for keys unknown at compile time (a map instead of
+          a list).
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-formArray" [exercise]="exercises.formArray" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Validators: custom, async and cross-field</h2>
-  <app-validators-demo demo-body />
-  <p>
-    <code>forbiddenValue('admin')</code> is a custom sync validator: a function of the control that
-    returns <code>null</code> or an errors object. <code>usernameAvailable()</code> is async: it
-    returns an Observable after a fake 600 ms server call, and the control is
-    <code>PENDING</code> meanwhile (try "angular"). <code>fieldsMatch</code> sits on the
-    <code>passwords</code> group, the only place that sees both fields.
-  </p>
-  <p class="source">Code: <code>validators.ts</code>, <code>validators-demo.ts</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Validators are plain functions (<code>ValidatorFn</code>). A factory function lets them take
-        parameters, like the built-in <code>Validators.minLength(3)</code>.
-      </li>
-      <li>
-        Async validators only run when all sync validators pass, and each new value cancels the
-        running check. For a server call, add <code>&#123; updateOn: 'blur' &#125;</code> to the
-        control or a debounce so you do not call the API on every keystroke.
-      </li>
-      <li>
-        A cross-field error lives on the group: read it with
-        <code>passwords.hasError('fieldsMismatch')</code>, not on the confirm control. The confirm
-        input stays <code>ng-valid</code>.
-      </li>
-      <li>
-        While a check is running, the form is <code>PENDING</code>: neither <code>valid</code> nor
-        <code>invalid</code>. Handle that state on submit.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.validators" />
-</app-demo-card>
+@if (view.shows('validators')) {
+  <app-demo-card>
+    <h2 demo-title>Validators: custom, async and cross-field</h2>
+    <app-guide-box [guide]="guides.validators" />
+    <h3>In short</h3>
+    <app-validators-demo demo-body />
+    <p>
+      <code>forbiddenValue('admin')</code> is a custom sync validator: a function of the control
+      that returns <code>null</code> or an errors object. <code>usernameAvailable()</code> is async:
+      it returns an Observable after a fake 600 ms server call, and the control is
+      <code>PENDING</code> meanwhile (try "angular"). <code>fieldsMatch</code> sits on the
+      <code>passwords</code> group, the only place that sees both fields.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Validators are plain functions (<code>ValidatorFn</code>). A factory function lets them
+          take parameters, like the built-in <code>Validators.minLength(3)</code>.
+        </li>
+        <li>
+          Async validators only run when all sync validators pass, and each new value cancels the
+          running check. For a server call, add <code>&#123; updateOn: 'blur' &#125;</code> to the
+          control or a debounce so you do not call the API on every keystroke.
+        </li>
+        <li>
+          A cross-field error lives on the group: read it with
+          <code>passwords.hasError('fieldsMismatch')</code>, not on the confirm control. The confirm
+          input stays <code>ng-valid</code>.
+        </li>
+        <li>
+          While a check is running, the form is <code>PENDING</code>: neither <code>valid</code> nor
+          <code>invalid</code>. Handle that state on submit.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-validators" [exercise]="exercises.validators" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Signal forms (experimental)</h2>
-  <app-signal-form-demo demo-body />
-  <p>
-    <code>form(model, schema)</code> from <code>&#64;angular/forms/signals</code> builds a field
-    tree from a <code>WritableSignal</code>. The schema function declares rules per path
-    (<code>required</code>, <code>email</code>, <code>minLength</code>, <code>validate</code>).
-    <code>[formField]</code> binds an input to a field, and every piece of state is a signal:
-    <code>loginForm.email().errors()</code>, <code>loginForm().valid()</code>. Typing updates
-    <code>model()</code> and "model.set(example)" updates the inputs.
-  </p>
-  <p class="source">Code: <code>signal-form-demo.ts</code></p>
-  <app-tips-box tone="warning" heading="Experimental in v21">
-    <ul>
-      <li>
-        Signal forms are <strong>experimental</strong>: the API may change in minor versions and it
-        is not what current job codebases use. Learn reactive forms first.
-      </li>
-      <li>
-        No <code>FormControl</code> objects, no <code>valueChanges</code>, no <code>setValue</code>:
-        the model signal is the single source of truth.
-      </li>
-      <li>
-        Rules are reactive: <code>valueOf(path.password)</code> in the confirm rule makes it re-run
-        when the password changes. Other rules: <code>disabled</code>, <code>hidden</code>,
-        <code>readonly</code>, <code>validateAsync</code>.
-      </li>
-      <li>
-        <code>submit(form, action)</code> marks every field as touched and runs the action only when
-        the form is valid.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.signalForm" />
-</app-demo-card>
+@if (view.shows('signalForm')) {
+  <app-demo-card>
+    <h2 demo-title>Signal forms (experimental)</h2>
+    <app-guide-box [guide]="guides.signalForm" />
+    <h3>In short</h3>
+    <app-signal-form-demo demo-body />
+    <p>
+      <code>form(model, schema)</code> from <code>&#64;angular/forms/signals</code> builds a field
+      tree from a <code>WritableSignal</code>. The schema function declares rules per path
+      (<code>required</code>, <code>email</code>, <code>minLength</code>, <code>validate</code>).
+      <code>[formField]</code> binds an input to a field, and every piece of state is a signal:
+      <code>loginForm.email().errors()</code>, <code>loginForm().valid()</code>. Typing updates
+      <code>model()</code> and "model.set(example)" updates the inputs.
+    </p>
+    <app-tips-box tone="warning" heading="Experimental in v21">
+      <ul>
+        <li>
+          Signal forms are <strong>experimental</strong>: the API may change in minor versions and
+          it is not what current job codebases use. Learn reactive forms first.
+        </li>
+        <li>
+          No <code>FormControl</code> objects, no <code>valueChanges</code>, no
+          <code>setValue</code>: the model signal is the single source of truth.
+        </li>
+        <li>
+          Rules are reactive: <code>valueOf(path.password)</code> in the confirm rule makes it
+          re-run when the password changes. Other rules: <code>disabled</code>, <code>hidden</code>,
+          <code>readonly</code>, <code>validateAsync</code>.
+        </li>
+        <li>
+          <code>submit(form, action)</code> marks every field as touched and runs the action only
+          when the form is valid.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-signalForm" [exercise]="exercises.signalForm" />
+  </app-demo-card>
+}
+
+@if (view.single(); as card) {
+  <app-card-pager [cards]="view.cards" [current]="card.id" />
+}

@@ -13,7 +13,7 @@ const LOG_SIZE = 4;
 @Component({
   selector: 'app-signal-store-demo',
   imports: [ProductList, CartView],
-  // A new store for this component and its children; destroyed with the component.
+  // [1] A new store for this component and its children; destroyed with the component.
   providers: [CartSignalStore],
   template: `
     <div class="shop">
@@ -52,7 +52,7 @@ export class SignalStoreDemo {
   private nextId = 0;
 
   constructor() {
-    // watchState runs synchronously on every patchState (an effect would batch them), with the
+    // [2] watchState runs synchronously on every patchState (an effect would batch them), with the
     // whole state object. Handy for logging or persisting; stops when the component is destroyed.
     watchState(this.cart, (state) => {
       const lines = state.lines.map((line) => `${line.product.name}×${line.quantity}`);

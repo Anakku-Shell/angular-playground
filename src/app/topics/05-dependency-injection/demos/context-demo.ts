@@ -47,16 +47,16 @@ interface Outcome {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ContextDemo {
-  // Field initializers run during construction: an injection context.
+  // [2] Field initializers run during construction: an injection context.
   private readonly documentTitle = injectDocumentTitle();
-  // Keep the injector to open an injection context later, on demand.
+  // [3] Keep the injector to open an injection context later, on demand.
   private readonly injector = inject(Injector);
 
   protected readonly outcome = signal<Outcome | null>(null);
 
   protected injectInHandler(): void {
     try {
-      // A click handler runs long after construction: no injection context, so this throws.
+      // [1] A click handler runs long after construction: no injection context, so this throws.
       const title = injectDocumentTitle();
       this.outcome.set({ ok: true, text: title() });
     } catch (error) {

@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { Clock } from './subjects/greeting';
 import { TestingPage } from './topic-page';
@@ -15,6 +16,7 @@ describe('TestingPage', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       providers: [
+        provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: Clock, useValue: { now: () => new Date(2026, 0, 1, 9) } },
@@ -22,6 +24,8 @@ describe('TestingPage', () => {
     });
     httpMock = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(TestingPage);
+    // ?card=all: every card on the page, as the tests below need.
+    fixture.componentRef.setInput('card', 'all');
     el = fixture.nativeElement as HTMLElement;
     await fixture.whenStable();
   });
@@ -46,13 +50,14 @@ describe('TestingPage', () => {
   it('renders one card per testing technique', () => {
     expect(el.querySelectorAll('app-demo-card').length).toBe(6);
     for (const card of el.querySelectorAll('app-demo-card')) {
+      expect(card.querySelectorAll('app-guide-box .guide__steps > li').length).toBeGreaterThan(0);
       expect(
         card.querySelectorAll('app-exercise-box .exercise__tasks > li').length,
       ).toBeGreaterThan(0);
     }
-    // Code samples of the page itself, not the folded exercise solutions.
+    // Code samples of the cards, not the map diagram, the guides' snippets or the solutions.
     const samples = [...el.querySelectorAll('pre')].filter(
-      (pre) => !pre.closest('app-exercise-box'),
+      (pre) => !pre.closest('app-exercise-box, app-guide-box, app-topic-map'),
     );
     expect(samples.length).toBe(7);
   });

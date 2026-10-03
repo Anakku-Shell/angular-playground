@@ -33,6 +33,7 @@ interface CatalogState {
   readonly requests: number;
 }
 
+// [1] Everything the search UI needs, in one state object.
 const initialState: CatalogState = {
   query: '',
   failRequests: false,
@@ -56,7 +57,7 @@ export const CatalogStore = signalStore(
     setFailRequests(failRequests: boolean): void {
       patchState(store, { failRequests });
     },
-    // rxMethod turns an RxJS pipeline into a method. It accepts a plain value, a signal or an
+    // [2] rxMethod turns an RxJS pipeline into a method. It accepts a plain value, a signal or an
     // Observable; with a signal, every new value goes through the pipeline.
     search: rxMethod<string>(
       pipe(
@@ -75,7 +76,7 @@ export const CatalogStore = signalStore(
         switchMap((query) =>
           api.search(query, store.failRequests()).pipe(
             tap((products) => patchState(store, { products, status: 'loaded' })),
-            // Handle the error INSIDE switchMap: an error reaching the rxMethod pipeline would
+            // [3] Handle the error INSIDE switchMap: an error reaching the rxMethod pipeline would
             // end it, and the search would stop reacting.
             catchError((error: unknown) => {
               const message = error instanceof Error ? error.message : 'Unexpected error';
@@ -90,7 +91,7 @@ export const CatalogStore = signalStore(
   // Hooks run when the store is created and destroyed (with its injector).
   withHooks({
     onInit(store) {
-      // Pass the query SIGNAL, not its value: the search re-runs whenever the query changes,
+      // [4] Pass the query SIGNAL, not its value: the search re-runs whenever the query changes,
       // and the subscription ends when the store is destroyed.
       store.search(store.query);
     },

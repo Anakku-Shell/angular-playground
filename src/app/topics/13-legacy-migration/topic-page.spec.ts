@@ -12,6 +12,9 @@ describe('LegacyMigrationPage', () => {
   let el: HTMLElement;
 
   beforeEach(async () => {
+    // Every card on the page. The page reads the last ?card from sessionStorage when the URL has
+    // none (the vault links drop query params), so the URLs below stay free of it.
+    sessionStorage.setItem('card:13-legacy-migration', 'all');
     TestBed.configureTestingModule({
       providers: [
         // Same shape as the app: the topic URL lazy-loads the NgModule.
@@ -26,7 +29,10 @@ describe('LegacyMigrationPage', () => {
     el = harness.routeNativeElement as HTMLElement;
   });
 
-  afterEach(() => vi.useRealTimers());
+  afterEach(() => {
+    vi.useRealTimers();
+    sessionStorage.clear();
+  });
 
   function find<T extends HTMLElement = HTMLElement>(selector: string): T {
     const found = el.querySelector<T>(selector);
@@ -56,6 +62,7 @@ describe('LegacyMigrationPage', () => {
   it('renders one card per legacy piece, each with its modern pair', () => {
     expect(el.querySelectorAll('app-demo-card').length).toBe(9);
     for (const card of el.querySelectorAll('app-demo-card')) {
+      expect(card.querySelectorAll('app-guide-box .guide__steps > li').length).toBeGreaterThan(0);
       expect(
         card.querySelectorAll('app-exercise-box .exercise__tasks > li').length,
       ).toBeGreaterThan(0);

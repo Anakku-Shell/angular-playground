@@ -23,13 +23,16 @@ import { addLine, CartLine, countItems, Product, removeLine, totalPrice } from '
  */
 @Injectable({ providedIn: 'root' })
 export class CartStore {
+  // [1] The state: private and writable.
   private readonly linesState = signal<readonly CartLine[]>([]);
 
+  // [2] What components read: a read-only view and derived values.
   readonly lines = this.linesState.asReadonly();
   readonly count = computed(() => countItems(this.lines()));
   readonly total = computed(() => totalPrice(this.lines()));
   readonly isEmpty = computed(() => this.lines().length === 0);
 
+  // [3] The actions: the only way to change the state.
   add(product: Product): void {
     // update() with a new array: signals compare with ===, so mutating the old array in place
     // would not notify anyone.

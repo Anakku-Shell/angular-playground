@@ -1,9 +1,11 @@
 <!--
-  Three ways to give a child component an input:
+  THE PARENT of the inputs demo. Read it first, then inputs/progress-bar.ts (the child).
+
+  The parent sets a child's inputs in the child's tag, in three ways:
     [value]="expr"        property binding: any type (number, object, signal value...)
     value="text"          static attribute: always a string (transforms can convert it)
     value="{{ expr }}"    interpolation: the result is turned into a string
-  The child declares its inputs in progress-bar.ts. Older code uses @Input() fields instead.
+  Legacy code declares the inputs with @Input() in the child; this side looks the same.
 -->
 <div class="demo-row">
   <label for="inputs-uploaded">Uploaded</label>
@@ -22,12 +24,14 @@
 </div>
 
 <div class="bars">
-  <!-- Property bindings: the parent passes a number and a boolean. -->
+  <!-- [1] Property bindings: the parent passes its own signals, a number and a boolean.
+           Move the slider and only this bar follows. -->
   <app-progress-bar [value]="uploaded()" max="250" [striped]="striped()" caption="Upload (MB)" />
 
-  <!-- Static attributes: every value arrives as a string and the transforms convert it. -->
+  <!-- [2] Static attributes: fixed values written in the HTML. They arrive as strings ("3",
+           "4", and "" for the bare striped), and the transforms in the child convert them. -->
   <app-progress-bar value="3" max="4" striped caption="Steps" />
 
-  <!-- Only the required input: the others keep their defaults. -->
+  <!-- [3] Only the required input: max and caption keep the defaults declared in the child. -->
   <app-progress-bar value="40" />
 </div>

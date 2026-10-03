@@ -11,17 +11,17 @@ interface User {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InterpolationDemo {
-  // State the template shows and the buttons change: signals.
+  // [1] State the template shows and the buttons change: signals.
   protected readonly user = signal<User>({ name: 'Ada Lovelace', email: null });
   protected readonly quantity = signal(3);
   // A constant: a plain field is enough.
   protected readonly unitPrice = 4.5;
-  // Derived value: recomputed only when `quantity` changes, not on every render.
+  // [2] Derived value: recomputed only when `quantity` changes, not on every render.
   protected readonly total = computed(() => this.quantity() * this.unitPrice);
   // Interpolation always renders text: this markup shows up escaped, not bold.
   protected readonly markup = '<strong>not bold</strong>';
 
-  // update() receives the current value and returns the next one. set() replaces it directly.
+  // [3] Methods the buttons call. update() receives the current value and returns the next one. set() replaces it directly.
   protected add(): void {
     this.quantity.update((q) => q + 1);
   }

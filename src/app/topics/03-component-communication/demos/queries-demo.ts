@@ -19,11 +19,11 @@ import { Stopwatch } from './queries/stopwatch';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QueriesDemo {
-  // Query by template reference name (#search). The result is a signal; `.required` makes its
+  // [1] Query by template reference name (#search). The result is a signal; `.required` makes its
   // type ElementRef instead of ElementRef | undefined.
   private readonly search = viewChild.required<ElementRef<HTMLInputElement>>('search');
 
-  // Query by component type: every <app-stopwatch> in this template, kept up to date as the
+  // [2] Query by component type: every <app-stopwatch> in this template, kept up to date as the
   // @for below adds or removes lanes.
   private readonly stopwatches = viewChildren(Stopwatch);
 
@@ -34,6 +34,7 @@ export class QueriesDemo {
     () => this.stopwatches().filter((watch) => watch.running()).length,
   );
 
+  // [3] The queries are used like any signal: call them to get the element or the components.
   protected focusSearch(): void {
     this.search().nativeElement.focus();
   }

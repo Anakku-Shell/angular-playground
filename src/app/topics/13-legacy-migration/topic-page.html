@@ -9,280 +9,329 @@
   </p>
 </header>
 
-<app-demo-card>
-  <h2 demo-title>A feature built the pre-v17 way</h2>
-  <app-task-board demo-body />
-  <p>
-    <code>TaskBoardComponent</code> reads a <code>BehaviorSubject</code> through the
-    <code>async</code> pipe and passes the tasks to <code>TaskListComponent</code> through
-    <code>&#64;Input()</code>; the list reports clicks with <code>&#64;Output()</code> +
-    <code>EventEmitter</code>. Both are declared in <code>TasksModule</code>, which this standalone
-    page imports. Hover a task to see the <code>&#64;HostBinding</code> directive; press Esc to
-    clear the input (<code>&#64;HostListener</code>).
-  </p>
-  <p class="source">
-    Code: <code>legacy/tasks.module.ts</code>, <code>task-board.component.*</code>,
-    <code>task-list.component.*</code>, <code>highlight.directive.ts</code>,
-    <code>task.service.ts</code>
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Old file naming: <code>task-list.component.ts</code>, <code>task.service.ts</code>,
-        <code>tasks.module.ts</code>, and class names ending in <code>Component</code> /
-        <code>Service</code>. Since v20 the CLI generates <code>task-list.ts</code> with class
-        <code>TaskList</code>. Both work; follow whatever the codebase already does.
-      </li>
-      <li>
-        <code>standalone: false</code> is needed on declared components since v19. In code written
-        before v19 there is no <code>standalone</code> flag at all, because false was the default.
-      </li>
-      <li>
-        This project's lint config enforces the modern APIs, so <code>eslint.config.js</code> turns
-        those rules off for <code>legacy/</code> only.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.feature" />
-</app-demo-card>
+<app-card-nav [cards]="view.cards" [current]="view.current()" />
 
-<app-demo-card>
-  <h2 demo-title>NgModule → standalone</h2>
-  <app-code-pair demo-body [pair]="snippets.modules" />
-  <p>
-    An NgModule groups declarations and decides what their templates can see. A standalone component
-    lists its own dependencies in <code>imports</code>, so there is one place to look. This topic is
-    still loaded as a module:
-    <code
-      >loadChildren: () =&gt; import('./legacy/legacy.module').then((m) =&gt; m.LegacyModule)</code
-    >, and <code>RouterModule.forChild(routes)</code> registers its child routes.
-  </p>
-  <p class="source">Code: <code>legacy/legacy.module.ts</code>, <code>topics.registry.ts</code></p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Both worlds mix: a standalone component imports a module (this page imports
-        <code>TasksModule</code>), and a module imports standalone components.
-      </li>
-      <li>
-        <code>ng generate &#64;angular/core:standalone</code> runs in three passes: convert
-        declarations, remove the empty modules, switch to <code>bootstrapApplication</code>. Run
-        them in that order and build between them.
-      </li>
-      <li>
-        A module that only brings providers (<code>HttpClientModule</code>,
-        <code>StoreModule.forRoot</code>) becomes a <code>provide…()</code> function in
-        <code>app.config.ts</code>. When a library has none yet, wrap its module in
-        <code>importProvidersFrom(...)</code>.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.modules" />
-</app-demo-card>
+@if (view.showMap()) {
+  <app-topic-map [guides]="guides">
+    <p>
+      Angular changed a lot between v16 and v21, but old code keeps working, so real projects mix
+      both styles. Each card below takes one legacy pattern, shows its modern replacement, and names
+      the schematic that converts it:
+    </p>
+    <pre aria-label="Legacy patterns and their replacements">
+ NgModule, declarations         → standalone components     ng g &#64;angular/core:standalone
+ &#64;Input() / &#64;Output()           → input() / output()        signal-input / output-migration
+ constructor(private s: S)      → inject(S)                 ng g &#64;angular/core:inject
+ *ngIf, *ngFor, [ngSwitch]      → &#64;if, &#64;for, &#64;switch        ng g &#64;angular/core:control-flow
+ &#64;ViewChild, &#64;HostListener      → viewChild(), host         signal-queries-migration
+ class guards                   → functional guards         (by hand)
+ zone.js                        → zoneless + signals        (by hand)</pre>
+    <p>Start with the first card: a small feature written entirely the old way.</p>
+  </app-topic-map>
+}
 
-<app-demo-card>
-  <h2 demo-title>&#64;Input / &#64;Output → input() / output()</h2>
-  <app-code-pair demo-body [pair]="snippets.inputsOutputs" />
-  <p>
-    A decorator input is a plain field that Angular writes to; the component learns about changes in
-    <code>ngOnChanges</code> or through a setter. A signal input is read-only and can feed a
-    <code>computed</code>, so derived state needs no lifecycle hook.
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Migrations: <code>signal-input-migration</code> and <code>output-migration</code>. They skip
-        inputs that the component writes to itself: those become a <code>model()</code> or a local
-        signal by hand.
-      </li>
-      <li>
-        <code>&#64;Input(&#123; required: true &#125;)</code> → <code>input.required()</code>.
-        <code>&#64;Input(&#123; transform: booleanAttribute &#125;)</code> →
-        <code>input(false, &#123; transform: booleanAttribute &#125;)</code>.
-      </li>
-      <li>
-        In templates and specs the binding is the same (<code>[tasks]</code>,
-        <code>(toggled)</code>); in TypeScript every read becomes a call: <code>this.tasks</code> →
-        <code>this.tasks()</code>.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.inputsOutputs" />
-</app-demo-card>
+@if (view.shows('feature')) {
+  <app-demo-card>
+    <h2 demo-title>A feature built the pre-v17 way</h2>
+    <app-guide-box [guide]="guides.feature" />
+    <h3>In short</h3>
+    <app-task-board demo-body />
+    <p>
+      <code>TaskBoardComponent</code> reads a <code>BehaviorSubject</code> through the
+      <code>async</code> pipe and passes the tasks to <code>TaskListComponent</code> through
+      <code>&#64;Input()</code>; the list reports clicks with <code>&#64;Output()</code> +
+      <code>EventEmitter</code>. Both are declared in <code>TasksModule</code>, which this
+      standalone page imports. Hover a task to see the <code>&#64;HostBinding</code> directive;
+      press Esc to clear the input (<code>&#64;HostListener</code>).
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Old file naming: <code>task-list.component.ts</code>, <code>task.service.ts</code>,
+          <code>tasks.module.ts</code>, and class names ending in <code>Component</code> /
+          <code>Service</code>. Since v20 the CLI generates <code>task-list.ts</code> with class
+          <code>TaskList</code>. Both work; follow whatever the codebase already does.
+        </li>
+        <li>
+          <code>standalone: false</code> is needed on declared components since v19. In code written
+          before v19 there is no <code>standalone</code> flag at all, because false was the default.
+        </li>
+        <li>
+          This project's lint config enforces the modern APIs, so
+          <code>eslint.config.js</code> turns those rules off for <code>legacy/</code> only.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-feature" [exercise]="exercises.feature" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Constructor injection → inject()</h2>
-  <app-code-pair demo-body [pair]="snippets.injection" />
-  <p>
-    Both styles resolve from the same injector. <code>inject()</code> works in field initializers,
-    so values derived from a service move out of the constructor, and subclasses no longer repeat
-    the parent's dependencies in <code>super(...)</code>.
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Migration: <code>ng generate &#64;angular/core:inject</code>. Parameter decorators become
-        options: <code>&#64;Optional()</code> → <code>&#123; optional: true &#125;</code>,
-        <code>&#64;Self()</code> → <code>&#123; self: true &#125;</code>.
-      </li>
-      <li>
-        <code>inject()</code> only works in an injection context: field initializers, the
-        constructor, factories, guards and resolvers. Not in <code>ngOnInit</code> or a click
-        handler.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.injection" />
-</app-demo-card>
+@if (view.shows('modules')) {
+  <app-demo-card>
+    <h2 demo-title>NgModule → standalone</h2>
+    <app-guide-box [guide]="guides.modules" />
+    <h3>In short</h3>
+    <app-code-pair demo-body [pair]="snippets.modules" />
+    <p>
+      An NgModule groups declarations and decides what their templates can see. A standalone
+      component lists its own dependencies in <code>imports</code>, so there is one place to look.
+      This topic is still loaded as a module:
+      <code
+        >loadChildren: () =&gt; import('./legacy/legacy.module').then((m) =&gt;
+        m.LegacyModule)</code
+      >, and <code>RouterModule.forChild(routes)</code> registers its child routes.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Both worlds mix: a standalone component imports a module (this page imports
+          <code>TasksModule</code>), and a module imports standalone components.
+        </li>
+        <li>
+          <code>ng generate &#64;angular/core:standalone</code> runs in three passes: convert
+          declarations, remove the empty modules, switch to <code>bootstrapApplication</code>. Run
+          them in that order and build between them.
+        </li>
+        <li>
+          A module that only brings providers (<code>HttpClientModule</code>,
+          <code>StoreModule.forRoot</code>) becomes a <code>provide…()</code> function in
+          <code>app.config.ts</code>. When a library has none yet, wrap its module in
+          <code>importProvidersFrom(...)</code>.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-modules" [exercise]="exercises.modules" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>*ngIf / *ngFor / [ngSwitch] → &#64;if / &#64;for / &#64;switch</h2>
-  <app-code-pair demo-body [pair]="snippets.templates" />
-  <p>
-    Structural directives needed <code>CommonModule</code> (or <code>NgIf</code>,
-    <code>NgFor</code>…) in the imports, an <code>&lt;ng-template&gt;</code> for the else branch and
-    a <code>trackBy</code> function. The built-in blocks need no imports and make
-    <code>track</code> mandatory.
-  </p>
-  <p class="source">Topic 02 has a live side-by-side of both syntaxes.</p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Migration: <code>ng generate &#64;angular/core:control-flow</code>. The directives are
-        deprecated since v20.
-      </li>
-      <li>
-        <code>*ngIf="tasks$ | async as tasks"</code> hides the content while the value is falsy, so
-        an empty string or <code>0</code> renders nothing. <code>&#64;if</code> behaves the same
-        way.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.templates" />
-</app-demo-card>
+@if (view.shows('inputsOutputs')) {
+  <app-demo-card>
+    <h2 demo-title>&#64;Input / &#64;Output → input() / output()</h2>
+    <app-guide-box [guide]="guides.inputsOutputs" />
+    <h3>In short</h3>
+    <app-code-pair demo-body [pair]="snippets.inputsOutputs" />
+    <p>
+      A decorator input is a plain field that Angular writes to; the component learns about changes
+      in
+      <code>ngOnChanges</code> or through a setter. A signal input is read-only and can feed a
+      <code>computed</code>, so derived state needs no lifecycle hook.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Migrations: <code>signal-input-migration</code> and <code>output-migration</code>. They
+          skip inputs that the component writes to itself: those become a <code>model()</code> or a
+          local signal by hand.
+        </li>
+        <li>
+          <code>&#64;Input(&#123; required: true &#125;)</code> → <code>input.required()</code>.
+          <code>&#64;Input(&#123; transform: booleanAttribute &#125;)</code> →
+          <code>input(false, &#123; transform: booleanAttribute &#125;)</code>.
+        </li>
+        <li>
+          In templates and specs the binding is the same (<code>[tasks]</code>,
+          <code>(toggled)</code>); in TypeScript every read becomes a call:
+          <code>this.tasks</code> → <code>this.tasks()</code>.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-inputsOutputs" [exercise]="exercises.inputsOutputs" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>&#64;ViewChild, &#64;HostListener → viewChild(), host</h2>
-  <app-code-pair demo-body [pair]="snippets.queriesHost" />
-  <p>
-    A decorator query is <code>undefined</code> until <code>ngAfterViewInit</code>, hence the
-    <code>!</code>. A signal query is a signal: read it anywhere, and <code>computed</code> or
-    <code>effect</code> react when the element appears. Host bindings and listeners move to the
-    <code>host</code> object in the decorator.
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>Migration: <code>ng generate &#64;angular/core:signal-queries-migration</code>.</li>
-      <li>
-        There is no schematic for <code>&#64;HostBinding</code> / <code>&#64;HostListener</code>;
-        move them to <code>host: &#123;&#125;</code> by hand. Both still work and are not
-        deprecated, but the style guide prefers <code>host</code>.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.queriesHost" />
-</app-demo-card>
+@if (view.shows('injection')) {
+  <app-demo-card>
+    <h2 demo-title>Constructor injection → inject()</h2>
+    <app-guide-box [guide]="guides.injection" />
+    <h3>In short</h3>
+    <app-code-pair demo-body [pair]="snippets.injection" />
+    <p>
+      Both styles resolve from the same injector. <code>inject()</code> works in field initializers,
+      so values derived from a service move out of the constructor, and subclasses no longer repeat
+      the parent's dependencies in <code>super(...)</code>.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Migration: <code>ng generate &#64;angular/core:inject</code>. Parameter decorators become
+          options: <code>&#64;Optional()</code> → <code>&#123; optional: true &#125;</code>,
+          <code>&#64;Self()</code> → <code>&#123; self: true &#125;</code>.
+        </li>
+        <li>
+          <code>inject()</code> only works in an injection context: field initializers, the
+          constructor, factories, guards and resolvers. Not in <code>ngOnInit</code> or a click
+          handler.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-injection" [exercise]="exercises.injection" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Class guard → functional guard</h2>
-  <div demo-body>
-    <div class="demo-row">
-      <label>
-        <input
-          type="checkbox"
-          class="unlock"
-          [checked]="access.unlocked"
-          (change)="toggleAccess()"
-        />
-        Unlocked
-      </label>
-      <a routerLink="vault" class="open-vault">Open the vault</a>
+@if (view.shows('templates')) {
+  <app-demo-card>
+    <h2 demo-title>*ngIf / *ngFor / [ngSwitch] → &#64;if / &#64;for / &#64;switch</h2>
+    <app-guide-box [guide]="guides.templates" />
+    <h3>In short</h3>
+    <app-code-pair demo-body [pair]="snippets.templates" />
+    <p>
+      Structural directives needed <code>CommonModule</code> (or <code>NgIf</code>,
+      <code>NgFor</code>…) in the imports, an <code>&lt;ng-template&gt;</code> for the else branch
+      and a <code>trackBy</code> function. The built-in blocks need no imports and make
+      <code>track</code> mandatory.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Migration: <code>ng generate &#64;angular/core:control-flow</code>. The directives are
+          deprecated since v20.
+        </li>
+        <li>
+          <code>*ngIf="tasks$ | async as tasks"</code> hides the content while the value is falsy,
+          so an empty string or <code>0</code> renders nothing. <code>&#64;if</code> behaves the
+          same way.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-templates" [exercise]="exercises.templates" />
+  </app-demo-card>
+}
+
+@if (view.shows('queriesHost')) {
+  <app-demo-card>
+    <h2 demo-title>&#64;ViewChild, &#64;HostListener → viewChild(), host</h2>
+    <app-guide-box [guide]="guides.queriesHost" />
+    <h3>In short</h3>
+    <app-code-pair demo-body [pair]="snippets.queriesHost" />
+    <p>
+      A decorator query is <code>undefined</code> until <code>ngAfterViewInit</code>, hence the
+      <code>!</code>. A signal query is a signal: read it anywhere, and <code>computed</code> or
+      <code>effect</code> react when the element appears. Host bindings and listeners move to the
+      <code>host</code> object in the decorator.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>Migration: <code>ng generate &#64;angular/core:signal-queries-migration</code>.</li>
+        <li>
+          There is no schematic for <code>&#64;HostBinding</code> / <code>&#64;HostListener</code>;
+          move them to <code>host: &#123;&#125;</code> by hand. Both still work and are not
+          deprecated, but the style guide prefers <code>host</code>.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-queriesHost" [exercise]="exercises.queriesHost" />
+  </app-demo-card>
+}
+
+@if (view.shows('guards')) {
+  <app-demo-card>
+    <h2 demo-title>Class guard → functional guard</h2>
+    <app-guide-box [guide]="guides.guards" />
+    <h3>In short</h3>
+    <div demo-body>
+      <div class="demo-row">
+        <label>
+          <input
+            type="checkbox"
+            class="unlock"
+            [checked]="access.unlocked"
+            (change)="toggleAccess()"
+          />
+          Unlocked
+        </label>
+        <a routerLink="vault" class="open-vault">Open the vault</a>
+      </div>
+      @if (blocked() && !access.unlocked) {
+        <p class="blocked" role="status">
+          <code>UnlockGuard</code> returned a <code>UrlTree</code> and sent you back here. Tick
+          <em>Unlocked</em> first.
+        </p>
+      }
+      <router-outlet />
     </div>
-    @if (blocked() && !access.unlocked) {
-      <p class="blocked" role="status">
-        <code>UnlockGuard</code> returned a <code>UrlTree</code> and sent you back here. Tick
-        <em>Unlocked</em> first.
-      </p>
-    }
-    <router-outlet />
-  </div>
-  <app-code-pair [pair]="snippets.guards" />
-  <p>
-    <code>/vault</code> is a child route of <code>LegacyModule</code>, protected by
-    <code>UnlockGuard</code>: a class that implements <code>CanActivate</code> and gets its services
-    through the constructor. A functional guard is a plain function that calls
-    <code>inject()</code>.
-  </p>
-  <p class="source">
-    Code: <code>legacy/unlock.guard.ts</code>, <code>vault.component.ts</code>; functional guards in
-    topic 07
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Class guards and resolvers are deprecated (v15.2). There is no schematic: rewrite them by
-        hand, or wrap them with <code>mapToCanActivate</code> / <code>mapToResolve</code> first.
-      </li>
-      <li>
-        The same applies to <code>CanLoad</code>, replaced by <code>canMatch</code>, which also runs
-        before a lazy route is loaded.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.guards" />
-</app-demo-card>
+    <app-code-pair [pair]="snippets.guards" />
+    <p>
+      <code>/vault</code> is a child route of <code>LegacyModule</code>, protected by
+      <code>UnlockGuard</code>: a class that implements <code>CanActivate</code> and gets its
+      services through the constructor. A functional guard is a plain function that calls
+      <code>inject()</code>.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Class guards and resolvers are deprecated (v15.2). There is no schematic: rewrite them by
+          hand, or wrap them with <code>mapToCanActivate</code> / <code>mapToResolve</code> first.
+        </li>
+        <li>
+          The same applies to <code>CanLoad</code>, replaced by <code>canMatch</code>, which also
+          runs before a lazy route is loaded.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-guards" [exercise]="exercises.guards" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>zone.js → zoneless</h2>
-  <app-save-status demo-body />
-  <p>
-    Both buttons write <code>status = 'saved'</code> in a <code>setTimeout</code>. With zone.js,
-    Angular ran change detection after every async callback, so both worked. This app is zoneless
-    (the default since v21): the first button stays on "saving…" until something else refreshes the
-    component, while the second calls <code>markForCheck()</code>.
-  </p>
-  <app-code-pair [pair]="snippets.zoneless" />
-  <p class="source">
-    Code: <code>legacy/save-status.component.ts</code>; topic 06 covers change detection
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Legacy code that already uses OnPush with the <code>async</code> pipe or signals usually
-        works zoneless as is. The code that breaks writes plain fields in callbacks
-        (<code>setTimeout</code>, <code>subscribe</code>, third-party libraries).
-      </li>
-      <li>
-        v20 opted in with <code>provideZonelessChangeDetection()</code>. A v21 app that still needs
-        zone.js adds <code>provideZoneChangeDetection()</code> and loads <code>zone.js</code> in the
-        <code>polyfills</code>.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.zoneless" />
-</app-demo-card>
+@if (view.shows('zoneless')) {
+  <app-demo-card>
+    <h2 demo-title>zone.js → zoneless</h2>
+    <app-guide-box [guide]="guides.zoneless" />
+    <h3>In short</h3>
+    <app-save-status demo-body />
+    <p>
+      Both buttons write <code>status = 'saved'</code> in a <code>setTimeout</code>. With zone.js,
+      Angular ran change detection after every async callback, so both worked. This app is zoneless
+      (the default since v21): the first button stays on "saving…" until something else refreshes
+      the component, while the second calls <code>markForCheck()</code>.
+    </p>
+    <app-code-pair [pair]="snippets.zoneless" />
+    <app-tips-box>
+      <ul>
+        <li>
+          Legacy code that already uses OnPush with the <code>async</code> pipe or signals usually
+          works zoneless as is. The code that breaks writes plain fields in callbacks
+          (<code>setTimeout</code>, <code>subscribe</code>, third-party libraries).
+        </li>
+        <li>
+          v20 opted in with <code>provideZonelessChangeDetection()</code>. A v21 app that still
+          needs zone.js adds <code>provideZoneChangeDetection()</code> and loads
+          <code>zone.js</code> in the <code>polyfills</code>.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-zoneless" [exercise]="exercises.zoneless" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Running the migrations</h2>
-  <pre demo-body><code>{{ commands }}</code></pre>
-  <p>
-    <code>ng update</code> moves one major version at a time and runs the required migrations of
-    that version automatically. The migrations to modern APIs are optional: run them with
-    <code>ng generate</code>, one per commit, and read the diff. Each one prints what it could not
-    convert and why.
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        The schematics also update the specs. Run the tests after each one; the build alone does not
-        catch everything (for example a field that is now a signal but is still read without
-        <code>()</code> in a string template).
-      </li>
-      <li>
-        <code>ng generate &#64;angular/core:signals</code> runs the input, output and query
-        migrations together.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.migrations" />
-</app-demo-card>
+@if (view.shows('migrations')) {
+  <app-demo-card>
+    <h2 demo-title>Running the migrations</h2>
+    <app-guide-box [guide]="guides.migrations" />
+    <h3>In short</h3>
+    <pre demo-body><code>{{ commands }}</code></pre>
+    <p>
+      <code>ng update</code> moves one major version at a time and runs the required migrations of
+      that version automatically. The migrations to modern APIs are optional: run them with
+      <code>ng generate</code>, one per commit, and read the diff. Each one prints what it could not
+      convert and why.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          The schematics also update the specs. Run the tests after each one; the build alone does
+          not catch everything (for example a field that is now a signal but is still read without
+          <code>()</code> in a string template).
+        </li>
+        <li>
+          <code>ng generate &#64;angular/core:signals</code> runs the input, output and query
+          migrations together.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-migrations" [exercise]="exercises.migrations" />
+  </app-demo-card>
+}
+
+@if (view.single(); as card) {
+  <app-card-pager [cards]="view.cards" [current]="card.id" />
+}

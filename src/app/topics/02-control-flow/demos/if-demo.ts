@@ -5,6 +5,7 @@ interface User {
   readonly role: 'admin' | 'editor' | 'viewer';
 }
 
+/** The class behind the @if demo: a score and an optional selected user. */
 @Component({
   selector: 'app-if-demo',
   templateUrl: './if-demo.html',

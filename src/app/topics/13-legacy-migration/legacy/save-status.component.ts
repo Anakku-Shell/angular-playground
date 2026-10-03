@@ -31,12 +31,12 @@ export class SaveStatusComponent implements OnDestroy {
 
   constructor(private changeDetector: ChangeDetectorRef) {}
 
-  /** The click renders "saving…"; "saved" is written later but never rendered. */
+  /** [1] The click renders "saving…"; "saved" is written later but never rendered. */
   savePlain(): void {
     this.fakeSave(() => undefined);
   }
 
-  /** `markForCheck()` marks this view dirty and schedules a pass, so "saved" is rendered. */
+  /** [2] `markForCheck()` marks this view dirty and schedules a pass, so "saved" is rendered. */
   saveMarked(): void {
     this.fakeSave(() => this.changeDetector.markForCheck());
   }

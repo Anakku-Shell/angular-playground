@@ -15,7 +15,7 @@ export const USERNAME_CHECK_MS = 600;
 export const TAKEN_USERNAMES = ['angular', 'vue'];
 
 /**
- * Custom sync validator. A factory returns the ValidatorFn so it can take parameters, like the
+ * [1] Custom sync validator. A factory returns the ValidatorFn so it can take parameters, like the
  * built-in Validators.minLength(3). It returns null when valid, or an errors object.
  */
 export function forbiddenValue(forbidden: string): ValidatorFn {
@@ -24,7 +24,7 @@ export function forbiddenValue(forbidden: string): ValidatorFn {
 }
 
 /**
- * Custom async validator: returns an Observable (or Promise) of errors | null. Angular only runs
+ * [2] Custom async validator: returns an Observable (or Promise) of errors | null. Angular only runs
  * it when every sync validator passes, and cancels the previous check on each new value.
  */
 export function usernameAvailable(): AsyncValidatorFn {
@@ -39,7 +39,7 @@ export function usernameAvailable(): AsyncValidatorFn {
 }
 
 /**
- * Cross-field validator: it goes on the parent group, the only place that sees both fields. The
+ * [3] Cross-field validator: it goes on the parent group, the only place that sees both fields. The
  * error lands on the group, not on the controls.
  */
 export function fieldsMatch(field: string, confirmField: string): ValidatorFn {

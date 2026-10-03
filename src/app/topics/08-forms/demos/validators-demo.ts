@@ -14,6 +14,7 @@ import { fieldsMatch, forbiddenValue, TAKEN_USERNAMES, usernameAvailable } from 
         <span>Username (not "admin"; taken: {{ taken }})</span>
         <input formControlName="username" class="username" autocomplete="off" />
       </label>
+      <!-- [2] One message per error key, checked in order. -->
       @let username = form.controls.username;
       @if (username.pending) {
         <p class="hint username-status">Checking availability…</p>
@@ -68,7 +69,7 @@ export class ValidatorsDemo {
   protected readonly taken = TAKEN_USERNAMES.join(', ');
 
   protected readonly form = this.fb.group({
-    // [initial value, sync validators, async validators]
+    // [1] [initial value, sync validators, async validators]
     username: ['', [Validators.required, forbiddenValue('admin')], [usernameAvailable()]],
     passwords: this.fb.group(
       {
@@ -79,7 +80,7 @@ export class ValidatorsDemo {
     ),
   });
 
-  // The async check finishes outside any template event. Reading this signal in the template is
+  // [3] The async check finishes outside any template event. Reading this signal in the template is
   // what makes the zoneless view refresh when the status goes from PENDING to VALID / INVALID.
   protected readonly status = toSignal(this.form.statusChanges, {
     initialValue: this.form.status,

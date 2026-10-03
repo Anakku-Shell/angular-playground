@@ -14,6 +14,9 @@ describe('RoutingPage', () => {
   let router: Router;
 
   beforeEach(async () => {
+    // Every card on the page. The page reads the last ?card from sessionStorage when the URL has
+    // none (its mini app drops query params), so the URLs below stay free of it.
+    sessionStorage.setItem('card:07-routing', 'all');
     TestBed.configureTestingModule({
       providers: [provideRouter(routes, withComponentInputBinding())],
     });
@@ -21,6 +24,8 @@ describe('RoutingPage', () => {
     router = TestBed.inject(Router);
     await harness.navigateByUrl(ROUTING_URL);
   });
+
+  afterEach(() => sessionStorage.clear());
 
   function el(): HTMLElement {
     return harness.fixture.nativeElement as HTMLElement;
@@ -54,6 +59,7 @@ describe('RoutingPage', () => {
     expect(router.url).toBe(`${ROUTING_URL}/products`);
     expect(el().querySelectorAll('app-demo-card').length).toBe(6);
     for (const card of el().querySelectorAll('app-demo-card')) {
+      expect(card.querySelectorAll('app-guide-box .guide__steps > li').length).toBeGreaterThan(0);
       expect(
         card.querySelectorAll('app-exercise-box .exercise__tasks > li').length,
       ).toBeGreaterThan(0);

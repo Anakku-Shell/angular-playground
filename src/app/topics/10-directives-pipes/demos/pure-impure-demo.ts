@@ -44,10 +44,12 @@ export class PureImpureDemo {
   protected readonly term = signal('an');
   private added = 0;
 
+  // [1] Mutation: the same array object, one more item.
   protected addByPush(): void {
     this.fruits.push(this.nextFruit());
   }
 
+  // [2] Replacement: a new array object.
   protected addAsNewArray(): void {
     this.fruits = [...this.fruits, this.nextFruit()];
   }

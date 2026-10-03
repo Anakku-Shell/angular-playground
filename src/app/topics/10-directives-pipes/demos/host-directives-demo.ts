@@ -11,7 +11,7 @@ import { Tooltip } from '../directives/tooltip';
   selector: 'app-tag',
   template: `
     <ng-content />
-    <!-- The component can inject its host directives and read their public API. -->
+    <!-- [2] The component can inject its host directives and read their public API. -->
     @if (highlight.hovered()) {
       <span aria-hidden="true">●</span>
     }
@@ -28,7 +28,7 @@ import { Tooltip } from '../directives/tooltip';
     }
   `,
   hostDirectives: [
-    // Inputs of host directives are private unless listed; `name: alias` renames them.
+    // [1] Inputs of host directives are private unless listed; `name: alias` renames them.
     { directive: Highlight, inputs: ['appHighlight: color'] },
     { directive: Tooltip, inputs: ['appTooltip: hint'] },
   ],

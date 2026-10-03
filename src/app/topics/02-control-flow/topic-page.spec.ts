@@ -4,6 +4,7 @@ import {
   DeferBlockState,
   TestBed,
 } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { ControlFlowPage } from './topic-page';
 
@@ -14,7 +15,10 @@ describe('ControlFlowPage', () => {
   beforeEach(async () => {
     // Manual: @defer blocks stay on their placeholder until the test renders a state.
     TestBed.configureTestingModule({ deferBlockBehavior: DeferBlockBehavior.Manual });
+    TestBed.configureTestingModule({ providers: [provideRouter([])] });
     fixture = TestBed.createComponent(ControlFlowPage);
+    // ?card=all: every card on the page, as the tests below need.
+    fixture.componentRef.setInput('card', 'all');
     await fixture.whenStable();
     el = fixture.nativeElement as HTMLElement;
   });
@@ -31,6 +35,7 @@ describe('ControlFlowPage', () => {
     const cards = el.querySelectorAll('app-demo-card');
     expect(cards.length).toBe(6);
     for (const card of cards) {
+      expect(card.querySelectorAll('app-guide-box .guide__steps > li').length).toBeGreaterThan(0);
       expect(
         card.querySelectorAll('app-exercise-box .exercise__tasks > li').length,
       ).toBeGreaterThan(0);

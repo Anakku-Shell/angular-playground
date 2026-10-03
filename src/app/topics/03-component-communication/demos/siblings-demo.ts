@@ -4,6 +4,10 @@ import { CartStore } from './siblings/cart-store';
 import { CartSummary } from './siblings/cart-summary';
 import { ProductPicker } from './siblings/product-picker';
 
+/**
+ * The common parent of the siblings demo. It passes nothing to its children: it only provides
+ * the store they share. Read siblings/cart-store.ts first.
+ */
 @Component({
   selector: 'app-siblings-demo',
   imports: [ProductPicker, CartSummary],

@@ -1,4 +1,6 @@
 <!--
+  Read this template first, then track/track-row.ts and track-demo.ts.
+
   track tells Angular which item each rendered row belongs to. When the list changes, rows whose
   key is still there are kept (and moved); the others are created or destroyed.
     track item.id   stable identity from the data: the usual choice
@@ -15,6 +17,7 @@
 
 <div class="track-columns">
   <section>
+    <!-- [1] By id: each row stays with its fruit, wherever it moves. -->
     <h3><code>track fruit.id</code></h3>
     @for (fruit of fruits(); track fruit.id) {
       <app-track-row [fruit]="fruit" />
@@ -22,6 +25,7 @@
   </section>
 
   <section>
+    <!-- [2] By position: row N always shows item N, whatever item that is. -->
     <h3><code>track $index</code></h3>
     @for (fruit of fruits(); track $index) {
       <app-track-row [fruit]="fruit" />
@@ -29,6 +33,7 @@
   </section>
 
   <section>
+    <!-- [3] By object reference: a new object is a new row, even with the same data. -->
     <h3><code>track fruit</code> (identity)</h3>
     @for (fruit of fruits(); track fruit) {
       <app-track-row [fruit]="fruit" />

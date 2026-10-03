@@ -17,11 +17,12 @@ import { Role, Session } from '../session';
  */
 @Directive({ selector: '[appHasRole]' })
 export class HasRole {
+  // [1] The value after the *: *appHasRole="'editor'".
   readonly appHasRole = input.required<Role>();
   // Microsyntax: `else x` inside the `*` expression becomes the input `appHasRoleElse`.
   readonly appHasRoleElse = input<TemplateRef<unknown> | null>(null);
 
-  // The <ng-template> the directive sits on, and the place to stamp it.
+  // [2] The <ng-template> the directive sits on, and the place to stamp it.
   private readonly template = inject(TemplateRef);
   private readonly viewContainer = inject(ViewContainerRef);
   private readonly session = inject(Session);
@@ -30,6 +31,7 @@ export class HasRole {
   // both allowed does not recreate the view (and does not lose its state).
   private readonly allowed = computed(() => this.session.hasRole(this.appHasRole()));
 
+  // [3] Re-runs when the role or the inputs change: clear, then stamp the right template.
   constructor() {
     effect(() => {
       const template = this.allowed() ? this.template : this.appHasRoleElse();

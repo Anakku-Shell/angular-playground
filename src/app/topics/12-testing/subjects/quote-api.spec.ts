@@ -15,6 +15,7 @@ describe('QuoteApi', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      // [1] The real HttpClient with a fake backend.
       providers: [
         // Order matters: provideHttpClient first, then the testing backend replaces the real one.
         provideHttpClient(),
@@ -27,11 +28,11 @@ describe('QuoteApi', () => {
     httpMock = TestBed.inject(HttpTestingController);
   });
 
-  // Fails the test if a request was sent that no expectation handled.
+  // [4] Fails the test if a request was sent that no expectation handled.
   afterEach(() => httpMock.verify());
 
   it('gets a random quote', async () => {
-    // Subscribe first (HttpClient is lazy), then answer the pending request.
+    // [2] Subscribe first (HttpClient is lazy), then answer the pending request.
     const result = firstValueFrom(api.random());
 
     const req = httpMock.expectOne(`${API}/quotes/random`);
@@ -53,6 +54,7 @@ describe('QuoteApi', () => {
     expect(await result).toEqual([quote(11), quote(12)]);
   });
 
+  // [3] Errors: flush() with an error status, or error() for a network failure.
   it('passes server errors to the caller', async () => {
     const result = firstValueFrom(api.random());
 

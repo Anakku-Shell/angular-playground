@@ -1,6 +1,8 @@
 :host {
   display: block;
   margin-block: 1rem 0;
+  // Scrolling to #exercises-... stops below the sticky tab bar (app-card-nav), not under it.
+  scroll-margin-top: 5rem;
 }
 
 .exercise {

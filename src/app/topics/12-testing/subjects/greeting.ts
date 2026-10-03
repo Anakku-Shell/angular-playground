@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 
 /**
- * Wraps `new Date()`. Code that reads the time through a service can be tested at any hour: the
+ * [1] Wraps `new Date()`. Code that reads the time through a service can be tested at any hour: the
  * test provides a fake clock instead of changing the system time.
  */
 @Injectable({ providedIn: 'root' })
@@ -18,7 +18,7 @@ export class Clock {
   }
 }
 
-/** Greets by the time of day, read from `Clock`. */
+/** [2] Greets by the time of day, read from `Clock`. */
 @Component({
   selector: 'app-greeting',
   template: `<p class="greeting">{{ greeting() }}, {{ name() || 'stranger' }}!</p>`,

@@ -15,7 +15,7 @@ import { ROUTING_URL } from './routing-url';
  */
 
 /**
- * Functional guard: a plain function that runs in an injection context, so it can call inject().
+ * [1] Functional guard: a plain function that runs in an injection context, so it can call inject().
  * Returning a UrlTree cancels this navigation and starts one to that URL.
  */
 export const authGuard: CanActivateFn = (_route, state) => {
@@ -32,6 +32,6 @@ export interface HasUnsavedChanges {
   canLeave(): boolean | Promise<boolean>;
 }
 
-/** Asks the component being left. The navigation waits while the promise is pending. */
+/** [2] Asks the component being left. The navigation waits while the promise is pending. */
 export const unsavedChangesGuard: CanDeactivateFn<HasUnsavedChanges> = (component) =>
   component.canLeave();

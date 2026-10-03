@@ -4,6 +4,8 @@ import { CounterPanel } from './counters/counter-panel';
 import { CounterScope } from './counters/counter-scope';
 
 /*
+ * Read counters/counter.ts, counter-panel.ts and counter-scope.ts first: this demo uses them.
+ *
  * Where a service can be provided, from widest to narrowest:
  *   @Injectable({ providedIn: 'root' })   one instance for the app (lazy, tree-shakable)
  *   appConfig.providers                   one instance for the app (app.config.ts)

@@ -38,8 +38,9 @@ import { Product, PRODUCTS } from '../products';
 export class ProductDetail {
   // Without withComponentInputBinding(), or in older code, the same values come from
   // ActivatedRoute: route.paramMap / route.data (Observables) or route.snapshot (read once).
-  /** Route params are strings; the numberAttribute transform turns "2" into 2. */
+  /** [1] Route params are strings; the numberAttribute transform turns "2" into 2. */
   readonly id = input.required({ transform: numberAttribute });
+  /** [2] Filled by productResolver (the `product` key of the route's `resolve`). */
   readonly product = input.required<Product>();
 
   private readonly router = inject(Router);
@@ -52,6 +53,7 @@ export class ProductDetail {
   );
   protected readonly nextId = computed(() => PRODUCTS[(this.index() + 1) % PRODUCTS.length].id);
 
+  // [3] Navigation from code, relative to this route.
   protected go(id: number): void {
     // Relative to this route (/products/:id): '..' goes up to /products, then adds the new id.
     void this.router.navigate(['..', id], { relativeTo: this.route });

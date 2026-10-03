@@ -7,7 +7,7 @@ describe('TemperatureStore', () => {
   let store: TemperatureStore;
 
   beforeEach(() => {
-    // A root service: inject it, no component involved. TestBed gives each test a new injector,
+    // [1] A root service: inject it, no component involved. TestBed gives each test a new injector,
     // so every test starts from a fresh store.
     store = TestBed.inject(TemperatureStore);
   });
@@ -19,7 +19,7 @@ describe('TemperatureStore', () => {
   });
 
   it('recomputes derived signals synchronously after a write', () => {
-    // Reading a computed right after a write gives the new value: no waiting, no change detection.
+    // [2] Reading a computed right after a write gives the new value: no waiting, no change detection.
     store.setCelsius(30);
     expect(store.fahrenheit()).toBe(86);
     expect(store.feel()).toBe('hot');
@@ -43,7 +43,7 @@ describe('TemperatureStore', () => {
 
   it('notifies effects when TestBed flushes them', () => {
     const seen: number[] = [];
-    // effect() needs an injection context; TestBed provides one.
+    // [3] effect() needs an injection context; TestBed provides one.
     TestBed.runInInjectionContext(() => effect(() => seen.push(store.celsius())));
 
     // Effects are scheduled, not run on write. TestBed.tick() runs change detection and effects.

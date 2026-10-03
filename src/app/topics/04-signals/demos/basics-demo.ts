@@ -10,19 +10,21 @@ import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/c
 })
 export class BasicsDemo {
   protected readonly unitPrice = 12.5;
+  // [1] State: writable signals. The template reads them with quantity(), showTotal().
   protected readonly quantity = signal(1);
   protected readonly showTotal = signal(false);
 
   // A plain field, not a signal: a computed() must not write signals. It numbers the runs so
   // the demo can show when the computation actually executes.
   private runs = 0;
+  // [2] Derived state: runs again only when quantity() changed AND someone reads total().
   protected readonly total = computed(() => ({
     amount: this.quantity() * this.unitPrice,
     run: ++this.runs,
   }));
 
   protected add(step: number): void {
-    // update(): the new value is derived from the current one.
+    // [3] update(): the new value is derived from the current one.
     this.quantity.update((current) => Math.max(0, current + step));
   }
 

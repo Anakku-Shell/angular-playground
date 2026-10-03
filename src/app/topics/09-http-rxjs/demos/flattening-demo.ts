@@ -33,7 +33,7 @@ interface Lane {
   count: number;
 }
 
-/** A fake request: ▶ when it starts, ✓ when its answer is used, ✕ when it is cancelled. */
+/** [1] A fake request: ▶ when it starts, ✓ when its answer is used, ✕ when it is cancelled. */
 function fakeRequest(n: number, log: (event: string) => void): Observable<number> {
   return new Observable<number>((subscriber) => {
     log(`${n}▶`);
@@ -94,6 +94,7 @@ function fakeRequest(n: number, log: (event: string) => void): Observable<number
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FlatteningDemo {
+  // [2] One lane per operator, each with its own stream of clicks.
   protected readonly lanes: Lane[] = [
     this.lane('switchMap', 'cancels the running one: latest wins (search)'),
     this.lane('mergeMap', 'runs all in parallel (independent requests)'),
@@ -118,6 +119,7 @@ export class FlatteningDemo {
     const clicks = new Subject<number>();
     const flatten = OPERATORS[name];
 
+    // [3] Every lane runs the same pipe; only the operator changes.
     // Called from a field initializer (an injection context), so takeUntilDestroyed() needs no
     // DestroyRef argument.
     clicks

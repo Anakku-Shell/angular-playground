@@ -8,301 +8,334 @@
   </p>
 </header>
 
+<app-card-nav [cards]="view.cards" [current]="view.current()" />
+
+@if (view.showMap()) {
+  <app-topic-map [guides]="guides">
+    <p>
+      Almost everything in this topic follows one rule:
+      <strong>data goes down, events go up</strong>. The parent owns the state and passes it to the
+      child; the child displays it and reports what the user did; the parent decides what changes.
+    </p>
+    <pre aria-label="Data down, events up">
+┌──────────────── parent ────────────────┐
+│ owns the state: rating = signal(0)     │
+└────────────────────────────────────────┘
+   [value]="rating()"   │    ▲   (rated)="rating.set($event)"
+   input: data down     ▼    │   output: events up
+┌──────────────── child ─────────────────┐
+│ shows value(), calls rated.emit(4)     │
+└────────────────────────────────────────┘</pre>
+  </app-topic-map>
+}
+
 <!-- Code samples in this template: `@` is escaped as &#64; and braces as &#123; &#125;
      (a bare brace would open or close a block). -->
 
-<app-demo-card>
-  <h2 demo-title>input(): data from parent to child</h2>
-  <app-inputs-demo demo-body />
-  <p>
-    <code>readonly value = input(0)</code> declares an input and returns a read-only signal: the
-    child reads <code>value()</code>, the parent binds <code>[value]="..."</code>.
-    <code>input.required&lt;T&gt;()</code> has no default, and the template compiler reports any
-    usage that does not set it. Options: <code>transform</code> converts the incoming value, and
-    <code>alias</code> gives the input a different public name (here <code>caption</code>).
-  </p>
-  <p class="source">
-    Code: <code>inputs-demo.ts / .html</code>, <code>inputs/progress-bar.ts</code>
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        A static attribute (<code>max="250"</code>) always passes a string. The built-in
-        <code>numberAttribute</code> and <code>booleanAttribute</code> transforms let a component
-        accept both <code>max="250"</code> and <code>[max]="250"</code>, and a bare
-        <code>striped</code>.
-      </li>
-      <li>
-        Inputs are read-only in the child: there is no <code>value.set()</code>. Derive new values
-        with <code>computed()</code> (like <code>percent</code> here), or use
-        <code>model()</code> when the child must write back.
-      </li>
-      <li>
-        Avoid aliases unless you need them (e.g. keeping a public name while renaming the field). Do
-        not name an input like a native attribute such as <code>title</code>: the static attribute
-        stays on the host element too, and shows a tooltip over the whole component.
-      </li>
-      <li>
-        Legacy: <code>&#64;Input() value = 0;</code> is a plain field, not a signal. Changes were
-        seen through <code>ngOnChanges</code> or setters.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.inputs" />
-</app-demo-card>
+@if (view.shows('inputs')) {
+  <app-demo-card>
+    <h2 demo-title>input(): data from parent to child</h2>
+    <app-inputs-demo demo-body />
+    <app-guide-box [guide]="guides.inputs" />
+    <h3>In short</h3>
+    <p>
+      <code>readonly value = input(0)</code> declares an input and returns a read-only signal: the
+      child reads <code>value()</code>, the parent binds <code>[value]="..."</code>.
+      <code>input.required&lt;T&gt;()</code> has no default, and the template compiler reports any
+      usage that does not set it. Options: <code>transform</code> converts the incoming value, and
+      <code>alias</code> gives the input a different public name (here <code>caption</code>).
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          A static attribute (<code>max="250"</code>) always passes a string. The built-in
+          <code>numberAttribute</code> and <code>booleanAttribute</code> transforms let a component
+          accept both <code>max="250"</code> and <code>[max]="250"</code>, and a bare
+          <code>striped</code>.
+        </li>
+        <li>
+          Inputs are read-only in the child: there is no <code>value.set()</code>. Derive new values
+          with <code>computed()</code> (like <code>percent</code> here), or use
+          <code>model()</code> when the child must write back.
+        </li>
+        <li>
+          Avoid aliases unless you need them (e.g. keeping a public name while renaming the field).
+          Do not name an input like a native attribute such as <code>title</code>: the static
+          attribute stays on the host element too, and shows a tooltip over the whole component.
+        </li>
+        <li>
+          Legacy: <code>&#64;Input() value = 0;</code> is a plain field, not a signal. Changes were
+          seen through <code>ngOnChanges</code> or setters.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-inputs" [exercise]="exercises.inputs" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Deriving from inputs: computed and linkedSignal</h2>
-  <app-linked-demo demo-body />
-  <p>
-    The picker gets its options as an input and keeps the selected one as local state. That state
-    must be writable (the user picks) but must also reset when the options change.
-    <code>linkedSignal(() =&gt; this.options()[0])</code> does both: it is a writable signal whose
-    value is recomputed whenever the signals it reads change. The summary line is a plain
-    <code>computed()</code>, read-only.
-  </p>
-  <p class="source">
-    Code: <code>linked-demo.ts / .html</code>, <code>linked/option-picker.ts</code>
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        <code>signal(this.options()[0])</code> in a field would throw <code>NG0950</code>: required
-        inputs have no value yet while the class is being constructed. Read inputs inside
-        <code>computed</code>, <code>linkedSignal</code>, templates or lifecycle hooks.
-      </li>
-      <li>
-        <code>linkedSignal(&#123; source, computation: (options, previous) =&gt; ... &#125;)</code>
-        can keep the previous choice when it is still valid. The Signals topic covers it.
-      </li>
-      <li>
-        <code>linkedSignal</code> is stable since v20 (developer preview in v19). Before it, the
-        usual pattern was <code>ngOnChanges</code> resetting a field.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.linked" />
-</app-demo-card>
+@if (view.shows('linked')) {
+  <app-demo-card>
+    <h2 demo-title>Deriving from inputs: computed and linkedSignal</h2>
+    <app-linked-demo demo-body />
+    <app-guide-box [guide]="guides.linked" />
+    <h3>In short</h3>
+    <p>
+      The picker gets its options as an input and keeps the selected one as local state. That state
+      must be writable (the user picks) but must also reset when the options change.
+      <code>linkedSignal(() =&gt; this.options()[0])</code> does both: it is a writable signal whose
+      value is recomputed whenever the signals it reads change. The summary line is a plain
+      <code>computed()</code>, read-only.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          <code>signal(this.options()[0])</code> in a field would throw <code>NG0950</code>:
+          required inputs have no value yet while the class is being constructed. Read inputs inside
+          <code>computed</code>, <code>linkedSignal</code>, templates or lifecycle hooks.
+        </li>
+        <li>
+          <code
+            >linkedSignal(&#123; source, computation: (options, previous) =&gt; ... &#125;)</code
+          >
+          can keep the previous choice when it is still valid. The Signals topic covers it.
+        </li>
+        <li>
+          <code>linkedSignal</code> is stable since v20 (developer preview in v19). Before it, the
+          usual pattern was <code>ngOnChanges</code> resetting a field.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-linked" [exercise]="exercises.linked" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>output(): events from child to parent</h2>
-  <app-outputs-demo demo-body />
-  <p>
-    <code>readonly rated = output&lt;number&gt;()</code> declares a custom event. The child calls
-    <code>rated.emit(4)</code>, and the parent listens with <code>(rated)="onRated($event)"</code>,
-    where <code>$event</code> is the payload. The rating receives its value as an input and never
-    changes it: it reports the click and the parent decides. This "data down, events up" flow keeps
-    the state in one place.
-  </p>
-  <p class="source">
-    Code: <code>outputs-demo.ts / .html</code>, <code>outputs/star-rating.ts</code>
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Outputs do not bubble: only the direct parent can listen. Deeper trees must forward the
-        event at each level (see the tree demo below).
-      </li>
-      <li>
-        Name outputs after what happened (<code>rated</code>, <code>cleared</code>), without an
-        <code>on</code> prefix. Avoid native event names like <code>change</code> or
-        <code>click</code>: a native event bubbling from inside the child would reach the same
-        <code>(change)</code> listener.
-      </li>
-      <li>
-        An input <code>value</code> plus an output <code>valueChange</code> is exactly what
-        <code>[(value)]</code> expects. <code>model()</code> declares both at once.
-      </li>
-      <li>
-        Legacy: <code>&#64;Output() rated = new EventEmitter&lt;number&gt;();</code>.
-        <code>output()</code> is not an RxJS <code>Subject</code>; it has no <code>pipe()</code>.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.outputs" />
-</app-demo-card>
+@if (view.shows('outputs')) {
+  <app-demo-card>
+    <h2 demo-title>output(): events from child to parent</h2>
+    <app-outputs-demo demo-body />
+    <app-guide-box [guide]="guides.outputs" />
+    <h3>In short</h3>
+    <p>
+      <code>readonly rated = output&lt;number&gt;()</code> declares a custom event. The child calls
+      <code>rated.emit(4)</code>, and the parent listens with
+      <code>(rated)="onRated($event)"</code>, where <code>$event</code> is the payload. The rating
+      receives its value as an input and never changes it: it reports the click and the parent
+      decides. This "data down, events up" flow keeps the state in one place.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Outputs do not bubble: only the direct parent can listen. Deeper trees must forward the
+          event at each level (see the tree demo below).
+        </li>
+        <li>
+          Name outputs after what happened (<code>rated</code>, <code>cleared</code>), without an
+          <code>on</code> prefix. Avoid native event names like <code>change</code> or
+          <code>click</code>: a native event bubbling from inside the child would reach the same
+          <code>(change)</code> listener.
+        </li>
+        <li>
+          An input <code>value</code> plus an output <code>valueChange</code> is exactly what
+          <code>[(value)]</code> expects. <code>model()</code> declares both at once.
+        </li>
+        <li>
+          Legacy: <code>&#64;Output() rated = new EventEmitter&lt;number&gt;();</code>.
+          <code>output()</code> is not an RxJS <code>Subject</code>; it has no <code>pipe()</code>.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-outputs" [exercise]="exercises.outputs" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>model(): two-way binding on a custom component</h2>
-  <app-model-demo demo-body />
-  <p>
-    <code>readonly value = model(1)</code> is an input the child may also write:
-    <code>value.set()</code> updates the child and emits <code>valueChange</code>. With
-    <code>[(value)]="quantity"</code> the parent's signal follows. With a one-way
-    <code>[value]="quantity()"</code> the child changes only its local copy, and the parent's next
-    change overwrites it. Use the steppers, then the button.
-  </p>
-  <p class="source">
-    Code: <code>model-demo.ts / .html</code>, <code>model/quantity-stepper.ts</code>
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Pass the signal, not its value: <code>[(value)]="quantity"</code>. A plain field works too
-        (<code>[(value)]="count"</code>).
-      </li>
-      <li>
-        Gotcha: "Parent: set to 1" does nothing to the one-way stepper when the parent already holds
-        1. A signal set to the same value does not notify, so the input is not updated.
-      </li>
-      <li>
-        Use <code>model()</code> for form-like controls (steppers, toggles, pickers). For the rest,
-        prefer an input plus a named output: the child then asks, and the parent decides.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.model" />
-</app-demo-card>
+@if (view.shows('model')) {
+  <app-demo-card>
+    <h2 demo-title>model(): two-way binding on a custom component</h2>
+    <app-model-demo demo-body />
+    <app-guide-box [guide]="guides.model" />
+    <h3>In short</h3>
+    <p>
+      <code>readonly value = model(1)</code> is an input the child may also write:
+      <code>value.set()</code> updates the child and emits <code>valueChange</code>. With
+      <code>[(value)]="quantity"</code> the parent's signal follows. With a one-way
+      <code>[value]="quantity()"</code> the child changes only its local copy, and the parent's next
+      change overwrites it. Use the steppers, then the button.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Pass the signal, not its value: <code>[(value)]="quantity"</code>. A plain field works too
+          (<code>[(value)]="count"</code>).
+        </li>
+        <li>
+          Gotcha: "Parent: set to 1" does nothing to the one-way stepper when the parent already
+          holds 1. A signal set to the same value does not notify, so the input is not updated.
+        </li>
+        <li>
+          Use <code>model()</code> for form-like controls (steppers, toggles, pickers). For the
+          rest, prefer an input plus a named output: the child then asks, and the parent decides.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-model" [exercise]="exercises.model" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Content projection: ng-content</h2>
-  <app-projection-demo demo-body />
-  <p>
-    A component places <code>&lt;ng-content /&gt;</code> where the content written between its tags
-    should appear. With several <code>&lt;ng-content select="..."&gt;</code> slots, each one takes
-    the elements that match its CSS selector, and the one without <code>select</code> takes the
-    rest. Content inside <code>&lt;ng-content&gt;</code> is a fallback, shown when nothing is
-    projected into that slot. <code>ngProjectAs</code> makes an element match a selector it would
-    not match on its own, typically an <code>&lt;ng-container&gt;</code> grouping several elements.
-  </p>
-  <p class="source">
-    Code: <code>projection-demo.ts / .html</code>, <code>projection/callout.ts</code>,
-    <code>projection/panel.ts / .html</code>
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        This page is built with it: <code>app-demo-card</code> has <code>demo-title</code> and
-        <code>demo-body</code> slots plus a default slot.
-      </li>
-      <li>
-        Projected content is created by the parent, even if the child never shows it (e.g.
-        <code>&lt;ng-content&gt;</code> inside an <code>&#64;if</code>). For lazy content, the child
-        takes an <code>&lt;ng-template&gt;</code> and renders it with <code>ngTemplateOutlet</code>.
-      </li>
-      <li>
-        Content is projected once: an <code>&lt;ng-content&gt;</code> inside an
-        <code>&#64;for</code> does not repeat it.
-      </li>
-      <li>
-        The child's encapsulated styles do not reach projected elements. Style them from the parent,
-        or with global styles (this project styles <code>[demo-title]</code> in
-        <code>styles.scss</code>).
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.projection" />
-</app-demo-card>
+@if (view.shows('projection')) {
+  <app-demo-card>
+    <h2 demo-title>Content projection: ng-content</h2>
+    <app-projection-demo demo-body />
+    <app-guide-box [guide]="guides.projection" />
+    <h3>In short</h3>
+    <p>
+      A component places <code>&lt;ng-content /&gt;</code> where the content written between its
+      tags should appear. With several <code>&lt;ng-content select="..."&gt;</code> slots, each one
+      takes the elements that match its CSS selector, and the one without <code>select</code> takes
+      the rest. Content inside <code>&lt;ng-content&gt;</code> is a fallback, shown when nothing is
+      projected into that slot. <code>ngProjectAs</code> makes an element match a selector it would
+      not match on its own, typically an <code>&lt;ng-container&gt;</code> grouping several
+      elements.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          This page is built with it: <code>app-demo-card</code> has <code>demo-title</code> and
+          <code>demo-body</code> slots plus a default slot.
+        </li>
+        <li>
+          Projected content is created by the parent, even if the child never shows it (e.g.
+          <code>&lt;ng-content&gt;</code> inside an <code>&#64;if</code>). For lazy content, the
+          child takes an <code>&lt;ng-template&gt;</code> and renders it with
+          <code>ngTemplateOutlet</code>.
+        </li>
+        <li>
+          Content is projected once: an <code>&lt;ng-content&gt;</code> inside an
+          <code>&#64;for</code> does not repeat it.
+        </li>
+        <li>
+          The child's encapsulated styles do not reach projected elements. Style them from the
+          parent, or with global styles (this project styles <code>[demo-title]</code> in
+          <code>styles.scss</code>).
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-projection" [exercise]="exercises.projection" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Queries: viewChild, viewChildren, contentChild</h2>
-  <app-queries-demo demo-body />
-  <p>
-    Queries give a component direct access to elements and child components.
-    <code>viewChild('search')</code> finds a template reference in the component's own template,
-    <code>viewChildren(Stopwatch)</code> finds every instance of a component type there, and
-    <code>contentChild('control')</code> searches the content projected into it. All of them return
-    signals that update when the matching elements change (add or remove a lane).
-  </p>
-  <p class="source">
-    Code: <code>queries-demo.ts / .html</code>, <code>queries/stopwatch.ts</code>,
-    <code>queries/labeled-field.ts</code>
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        <code>viewChild.required()</code> removes <code>undefined</code> from the type and throws if
-        nothing matches. The plain version returns <code>T | undefined</code>, useful when the
-        element is inside an <code>&#64;if</code>.
-      </li>
-      <li>
-        Query results exist only after the view is created: read them in event handlers,
-        <code>computed</code>, <code>effect</code> or <code>afterNextRender</code>, not in the
-        constructor.
-      </li>
-      <li>
-        Calling child methods through a query couples the parent to the child's API. Prefer inputs
-        and outputs; use queries for DOM work (focus, measuring) or imperative components like
-        players and timers.
-      </li>
-      <li>
-        Options: <code>&#123; read: ElementRef &#125;</code> gets the host element of a matched
-        component; <code>contentChildren(X, &#123; descendants: true &#125;)</code> also searches
-        nested content.
-      </li>
-      <li>
-        Legacy: <code>&#64;ViewChild('search') search!: ElementRef;</code>, available from
-        <code>ngAfterViewInit</code> (and <code>&#64;ContentChild</code> from
-        <code>ngAfterContentInit</code>).
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.queries" />
-</app-demo-card>
+@if (view.shows('queries')) {
+  <app-demo-card>
+    <h2 demo-title>Queries: viewChild, viewChildren, contentChild</h2>
+    <app-queries-demo demo-body />
+    <app-guide-box [guide]="guides.queries" />
+    <h3>In short</h3>
+    <p>
+      Queries give a component direct access to elements and child components.
+      <code>viewChild('search')</code> finds a template reference in the component's own template,
+      <code>viewChildren(Stopwatch)</code> finds every instance of a component type there, and
+      <code>contentChild('control')</code> searches the content projected into it. All of them
+      return signals that update when the matching elements change (add or remove a lane).
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          <code>viewChild.required()</code> removes <code>undefined</code> from the type and throws
+          if nothing matches. The plain version returns <code>T | undefined</code>, useful when the
+          element is inside an <code>&#64;if</code>.
+        </li>
+        <li>
+          Query results exist only after the view is created: read them in event handlers,
+          <code>computed</code>, <code>effect</code> or <code>afterNextRender</code>, not in the
+          constructor.
+        </li>
+        <li>
+          Calling child methods through a query couples the parent to the child's API. Prefer inputs
+          and outputs; use queries for DOM work (focus, measuring) or imperative components like
+          players and timers.
+        </li>
+        <li>
+          Options: <code>&#123; read: ElementRef &#125;</code> gets the host element of a matched
+          component; <code>contentChildren(X, &#123; descendants: true &#125;)</code> also searches
+          nested content.
+        </li>
+        <li>
+          Legacy: <code>&#64;ViewChild('search') search!: ElementRef;</code>, available from
+          <code>ngAfterViewInit</code> (and <code>&#64;ContentChild</code> from
+          <code>ngAfterContentInit</code>).
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-queries" [exercise]="exercises.queries" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Parent ↔ child ↔ grandchild</h2>
-  <app-tree-demo demo-body />
-  <p>
-    The parent owns the tasks. Each <code>app-task-list</code> receives its tasks as an input and
-    passes each one to an <code>app-task-item</code>. When a checkbox changes, the item emits
-    <code>toggled</code>, the list re-emits it, and the parent updates its signal. The new array
-    then flows back down and every level re-renders.
-  </p>
-  <p class="source">
-    Code: <code>tree-demo.ts / .html</code>, <code>tree/task-list.ts</code>,
-    <code>tree/task-item.ts</code>
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        This is the <strong>smart / presentational</strong> split: the parent holds state and logic,
-        the list and items only display inputs and emit outputs. Presentational components are easy
-        to reuse and to test.
-      </li>
-      <li>
-        Every extra level has to declare and forward the same input and output ("prop drilling").
-        Past two or three levels, share the state through a service instead.
-      </li>
-      <li>
-        Update state immutably (<code>&#123; ...task, done: true &#125;</code>). Mutating the object
-        in place keeps the same reference, and an OnPush child would not re-render.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.tree" />
-</app-demo-card>
+@if (view.shows('tree')) {
+  <app-demo-card>
+    <h2 demo-title>Parent ↔ child ↔ grandchild</h2>
+    <app-tree-demo demo-body />
+    <app-guide-box [guide]="guides.tree" />
+    <h3>In short</h3>
+    <p>
+      The parent owns the tasks. Each <code>app-task-list</code> receives its tasks as an input and
+      passes each one to an <code>app-task-item</code>. When a checkbox changes, the item emits
+      <code>toggled</code>, the list re-emits it, and the parent updates its signal. The new array
+      then flows back down and every level re-renders.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          This is the <strong>smart / presentational</strong> split: the parent holds state and
+          logic, the list and items only display inputs and emit outputs. Presentational components
+          are easy to reuse and to test.
+        </li>
+        <li>
+          Every extra level has to declare and forward the same input and output ("prop drilling").
+          Past two or three levels, share the state through a service instead.
+        </li>
+        <li>
+          Update state immutably (<code>&#123; ...task, done: true &#125;</code>). Mutating the
+          object in place keeps the same reference, and an OnPush child would not re-render.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-tree" [exercise]="exercises.tree" />
+  </app-demo-card>
+}
 
-<app-demo-card>
-  <h2 demo-title>Siblings: sharing state through a service</h2>
-  <app-siblings-demo demo-body />
-  <p>
-    <code>app-product-picker</code> and <code>app-cart-summary</code> have no bindings between them.
-    Both call <code>inject(CartStore)</code> and get the same instance, because
-    <code>CartStore</code> is provided once by their common parent. The picker calls
-    <code>store.add()</code>; the summary reads <code>store.count()</code> and
-    <code>store.total()</code>, which are signals, so it re-renders on its own.
-  </p>
-  <p class="source">
-    Code: <code>siblings-demo.ts</code>, <code>siblings/cart-store.ts</code>,
-    <code>siblings/product-picker.ts</code>, <code>siblings/cart-summary.ts</code>
-  </p>
-  <app-tips-box>
-    <ul>
-      <li>
-        Keep the writable signal private and expose <code>asReadonly()</code> and
-        <code>computed</code> values plus methods. Only the store can change the state.
-      </li>
-      <li>
-        <code>providedIn: 'root'</code> would make one cart for the whole app. Providing it in a
-        component scopes it to that component and its children. The Dependency injection topic
-        covers both.
-      </li>
-      <li>
-        Older code shares state through a service with an RxJS <code>BehaviorSubject</code> and the
-        <code>async</code> pipe. Signals now fill that role.
-      </li>
-    </ul>
-  </app-tips-box>
-  <app-exercise-box [exercise]="exercises.siblings" />
-</app-demo-card>
+@if (view.shows('siblings')) {
+  <app-demo-card>
+    <h2 demo-title>Siblings: sharing state through a service</h2>
+    <app-siblings-demo demo-body />
+    <app-guide-box [guide]="guides.siblings" />
+    <h3>In short</h3>
+    <p>
+      <code>app-product-picker</code> and <code>app-cart-summary</code> have no bindings between
+      them. Both call <code>inject(CartStore)</code> and get the same instance, because
+      <code>CartStore</code> is provided once by their common parent. The picker calls
+      <code>store.add()</code>; the summary reads <code>store.count()</code> and
+      <code>store.total()</code>, which are signals, so it re-renders on its own.
+    </p>
+    <app-tips-box>
+      <ul>
+        <li>
+          Keep the writable signal private and expose <code>asReadonly()</code> and
+          <code>computed</code> values plus methods. Only the store can change the state.
+        </li>
+        <li>
+          <code>providedIn: 'root'</code> would make one cart for the whole app. Providing it in a
+          component scopes it to that component and its children. The Dependency injection topic
+          covers both.
+        </li>
+        <li>
+          Older code shares state through a service with an RxJS <code>BehaviorSubject</code> and
+          the <code>async</code> pipe. Signals now fill that role.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-siblings" [exercise]="exercises.siblings" />
+  </app-demo-card>
+}
+
+@if (view.single(); as card) {
+  <app-card-pager [cards]="view.cards" [current]="card.id" />
+}

@@ -15,9 +15,9 @@ const format = (p: Point): string => `(${p.x}, ${p.y})`;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EqualityDemo {
-  // Default equality is Object.is: a new object is always a change, even with the same fields.
+  // [1] Default equality is Object.is: a new object is always a change, even with the same fields.
   protected readonly byReference = signal<Point>({ x: 0, y: 0 });
-  // A custom `equal`: setting an equal value is ignored, so nothing that depends on it reruns.
+  // [2] A custom `equal`: setting an equal value is ignored, so nothing that depends on it reruns.
   protected readonly byValue = signal<Point>({ x: 0, y: 0 }, { equal: samePoint });
 
   // Plain counters (as in the computed demo): they number the runs of each computed().
@@ -33,7 +33,7 @@ export class EqualityDemo {
   }));
 
   protected setEqualCopy(): void {
-    // Same fields, different object.
+    // [3] Same fields, different object: only byReference notifies.
     this.byReference.set({ ...this.byReference() });
     this.byValue.set({ ...this.byValue() });
   }

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { USERNAME_CHECK_MS } from './demos/validators';
 import { FormsPage } from './topic-page';
@@ -11,7 +12,10 @@ describe('FormsPage', () => {
   let el: HTMLElement;
 
   beforeEach(async () => {
+    TestBed.configureTestingModule({ providers: [provideRouter([])] });
     fixture = TestBed.createComponent(FormsPage);
+    // ?card=all: every card on the page, as the tests below need.
+    fixture.componentRef.setInput('card', 'all');
     await fixture.whenStable();
     el = fixture.nativeElement as HTMLElement;
   });
@@ -47,6 +51,7 @@ describe('FormsPage', () => {
   it('renders one demo card per concept', () => {
     expect(el.querySelectorAll('app-demo-card').length).toBe(5);
     for (const card of el.querySelectorAll('app-demo-card')) {
+      expect(card.querySelectorAll('app-guide-box .guide__steps > li').length).toBeGreaterThan(0);
       expect(
         card.querySelectorAll('app-exercise-box .exercise__tasks > li').length,
       ).toBeGreaterThan(0);

@@ -1,6 +1,11 @@
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
+import {
+  provideRouter,
+  withComponentInputBinding,
+  withInMemoryScrolling,
+  withViewTransitions,
+} from '@angular/router';
 
 import { routes } from './app.routes';
 import { APP_INTERCEPTORS } from './core/http/interceptors';
@@ -16,6 +21,11 @@ export const appConfig: ApplicationConfig = {
       routes,
       // Route params, query params and route data are bound to matching component inputs.
       withComponentInputBinding(),
+      // Scroll handling on navigation (both off by default):
+      //   scrollPositionRestoration 'enabled': top of the page on a new navigation, the previous
+      //     position on back/forward.
+      //   anchorScrolling: scroll to the URL fragment (#id), also after a full page reload.
+      withInMemoryScrolling({ scrollPositionRestoration: 'enabled', anchorScrolling: 'enabled' }),
       // Uses the browser View Transitions API to animate between pages (no-op where unsupported).
       // The first navigation (page load) is not animated: there is no previous page to fade from.
       withViewTransitions({ skipInitialTransition: true }),

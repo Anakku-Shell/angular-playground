@@ -1,4 +1,6 @@
 <!--
+  Read this template first, then defer/heavy-widget.ts and defer-demo.ts.
+
   @defer (trigger) { content } loads the content's components in a separate chunk, later.
   Triggers (combine with ; and the first one that fires wins):
     on idle (default)  on viewport  on interaction  on hover  on immediate  on timer(2s)
@@ -18,6 +20,7 @@
 @if (visible()) {
   <div class="defer-grid">
     <section>
+      <!-- [1] Loads on a click (or keydown) on the placeholder. -->
       <h3><code>on interaction</code></h3>
       @defer (on interaction) {
         <app-heavy-widget trigger="on interaction" />
@@ -30,6 +33,7 @@
     </section>
 
     <section>
+      <!-- [2] Loads a fixed time after rendering. -->
       <h3><code>on timer(3s)</code></h3>
       @defer (on timer(3s)) {
         <app-heavy-widget trigger="on timer(3s)" />
@@ -40,7 +44,7 @@
 
     <section>
       <h3><code>when ready()</code></h3>
-      <!-- `when` loads once the expression becomes true. Unticking later does not unload it. -->
+      <!-- [3] `when` loads once the expression becomes true. Unticking later does not unload it. -->
       @defer (when ready()) {
         <app-heavy-widget trigger="when ready()" />
       } @placeholder {
@@ -50,7 +54,7 @@
 
     <section>
       <h3><code>on idle</code> (the default)</h3>
-      <!-- Loads when the browser is idle (requestIdleCallback), so it usually appears at once. -->
+      <!-- [4] Loads when the browser is idle (requestIdleCallback), so it usually appears at once. -->
       @defer (on idle) {
         <app-heavy-widget trigger="on idle" />
       } @placeholder (minimum 500ms) {
@@ -59,6 +63,7 @@
     </section>
 
     <section class="wide">
+      <!-- [5] Loads when the placeholder scrolls into view. -->
       <h3><code>on viewport</code></h3>
       <div class="scroll-box" tabindex="0" aria-label="Scrollable box, scroll down to load">
         <p class="state">Scroll down inside this box ↓</p>

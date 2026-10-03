@@ -1,0 +1,47 @@
+<!-- [routerLink]="[]" stays on the current route and only changes the query params. -->
+<nav class="card-nav" aria-label="Cards of this topic">
+  <ul class="card-nav__tabs">
+    <li>
+      <a
+        [routerLink]="[]"
+        [queryParams]="{ card: map }"
+        [attr.aria-current]="onMap() ? 'page' : null"
+      >
+        Map
+      </a>
+    </li>
+    @for (card of cards(); track card.id; let i = $index) {
+      <li>
+        <a
+          [routerLink]="[]"
+          [queryParams]="{ card: card.id }"
+          [attr.aria-current]="card.id === current() ? 'page' : null"
+        >
+          <span class="card-nav__number">{{ i + 1 }}</span>
+          {{ card.label }}
+        </a>
+      </li>
+    }
+    <li>
+      <a
+        [routerLink]="[]"
+        [queryParams]="{ card: all }"
+        [attr.aria-current]="current() === all ? 'page' : null"
+      >
+        All
+      </a>
+    </li>
+  </ul>
+
+  @if (single(); as card) {
+    <!-- The fragment is part of the URL too: after a reload the router scrolls back to it. -->
+    <a
+      class="card-nav__jump"
+      [routerLink]="[]"
+      [queryParams]="{ card: card.id }"
+      [fragment]="'exercises-' + card.id"
+    >
+      ↓ Try it yourself
+    </a>
+  }
+</nav>
