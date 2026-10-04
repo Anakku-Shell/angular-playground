@@ -1,0 +1,155 @@
+// Form on the left, list on the right on wide screens; one column on narrow ones.
+.crud {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+
+  @media (min-width: 60rem) {
+    grid-template-columns: minmax(0, 18rem) minmax(0, 1fr);
+
+    .crud__requests {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
+
+.contact-form {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.2rem;
+
+  > span {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+  }
+}
+
+// Angular adds ng-invalid / ng-touched / ng-dirty to every control, like VeeValidate's meta.
+input.ng-invalid.ng-touched {
+  border-color: var(--color-accent);
+}
+
+.primary {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: #fff;
+
+  &:hover {
+    background: var(--color-accent);
+    filter: brightness(1.1);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+}
+
+.error,
+.notice,
+.loading,
+.muted {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.error {
+  color: var(--color-accent);
+}
+
+.loading {
+  color: var(--color-warning);
+}
+
+.notice {
+  color: #2e8b57;
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.form-state {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+
+  dd {
+    font-family: var(--font-mono);
+    overflow-wrap: anywhere;
+  }
+}
+
+.list-header {
+  justify-content: space-between;
+
+  h3 {
+    margin: 0;
+  }
+}
+
+.status {
+  min-height: 1.75rem;
+  margin: 0.5rem 0;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.requests {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+
+  th,
+  td {
+    padding: 0.3rem 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  th {
+    color: var(--color-text-muted);
+    font-weight: 600;
+  }
+
+  .method,
+  .url {
+    font-family: var(--font-mono);
+  }
+
+  .url {
+    overflow-wrap: anywhere;
+  }
+
+  .failed {
+    color: var(--color-accent);
+  }
+}
+
+.last-body {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.crud__requests .demo-values {
+  margin-top: 0.75rem;
+}

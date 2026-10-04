@@ -1,0 +1,29 @@
+:host {
+  display: grid;
+  // minmax(0, 1fr): the column may shrink below its content's width (default is `auto`, which
+  // lets a wide demo stretch the whole page on small screens).
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  max-width: 60rem;
+}
+
+h1 {
+  margin-bottom: 0;
+}
+
+.lead {
+  margin-top: 0;
+  color: var(--color-text-muted);
+}
+
+.try {
+  margin: 0;
+}
+
+// The contacts app sits outside the cards, framed like a card's demo area.
+.playground {
+  padding: 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-demo-bg);
+}

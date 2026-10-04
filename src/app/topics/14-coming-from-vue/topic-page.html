@@ -1,0 +1,328 @@
+<header>
+  <h1>Coming from Vue</h1>
+  <p class="lead">
+    Angular for Vue 3 developers (Composition API, <code>&lt;script setup&gt;</code>). Every card
+    puts a Vue example next to its Angular twin, with a live demo. The first four cards map what you
+    already know; the last three follow one CRUD flow from the form to the server and back. The code
+    lives in <code>src/app/topics/14-coming-from-vue/</code>.
+  </p>
+</header>
+
+<app-card-nav [cards]="view.cards" [current]="view.current()" />
+
+@if (view.showMap()) {
+  <app-topic-map [guides]="guides">
+    <p>
+      Most Vue ideas have a direct Angular twin with another name. The four that change the most:
+    </p>
+    <ul>
+      <li>
+        <strong>Signals are called.</strong> <code>ref</code> becomes <code>signal</code>, and you
+        read it with <code>count()</code> instead of <code>count.value</code>. You write it with
+        <code>set</code> / <code>update</code>, and a change is detected only when the value is a
+        new one: push into an array and nothing updates.
+      </li>
+      <li>
+        <strong>Services instead of composables and Pinia.</strong> A class that dependency
+        injection creates and gives to whoever calls <code>inject()</code>.
+      </li>
+      <li>
+        <strong>Forms and HTTP are built in.</strong> Reactive Forms replace VeeValidate,
+        <code>HttpClient</code> replaces axios.
+      </li>
+      <li>
+        <strong>HTTP returns Observables, not Promises.</strong> Nothing is sent until you
+        <code>subscribe()</code>, and the response arrives in a callback.
+      </li>
+    </ul>
+    <p>The three CRUD cards follow one request through the app:</p>
+    <pre aria-label="The CRUD flow">
+ form (fields + validators)                       card CRUD: Form
+   │  submit(): valid? → build a ContactDraft
+   ▼
+ ContactsApi.create(draft)  →  HttpClient.post    card CRUD: Request
+   │  interceptors → POST https://dummyjson.com/users/add
+   ▼
+ subscribe(&#123; next, error &#125;)                       card CRUD: Response
+   next:  add to the list, clear the form
+   error: show a message, keep the form</pre>
+    <p>
+      The CRUD cards use
+      <a href="https://dummyjson.com" target="_blank" rel="noopener">DummyJSON</a>, a public fake
+      API: it needs a network connection, and it answers every write as if it saved it, but stores
+      nothing.
+    </p>
+  </app-topic-map>
+}
+
+<!-- Code samples in this template: braces are escaped as &#123; &#125;
+     (a bare brace would open or close a block). The Vue / Angular samples are data in
+     comparisons.ts, so they need no escaping. -->
+
+@if (view.shows('component')) {
+  <app-demo-card>
+    <h2 demo-title>A component: ref, computed, watchEffect → signal, computed, effect</h2>
+    <app-guide-box [guide]="guides.component" />
+    <h3>In short</h3>
+    <app-counter-demo demo-body />
+    <p>
+      An Angular component is a class with a <code>&#64;Component</code> decorator that holds its
+      selector (the tag name), its template and its styles. State is a <code>signal</code>, the
+      equivalent of <code>ref</code>, and derived values are <code>computed</code>, as in Vue.
+    </p>
+    <h3>Vue → Angular</h3>
+    <app-vue-compare [comparison]="comparisons.component" />
+    <app-tips-box>
+      <ul>
+        <li>
+          The forgotten <code>()</code> is the #1 mistake:
+          <code ngNonBindable>{{ count }}</code> prints the signal function, not its value. Write
+          <code>count()</code>, in the template and in the class.
+        </li>
+        <li>
+          <code>effect</code> is for side effects (storage, logs, a non-Angular library). To derive
+          a value, use <code>computed</code>. There is no
+          <code>watch(source, (new, old) =&gt; …)</code>: read
+          <a routerLink="/topics/04-signals">Signals</a> for the alternatives.
+        </li>
+        <li>
+          The CLI generates components: <code>ng g c contact-list</code> creates the class,
+          template, styles and spec in one folder.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-component" [exercise]="exercises.component" />
+  </app-demo-card>
+}
+
+@if (view.shows('template')) {
+  <app-demo-card>
+    <h2 demo-title>Templates: :prop, &#64;click, v-model, v-if, v-for</h2>
+    <app-guide-box [guide]="guides.template" />
+    <h3>In short</h3>
+    <app-template-demo demo-body />
+    <p>
+      <code>:</code> becomes <code>[ ]</code>, <code>&#64;</code> becomes <code>( )</code>,
+      <code>v-model</code> becomes <code>[( )]</code>, and <code>v-if</code> /
+      <code>v-for</code> become the built-in blocks <code>&#64;if</code> / <code>&#64;for</code>.
+      Interpolation is the same <code ngNonBindable>{{}}</code>.
+    </p>
+    <h3>Vue → Angular</h3>
+    <app-vue-compare [comparison]="comparisons.template" />
+    <app-tips-box>
+      <ul>
+        <li>
+          <code>track</code> is mandatory in <code>&#64;for</code>: it is Vue's <code>:key</code>.
+          Use a stable id, never the index for lists that change.
+        </li>
+        <li>
+          Templates are type-checked: a typo in a property name fails the build, like in a
+          <code>.ts</code> file.
+        </li>
+        <li>
+          Older code uses <code>*ngIf</code> and <code>*ngFor</code>, the previous syntax: see
+          <a routerLink="/topics/02-control-flow">Control flow</a>.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-template" [exercise]="exercises.template" />
+  </app-demo-card>
+}
+
+@if (view.shows('parentChild')) {
+  <app-demo-card>
+    <h2 demo-title>Props, emits, v-model, slots → input, output, model, ng-content</h2>
+    <app-guide-box [guide]="guides.parentChild" />
+    <h3>In short</h3>
+    <app-parent-child-demo demo-body />
+    <p>
+      The child declares <code>input()</code> for props, <code>output()</code> for events and
+      <code>model()</code> for a two-way value. The parent binds them with <code>[max]</code>,
+      <code>(limit)</code> and <code>[(value)]</code>, and anything between the child's tags is
+      projected into its <code>&lt;ng-content /&gt;</code>.
+    </p>
+    <h3>Vue → Angular</h3>
+    <app-vue-compare [comparison]="comparisons.parentChild" />
+    <app-tips-box>
+      <ul>
+        <li>
+          Inputs are read-only signals in the child: <code>this.max()</code>. Only a
+          <code>model()</code> can be written from inside.
+        </li>
+        <li>
+          Projected content belongs to the parent: its bindings use the parent's signals, as in Vue.
+        </li>
+        <li>
+          More patterns (aliases, transforms, queries): see
+          <a routerLink="/topics/03-component-communication">Component communication</a>.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-parentChild" [exercise]="exercises.parentChild" />
+  </app-demo-card>
+}
+
+@if (view.shows('services')) {
+  <app-demo-card>
+    <h2 demo-title>Pinia and composables → services and inject()</h2>
+    <app-guide-box [guide]="guides.services" />
+    <h3>In short</h3>
+    <app-services-demo demo-body />
+    <p>
+      A service is a class marked <code>&#64;Injectable</code>. With
+      <code>providedIn: 'root'</code> there is one instance for the whole app, so it works like a
+      Pinia store: state in signals, getters as <code>computed</code>, actions as methods.
+      Components get it with <code>inject(FavoritesStore)</code>.
+    </p>
+    <h3>Vue → Angular</h3>
+    <app-vue-compare [comparison]="comparisons.services" />
+    <app-tips-box>
+      <ul>
+        <li>
+          Where it is provided decides how many instances exist: <code>root</code> for one per app,
+          a component's <code>providers: []</code> for one per component (and its children).
+        </li>
+        <li>
+          Services hold more than state: API calls (the next cards), logging, anything a component
+          should not do itself. That keeps components small.
+        </li>
+        <li>
+          For bigger apps there is NgRx SignalStore, the closest thing to Pinia: see
+          <a routerLink="/topics/11-state-management">State management</a> and
+          <a routerLink="/topics/05-dependency-injection">Dependency injection</a>.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-services" [exercise]="exercises.services" />
+  </app-demo-card>
+}
+
+<!-- Outside the cards: the three CRUD cards drive the same app, so it stays on the page (and keeps
+     what you typed) while you move between them. -->
+@if (showCrud()) {
+  <section class="playground" aria-label="Contacts app">
+    <app-contacts-app />
+  </section>
+}
+
+@if (view.shows('form')) {
+  <app-demo-card>
+    <h2 demo-title>CRUD 1 · The form: fields and validation</h2>
+    <app-guide-box [guide]="guides.form" />
+    <h3>In short</h3>
+    <p demo-body class="try">
+      The contacts app above is this card's demo. Start with the form on its left.
+    </p>
+    <p>
+      The form model lives in the class: each field has an initial value and its validators. The
+      template binds each input with <code>formControlName</code> and reads the state of a field
+      (<code>touched</code>, <code>invalid</code>, <code>hasError()</code>) to show messages. On
+      submit, an invalid form only marks every field as touched, so all its errors show.
+    </p>
+    <h3>Vue → Angular</h3>
+    <app-vue-compare [comparison]="comparisons.form" />
+    <app-tips-box>
+      <ul>
+        <li>
+          <code>NonNullableFormBuilder</code>: <code>reset()</code> goes back to the initial values
+          instead of <code>null</code>, and the value types stay <code>string</code>, not
+          <code>string | null</code>.
+        </li>
+        <li>
+          <code>form.value</code> skips disabled fields; <code>form.getRawValue()</code> includes
+          them. Send <code>getRawValue()</code> when you need every field.
+        </li>
+        <li>
+          Server-side validation still matters: the back must check everything again. Show its field
+          errors with <code>control.setErrors(&#123; server: message &#125;)</code>.
+        </li>
+        <li>
+          Custom, async and cross-field validators, and the experimental signal forms: see
+          <a routerLink="/topics/08-forms">Forms</a>.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-form" [exercise]="exercises.form" />
+  </app-demo-card>
+}
+
+@if (view.shows('request')) {
+  <app-demo-card>
+    <h2 demo-title>CRUD 2 · The service builds the request</h2>
+    <app-guide-box [guide]="guides.request" />
+    <h3>In short</h3>
+    <p demo-body class="try">
+      The contacts app above is this card's demo. Watch "What was sent" at its bottom.
+    </p>
+    <p>
+      The component never builds URLs or bodies: it calls <code>api.create(draft)</code>. The
+      service wraps <code>HttpClient</code>, picks the method (GET, POST, PUT, DELETE), the URL, the
+      query params and the body, and types the response. The request still goes through the app's
+      interceptors, which add the auth header and log it.
+    </p>
+    <h3>Vue → Angular</h3>
+    <app-vue-compare [comparison]="comparisons.request" />
+    <app-tips-box>
+      <ul>
+        <li>
+          An Observable is lazy: calling <code>api.create()</code> sends nothing. The request goes
+          out on <code>subscribe()</code>, and every new subscribe sends it again.
+        </li>
+        <li>
+          <code>post&lt;Contact&gt;()</code> is a type assertion, not a check: if the back sends
+          something else, TypeScript will not notice.
+        </li>
+        <li>
+          <code>HttpClient</code> is registered once in <code>app.config.ts</code> with
+          <code>provideHttpClient(withInterceptors([…]))</code>, like an axios instance with its
+          interceptors. See <a routerLink="/topics/09-http-rxjs">HTTP &amp; RxJS</a>.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-request" [exercise]="exercises.request" />
+  </app-demo-card>
+}
+
+@if (view.shows('response')) {
+  <app-demo-card>
+    <h2 demo-title>CRUD 3 · Handling the response: loading, success, error</h2>
+    <app-guide-box [guide]="guides.response" />
+    <h3>In short</h3>
+    <p demo-body class="try">
+      The contacts app above is this card's demo. Try a save that works, then one that fails.
+    </p>
+    <p>
+      The component subscribes with two callbacks. <code>next</code> gets the saved contact: the
+      list is updated with it (a new array) and the form is cleared. <code>error</code> gets an
+      <code>HttpErrorResponse</code>: a message is shown and the form keeps its values. A
+      <code>saving</code> signal disables the buttons in between.
+    </p>
+    <h3>Vue → Angular</h3>
+    <app-vue-compare [comparison]="comparisons.response" />
+    <app-tips-box>
+      <ul>
+        <li>
+          Updating the list from the response saves a GET. Reloading the whole list after each write
+          is simpler and always right; pick one per screen.
+        </li>
+        <li>
+          HTTP Observables complete after one answer, so there is nothing to unsubscribe. If the
+          user may leave mid-request, add <code>takeUntilDestroyed()</code> to cancel it.
+        </li>
+        <li>
+          Errors shown everywhere (401, network down) belong in an interceptor, once for the whole
+          app. This page skips that global banner because it shows its own message.
+        </li>
+        <li>
+          Prefer async / await? <code>await firstValueFrom(api.create(draft))</code> works for
+          one-shot requests. Searches and other streams stay Observables.
+        </li>
+      </ul>
+    </app-tips-box>
+    <app-exercise-box id="exercises-response" [exercise]="exercises.response" />
+  </app-demo-card>
+}
+
+@if (view.single(); as card) {
+  <app-card-pager [cards]="view.cards" [current]="card.id" />
+}
