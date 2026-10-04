@@ -1771,6 +1771,26 @@ Declared components need `standalone: false` since v19 (before v19, `false` was 
 - `*ngFor` without `trackBy` tracks object references: replacing the array (as immutable updates do) re-creates every row. `@for` makes `track` mandatory.
 - Old class names end in `Component`, `Service`, `Module` and files in `.component.ts`. Since v20 the CLI drops the suffixes (`ng g c task-list` → `task-list.ts`, class `TaskList`). A migrated codebase often has both; `angular.json` schematic options can keep generating the old style.
 
+### 5.14 Coming from Vue
+
+A short path for Vue 3 developers (Composition API) who need the fundamentals fast. Every card shows a Vue example next to its Angular twin (`app-vue-compare`, data in `comparisons.ts`), above a live demo. The full mapping table is in the [appendix](#appendix-coming-from-vue).
+
+- **Basics, four cards:** a component (`ref` / `computed` / `watchEffect` → `signal` / `computed` / `effect`), template syntax (`:prop`, `@click`, `v-model`, `v-if`, `v-for` → `[prop]`, `(click)`, `[(ngModel)]`, `@if`, `@for`), parent and child (`defineProps` / `defineEmits` / `defineModel` / slots → `input()` / `output()` / `model()` / `<ng-content>`), and Pinia or composables → a service plus `inject()`.
+- **One CRUD flow, three cards:** a contacts app (`crud/`) followed step by step.
+  1. **Form.** A typed reactive form with validators; an invalid submit calls `markAllAsTouched()`.
+  2. **Request.** `ContactsApi` wraps `HttpClient` (GET, POST, PUT, DELETE), so the component never builds a URL.
+  3. **Response.** `subscribe({ next, error })` updates the list or shows a message and keeps the form.
+
+  The app sits above the three cards, so switching between them keeps its state.
+
+- **DummyJSON fakes writes.** It answers a POST, PUT or DELETE as if it saved the change, but stores nothing. Every new contact comes back as id 209, so the page gives repeated ids a free one. Editing a contact you created answers 404, which shows the error path without any setup. "Make the server fail" points every request to `/http/500`.
+
+**Gotchas seen in the demo**
+
+- `{{ count }}` without parentheses prints the signal function, not its value.
+- Pushing into an array held by a signal changes nothing on screen: signals compare by reference. Set a new array.
+- `http.post()` alone sends nothing. The request goes out on `subscribe()`, unlike an axios Promise.
+
 ---
 
 ## 6. Angular 19 → 20 → 21
@@ -1917,6 +1937,8 @@ Environment-specific values (API URLs...) are baked in at build time. One build 
 ---
 
 ## Appendix: Coming from Vue
+
+Topic 14 ([5.14](#514-coming-from-vue)) walks through the most common rows with live demos and a full CRUD flow.
 
 **Mapping**
 

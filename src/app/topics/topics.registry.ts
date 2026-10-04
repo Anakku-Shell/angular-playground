@@ -142,6 +142,14 @@ export const TOPICS: readonly Topic[] = [
     loadChildren: () =>
       import('./13-legacy-migration/legacy/legacy.module').then((m) => m.LegacyModule),
   },
+  {
+    id: '14',
+    path: '14-coming-from-vue',
+    title: 'Coming from Vue',
+    summary:
+      'Vue 3 next to Angular: components, templates, props and emits, Pinia vs services, then a full CRUD flow from form to server and back.',
+    loadComponent: () => import('./14-coming-from-vue/topic-page').then((m) => m.ComingFromVuePage),
+  },
 ];
 
 /** Router link for a topic page. */
